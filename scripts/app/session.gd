@@ -355,6 +355,14 @@ func run_transient() -> Dictionary:
 	last_result = res
 	if res.ok:
 		_waveforms_from_samples(res.samples)
+		var nk: Array = nets.keys()
+		nk.sort()
+		waveforms["node_keys"] = nk
+		var ek := []
+		for el in built.circuit.elements:
+			ek.append(el.id)
+		ek.sort()
+		waveforms["current_keys"] = ek
 		last_error = ""
 		status_message.emit("Transient complete: %d samples over %s s." % [res.samples.size(), str(t_stop)])
 	else:
@@ -407,6 +415,10 @@ func load_project(path: String) -> bool:
 	selection_changed.emit("")
 	status_message.emit("Opened " + path)
 	return true
+
+
+func mark_untitled() -> void:
+	_current_file = ""
 
 
 func save_project(path: String) -> bool:

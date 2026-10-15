@@ -1,0 +1,109 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0,
+				"waveform": {
+					"amplitude": 5.0,
+					"frequency": 50.0,
+					"offset": 0.0,
+					"type": "sine"
+				}
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "D1",
+			"params": {
+				"is": 1e-14,
+				"n": 1.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "diode"
+		},
+		{
+			"holes": [
+				"a10",
+				"TM10"
+			],
+			"id": "R1",
+			"params": {
+				"r": 1000.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-15T23:26:11",
+		"description": "A sine source through a diode produces half-wave output.",
+		"measurement": "Run Transient. Output is only positive half-cycles minus the diode drop.",
+		"modified": "2026-10-15T23:26:11",
+		"name": "Half-Wave Rectifier"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 1e-05,
+		"mode": "transient",
+		"t_stop": 0.04
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "a5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a10",
+				"kind": "hole"
+			},
+			"id": "W1"
+		}
+	]
+}

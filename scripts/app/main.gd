@@ -36,6 +36,7 @@ var scope_sel: Array = []
 var open_dialog: FileDialog
 var save_dialog: FileDialog
 var lib_defs: Array = []
+var example_paths: Array = []
 
 
 func _ready() -> void:
@@ -48,6 +49,23 @@ func _ready() -> void:
 	session.status_message.connect(_on_status)
 	_on_session_changed()
 	_on_status("Welcome to CircuitForge 3D. Pick a component, click the board to place it.")
+	_open_from_command_line()
+
+
+func _open_from_command_line() -> void:
+	var args := OS.get_cmdline_user_args()
+	if args.is_empty():
+		return
+	var path := String(args[0])
+	if not session.load_project(path):
+		return
+	session.mark_untitled()
+	var mode := String(session.project.get("simulation", {}).get("mode", "dc"))
+	_on_status("Loaded %s" % path)
+	if mode == "transient":
+		_on_run_transient()
+	else:
+		_on_run_dc()
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +152,7 @@ func _build_toolbar(root: Control) -> void:
 	_mk_button(hb, "New", _on_new)
 	_mk_button(hb, "Open", _on_open)
 	_mk_button(hb, "Save", _on_save)
+	_build_examples_menu(hb)
 	var sep1 = VSeparator.new(); hb.add_child(sep1)
 	_mk_button(hb, "Wire", _on_wire_mode, "Toggle wire drawing (click two holes)")
 	_mk_button(hb, "Rotate", _on_rotate, "Rotate selected component")
@@ -148,6 +167,30 @@ func _build_toolbar(root: Control) -> void:
 	_mk_button(hb, "Redo", _on_redo, "Redo")
 	_mk_button(hb, "Scope", _on_toggle_scope, "Show/hide the oscilloscope")
 	_mk_button(hb, "Reset View", _on_reset_view, "Reset the camera")
+
+
+func _build_examples_menu(hb: HBoxContainer) -> void:
+	var ex_btn = OptionButton.new()
+	ex_btn.tooltip_text = "Load and simulate a bundled example circuit"
+	ex_btn.add_item("Examples")
+	ex_btn.set_item_disabled(0, true)
+	example_paths.clear()
+	var edir = DirAccess.open("res://data/examples")
+	if edir != null:
+		var names := []
+		edir.list_dir_begin()
+		var fn = edir.get_next()
+		while fn != "":
+			if fn.ends_with(".cf3d"):
+				names.append(fn)
+			fn = edir.get_next()
+		edir.list_dir_end()
+		names.sort()
+		for n in names:
+			example_paths.append("res://data/examples/" + n)
+			ex_btn.add_item(String(n).get_basename().replace("_", " "))
+	ex_btn.item_selected.connect(_on_example_selected)
+	hb.add_child(ex_btn)
 
 
 func _build_left(root: Control) -> void:
@@ -610,6 +653,21 @@ func _on_open_selected(path: String) -> void:
 	if session.load_project(path):
 		_on_status("Opened " + path)
 
+func _on_example_selected(index: int) -> void:
+	if index <= 0 or index - 1 >= example_paths.size():
+		return
+	var path := String(example_paths[index - 1])
+	if not session.load_project(path):
+		return
+	session.mark_untitled()
+	var mode := String(session.project.get("simulation", {}).get("mode", "dc"))
+	_on_status("Loaded example: %s" % String(path).get_file())
+	if mode == "transient":
+		_on_run_transient()
+	else:
+		_on_run_dc()
+
+
 func _on_save() -> void:
 	if session.current_file() != "":
 		session.save_project(session.current_file())
@@ -736,9 +794,16 @@ func _refresh_scope_targets() -> void:
 	if scope_prev != null and session.waveforms.has("series"):
 		var keys: Array = session.waveforms.series.keys()
 		keys.sort()
-		if scope_prev.text.strip_edges() == "" and keys.size() > 0:
-			scope_prev.text = ", ".join(keys.slice(0, min(2, keys.size())))
-			_on_scope_probes(scope_prev.text)
+		var picks := []
+		for k in session.waveforms.get("node_keys", []):
+			if String(k) != "0":
+				picks.append(k)
+			if picks.size() >= 3:
+				break
+		if picks.is_empty():
+			picks = keys.slice(0, min(2, keys.size()))
+		scope_prev.text = ", ".join(picks)
+		_on_scope_probes(scope_prev.text)
 
 
 func _on_scope_probes(text: String) -> void:

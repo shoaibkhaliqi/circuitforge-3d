@@ -50,15 +50,29 @@ func _draw() -> void:
 	if t1 <= t0:
 		return
 
-	# Vertical range.
-	var vmax := 1.0
-	var vmin := -1.0
+	# Vertical range: auto-fit the selected channels with padding.
+	var vmax := -1e30
+	var vmin := 1e30
+	var found := false
 	for ch in channels:
 		if ch == "" or not waveforms.series.has(ch):
 			continue
 		for v in waveforms.series[ch]:
-			vmax = max(vmax, float(v))
-			vmin = min(vmin, float(v))
+			var fv := float(v)
+			vmax = max(vmax, fv)
+			vmin = min(vmin, fv)
+			found = true
+	if not found:
+		vmax = 1.0
+		vmin = -1.0
+	else:
+		if vmax - vmin < 1e-9:
+			vmax = vmax + 1.0
+			vmin = vmin - 1.0
+		else:
+			var pad := (vmax - vmin) * 0.08
+			vmax += pad
+			vmin -= pad
 	if v_offset != 0.0:
 		vmax += v_offset
 		vmin += v_offset
@@ -88,6 +102,13 @@ func _draw() -> void:
 			continue
 		draw_string(ThemeDB.fallback_font, Vector2(8, yy), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, CH_COLORS[ci % CH_COLORS.size()])
 		yy += 16
-	draw_string(ThemeDB.fallback_font, Vector2(w - 190, h - 8),
-		"t: %s s   V: %s .. %s" % [str(t1 - t0), str(vmin), str(vmax)],
+	draw_string(ThemeDB.fallback_font, Vector2(w - 250, h - 8),
+		"t: %s s   V: %s .. %s" % [_fmt(t1 - t0), _fmt(vmin), _fmt(vmax)],
 		HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.7, 0.7, 0.7))
+
+
+func _fmt(x: float) -> String:
+	var a := absf(x)
+	if a != 0.0 and (a < 1e-4 or a >= 1e6):
+		return String.num_scientific(x)
+	return String.num(x, 4)

@@ -1,0 +1,102 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "R1",
+			"params": {
+				"r": 1000.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		},
+		{
+			"holes": [
+				"a10",
+				"TM10"
+			],
+			"id": "C1",
+			"params": {
+				"c": 0.0001
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "capacitor"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-15T23:26:11",
+		"description": "1 kOhm and 100 uF in series from 5 V. Time constant tau = 0.1 s.",
+		"measurement": "Run Transient (0.5 s, 1 ms). Capacitor reaches ~3.16 V at 0.1 s and ~4.97 V at 0.5 s.",
+		"modified": "2026-10-15T23:26:11",
+		"name": "RC Charging"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "transient",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "a5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a10",
+				"kind": "hole"
+			},
+			"id": "W1"
+		}
+	]
+}

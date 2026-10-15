@@ -1,0 +1,88 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"a5",
+				"a10"
+			],
+			"id": "R1",
+			"params": {
+				"r": 1000.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		},
+		{
+			"holes": [
+				"a10",
+				"TM10"
+			],
+			"id": "C1",
+			"params": {
+				"c": 0.0001,
+				"ic": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "capacitor"
+		},
+		{
+			"holes": [
+				"TM10"
+			],
+			"id": "GND2",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-15T23:26:11",
+		"description": "Capacitor pre-charged to 5 V discharges through 1 kOhm. tau = 0.1 s.",
+		"measurement": "Run Transient. Capacitor decays from 5 V toward 0 V.",
+		"modified": "2026-10-15T23:26:11",
+		"name": "RC Discharging"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "transient",
+		"t_stop": 0.5
+	},
+	"wires": []
+}

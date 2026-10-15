@@ -1,0 +1,131 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "SW1",
+			"params": {
+				"closed": true
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "switch"
+		},
+		{
+			"holes": [
+				"a10",
+				"b10"
+			],
+			"id": "R1",
+			"params": {
+				"r": 330.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		},
+		{
+			"holes": [
+				"b15",
+				"TM10"
+			],
+			"id": "D1",
+			"params": {
+				"is": 2e-19,
+				"n": 1.8
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "led"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-15T23:26:11",
+		"description": "A series switch controls the LED. Set the switch to closed = true.",
+		"measurement": "Run DC with the switch open (no current), then set closed=true and run again.",
+		"modified": "2026-10-15T23:26:11",
+		"name": "Switch-Controlled LED"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "a5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a10",
+				"kind": "hole"
+			},
+			"id": "W1"
+		},
+		{
+			"a": {
+				"id": "b10",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "b15",
+				"kind": "hole"
+			},
+			"id": "W2"
+		}
+	]
+}

@@ -1,0 +1,85 @@
+# CircuitForge 3D — Test Report (0.1.0)
+
+## Environment
+
+| Item        | Value                                                         |
+|-------------|---------------------------------------------------------------|
+| Host        | Windows 10 (10.0.26300), x86-64                              |
+| CPU / RAM   | Intel Core i7-9750H / 15.9 GB                                |
+| GPU         | NVIDIA GTX 1660 Ti                                           |
+| Engine      | Godot 4.7.2.stable.official (`ed1daf0bf`)                    |
+| Date        | 2026-10-15                                                    |
+
+## How to reproduce
+
+```powershell
+& "<godot_console.exe>" --headless --path <project> `
+    --script res://tests/run_tests.gd
+```
+
+Exit code `0` = success. The runner records each file and fails the file if it
+does not reach `t.done()` (guards against silently skipped tests).
+
+## Result
+
+```
+RESULT: 186 / 186 passed
+STATUS: ALL TESTS PASSED
+```
+
+## Coverage by suite
+
+| Suite / section                                            | Area                |
+|------------------------------------------------------------|---------------------|
+| LinAlg — linear solve                                      | numeric core        |
+| DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
+| Transient — RC charging, RL step, sine source              | transient solver    |
+| Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
+| Invalid 8a–8g — no ref, floating, conflict, empty, …       | error handling      |
+| Breadboard — groups, rails, split, wires, move, rotate     | connectivity graph  |
+| Persistence — validate, save/reload, corruption, migration | file format         |
+| Units — engineering notation parse/format                  | input handling      |
+| Camera — orbit / pan / zoom                                | view control        |
+| End-to-end — build, solve, edit, save, reload              | integration         |
+| Examples — load/validate/simulate all 10, documented values| integration         |
+
+## Numerical validation (physical sanity)
+
+| Case                                  | Expected              | Measured (`0.1.0`)    |
+|---------------------------------------|-----------------------|-----------------------|
+| 5 V, 1 kΩ (Ohm's law)                 | 5 mA                  | 5 mA                  |
+| 10 V, two 1 kΩ divider               | 5 V midpoint          | 5 V midpoint          |
+| 12 V, two 1 kΩ parallel              | 24 mA total           | 24 mA total           |
+| LED example (5 V, 330 Ω, red LED)     | Vf≈1.8 V, I≈9–10 mA   | 1.788 V, 9.733 mA     |
+| RC charge (1 kΩ, 100 µF, 5 V) at 0.5 s| 4.966 V               | 4.9658 V              |
+| Silicon diode forward drop            | ≈0.6–0.7 V            | within range (test)   |
+
+## Interactive (GUI) verification
+
+Performed manually on Windows with screenshot evidence:
+
+1. **Launch & render** — the 3D breadboard, holes, centre channel, coloured
+   rails and all panels render correctly.
+2. **Load example** — `res://data/examples/01_led_resistor.cf3d` loaded from the
+   command line and via the **Examples** dropdown.
+3. **DC solve** — the example auto-ran: *"DC simulation complete (12
+   iteration(s))"*; component labels showed `V1=5 V`, `R1` 330 Ω / 3.212 V /
+   9.733 mA, `D1` 1.788 V / 9.733 mA (matches the automated result).
+4. **Transient + oscilloscope** — `05_rc_charging.cf3d` ran *"Transient
+   complete: 501 samples over 0.5 s"*; the scope drew the classic RC charging
+   curve with auto-scaled axes; Measurements reported `net TP1 = 5 V`,
+   `net a10 = 4.9658 V`.
+
+## Packaging verification
+
+| Artifact                                   | Produced | Booted |
+|--------------------------------------------|----------|--------|
+| `build/windows/CircuitForge3D.exe` (+pck)  | yes      | yes (`--headless --quit-after`, exit 0, incl. CLI example load) |
+| `build/linux/CircuitForge3D.x86_64` (+pck) | yes      | **not verified** (no Linux host) |
+
+## Limitations
+
+- Only Windows runtime was executed; Linux is exported but unexecuted.
+- Automated tests exercise the simulation core and the session/netlist layer
+  headlessly; GUI interaction is covered by the manual checks above, not by an
+  automated UI harness.

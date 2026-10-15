@@ -1,0 +1,148 @@
+# CircuitForge 3D — User Guide
+
+## 1. Overview
+
+CircuitForge 3D is a virtual electronics workbench. You place components on a
+3D breadboard, connect them through the holes (and explicit jumper wires), then
+run a real circuit simulation to see voltages, currents and waveforms.
+
+## 2. The window
+
+```
++--------------------------------------------------------------+
+| Toolbar: New Open Save [Examples] | Wire Rotate Dup Delete | |
+|          Run DC Run Transient Stop | Undo Redo Scope Help    |
++-----------+----------------------------------+---------------+
+| Component |            3D WORKBENCH          |  Properties   |
+|  Library  |      (breadboard + parts)        |  (selected)   |
+|           |                                  |               |
++-----------+----------------------------------+---------------+
+| Status bar | Measurements / Diagnostics                      |
++--------------------------------------------------------------+
+```
+
+- **Component Library** (left): browse by category or type to search.
+- **3D workbench** (centre): the breadboard and your circuit.
+- **Properties** (right): edit the selected component's value.
+- **Measurements / Diagnostics** (bottom): solved node voltages, branch
+  currents, solver iterations and warnings.
+- **Oscilloscope** (floating window): transient waveforms.
+
+## 3. Placing components
+
+1. Click a component in the **Component Library**. It becomes "armed".
+2. Click a breadboard hole. The component is placed with its first pin on that
+   hole and its remaining pins on adjacent holes.
+3. Press `Esc` to disarm placement.
+
+Each component gets an automatic id: `R1`, `C1`, `V1`, `D1` (LEDs/diodes),
+`DZ1` (zener), `SW1`, `RV1`, `GND1`, etc.
+
+## 4. Wiring
+
+- Click **Wire** to toggle wire-drawing mode (button stays highlighted).
+- Click two holes to draw a jumper wire between them.
+- Click **Wire** again (or press `W`) to leave the mode.
+
+Holes are connected electrically as follows:
+
+- The five holes in each half-row of the terminal strip are one net.
+- The centre channel separates the two halves (they are isolated).
+- The four power rails are continuous down the whole board unless the project
+  enables **split rail** mode, which breaks each rail in the middle.
+
+A **wire** simply unifies the nets of its two endpoints. Placing two component
+pins on the same net connects them.
+
+## 5. Ground and reference
+
+The solver needs a reference node. Place a **Ground** component on the net you
+want to define as 0 V; that net is renamed `0` and becomes the reference.
+
+## 6. Editing values
+
+Select any component (click it on the board). The **Properties** panel shows
+its editable parameters:
+
+| Component        | Parameters                                   |
+|------------------|----------------------------------------------|
+| Resistor         | Resistance (Ohm)                             |
+| Capacitor        | Capacitance (F)                              |
+| Inductor         | Inductance (H)                               |
+| Potentiometer    | Total resistance, wiper position (0–1)       |
+| Switch           | Closed (true/false)                          |
+| DC Voltage Source| Voltage (V)                                  |
+| DC Current Source| Current (A)                                  |
+| Diode / LED      | Saturation current, ideality factor          |
+| Zener Diode      | + breakdown voltage                          |
+
+Values accept engineering notation such as `4.7k`, `100n`, `10m`, `2M`
+(see `docs/architecture/architecture.md` for the units parser).
+
+## 7. Simulation
+
+- **Run DC** — solves the DC operating point (nonlinear parts are linearised by
+  Newton–Raphson). Results appear in Measurements and on the component labels.
+- **Run Transient** — time-domain analysis using backward-Euler companion
+  models. Defaults: `t_stop = 0.5 s`, `dt = 1 ms` (per project).
+- **Stop** — clears results.
+
+After a transient, open the **oscilloscope** (Scope button). Enter one to four
+**probes** (comma-separated net names and/or component ids, e.g. `TP1, a10,
+C1`). The scope auto-scales vertically to the selected traces.
+
+Waveform sources: a voltage source's `waveform` parameter may be `sine`,
+`square`, `pulse`, `triangle` or omitted (DC).
+
+## 8. Files
+
+- Projects are saved as **`.cf3d`** — a versioned, validated JSON document.
+- **New / Open / Save** are in the toolbar. Opening a corrupted or older file
+  fails safely or migrates it.
+- **Undo / Redo** cover component and wire edits.
+
+### Bundled examples
+
+Use the **Examples** dropdown in the toolbar, or the command line:
+
+```
+godot --path <project> -- res://data/examples/04_voltage_divider.cf3d
+```
+
+| File                          | What it shows                          | Expected result                          |
+|-------------------------------|----------------------------------------|------------------------------------------|
+| 01_led_resistor               | LED current limiting                   | ≈1.79 V across LED, ≈9.7 mA              |
+| 02_series_resistors           | Series resistors                       | 4.5 V midpoint, 4.5 mA                   |
+| 03_parallel_resistors         | Parallel resistors                     | 12 mA per branch, 24 mA total            |
+| 04_voltage_divider            | Equal divider                          | 5 V midpoint                             |
+| 05_rc_charging                | RC charge (τ = 0.1 s)                  | ≈3.16 V at 0.1 s, ≈4.97 V at 0.5 s       |
+| 06_rc_discharging             | RC discharge from 5 V initial          | exponential decay toward 0 V             |
+| 07_rl_response                | RL step (τ = 0.1 ms)                   | current rises to ≈50 mA                  |
+| 08_half_wave_rectifier        | Sine + diode                          | positive half-cycles only                |
+| 09_led_switch                 | Switch-controlled LED                  | LED on when switch closed                |
+| 10_zener_regulator            | Zener clamp                            | output clamped near breakdown            |
+
+## 9. Keyboard & mouse
+
+| Input        | Action                         |
+|--------------|--------------------------------|
+| Left-click   | place / select                 |
+| Right-drag   | orbit camera                   |
+| Middle-drag  | pan camera                     |
+| Wheel        | zoom                           |
+| `W`          | toggle wire mode               |
+| `R`          | rotate selected component      |
+| `Delete`     | delete selected component      |
+| `Space`      | run DC                         |
+| `F1`         | help                           |
+| `Esc`        | cancel placement / wire        |
+
+## 10. Troubleshooting
+
+- **"missing reference node"** — add a Ground component.
+- **"floating node"** — a net has no DC path to the rest of the circuit; add a
+  component or wire that connects it.
+- **Oscilloscope shows nothing** — run a transient first; DC runs produce no
+  time-domain samples.
+- **A part has no effect** — make sure both of its pins are on nets that are
+  actually connected (check the hole groups and rails).

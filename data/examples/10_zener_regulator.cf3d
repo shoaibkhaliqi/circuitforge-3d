@@ -1,0 +1,102 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 9.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "R1",
+			"params": {
+				"r": 470.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		},
+		{
+			"holes": [
+				"a10",
+				"TM10"
+			],
+			"id": "DZ1",
+			"params": {
+				"vz": 5.1
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "zener"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-15T23:26:11",
+		"description": "A 5.1 V zener clamps the output of a 9 V supply through 470 Ohm.",
+		"measurement": "Run DC. The zener node settles near the breakdown voltage (about -5.1 V across the zener).",
+		"modified": "2026-10-15T23:26:11",
+		"name": "Zener Regulator"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "a5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a10",
+				"kind": "hole"
+			},
+			"id": "W1"
+		}
+	]
+}
