@@ -10,8 +10,11 @@ run a real circuit simulation to see voltages, currents and waveforms.
 
 ```
 +--------------------------------------------------------------+
-| Toolbar: New Open Save [Examples] | Wire Rotate Dup Delete | |
-|          Run DC Run Transient Stop | Undo Redo Scope Help    |
+| Toolbar (wraps to 2 rows):                                   |
+|   New Open Save SaveAs [Examples]                            |
+|   Wire Rotate Dup Delete                                      |
+|   Run DC Run Transient Stop                                   |
+|   Undo Redo Scope Meter Lighting Help                         |
 +-----------+----------------------------------+---------------+
 | Component |            3D WORKBENCH          |  Properties   |
 |  Library  |      (breadboard + parts)        |  (selected)   |
@@ -27,6 +30,7 @@ run a real circuit simulation to see voltages, currents and waveforms.
 - **Measurements / Diagnostics** (bottom): solved node voltages, branch
   currents, solver iterations and warnings.
 - **Oscilloscope** (floating window): transient waveforms.
+- **Meter** (floating window): a single net-voltage / branch-current probe.
 
 ## 3. Placing components
 
@@ -75,6 +79,7 @@ its editable parameters:
 | DC Current Source| Current (A)                                  |
 | Diode / LED      | Saturation current, ideality factor          |
 | Zener Diode      | + breakdown voltage                          |
+| Logic gates      | Supply voltage, input threshold, output R    |
 
 Values accept engineering notation such as `4.7k`, `100n`, `10m`, `2M`
 (see `docs/architecture/architecture.md` for the units parser).
@@ -87,12 +92,36 @@ Values accept engineering notation such as `4.7k`, `100n`, `10m`, `2M`
   models. Defaults: `t_stop = 0.5 s`, `dt = 1 ms` (per project).
 - **Stop** — clears results.
 
-After a transient, open the **oscilloscope** (Scope button). Enter one to four
-**probes** (comma-separated net names and/or component ids, e.g. `TP1, a10,
-C1`). The scope auto-scales vertically to the selected traces.
-
 Waveform sources: a voltage source's `waveform` parameter may be `sine`,
 `square`, `pulse`, `triangle` or omitted (DC).
+
+### 7.1 Multimeter
+
+Click **Meter** to open a small probe window. Enter a net name or component id
+and press Enter; it shows the current voltage (or branch current) at that probe,
+updating after each solve. Use it for a quick single reading without opening the
+scope.
+
+### 7.2 Oscilloscope
+
+Enter one to four probes (comma-separated net names and/or component ids, e.g.
+`TP1, a10, C1`). The scope auto-scales vertically to the selected traces.
+
+### 7.3 Logic gates
+
+The **Logic** category provides AND, OR, NOT, NAND, NOR, XOR and buffer gates.
+Each gate has two inputs and one output by default (NOT and buffer use the first
+input). An input is logic-high when its net voltage exceeds the gate's threshold
+(default 2.5 V, half of the 5 V supply); the output is driven to the supply
+voltage or 0 V through the gate's output resistance, so it can drive LEDs and
+resistors like any other source. Gates are combinational and are solved by the
+same Newton–Raphson engine as the analog parts.
+
+### 7.4 Lighting
+
+Click **Lighting** to cycle the workbench lighting through **studio**, **bright**
+and **night**. This only changes the 3D scene appearance; it never affects the
+simulation.
 
 ## 8. Files
 
@@ -121,6 +150,7 @@ godot --path <project> -- res://data/examples/04_voltage_divider.cf3d
 | 08_half_wave_rectifier        | Sine + diode                          | positive half-cycles only                |
 | 09_led_switch                 | Switch-controlled LED                  | LED on when switch closed                |
 | 10_zener_regulator            | Zener clamp                            | output clamped near breakdown            |
+| 11_logic_and                  | AND gate driving an LED                | LED on (both inputs high); out ≈5 V      |
 
 ## 9. Keyboard & mouse
 
@@ -136,6 +166,11 @@ godot --path <project> -- res://data/examples/04_voltage_divider.cf3d
 | `Space`      | run DC                         |
 | `F1`         | help                           |
 | `Esc`        | cancel placement / wire        |
+| `Ctrl+N`     | new project                    |
+| `Ctrl+O`     | open project                   |
+| `Ctrl+S`     | save project                   |
+| `Ctrl+Shift+S` | save project as              |
+| `Ctrl+Z` / `Ctrl+Y` | undo / redo             |
 
 ## 10. Troubleshooting
 

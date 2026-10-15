@@ -26,6 +26,7 @@ var _undo: Array = []
 var _redo: Array = []
 var _id_counters: Dictionary = {}
 var _current_file := ""
+var _dirty := false
 
 
 func _init() -> void:
@@ -50,6 +51,15 @@ func _push_undo() -> void:
 	if _undo.size() > 100:
 		_undo.pop_front()
 	_redo.clear()
+	_dirty = true
+
+
+func is_dirty() -> bool:
+	return _dirty
+
+
+func mark_saved() -> void:
+	_dirty = false
 
 
 func undo() -> void:
@@ -57,6 +67,7 @@ func undo() -> void:
 		return
 	_redo.append(_snapshot())
 	_restore(_undo.pop_back())
+	_dirty = true
 	status_message.emit("Undo")
 
 
@@ -65,6 +76,7 @@ func redo() -> void:
 		return
 	_undo.append(_snapshot())
 	_restore(_redo.pop_back())
+	_dirty = true
 	status_message.emit("Redo")
 
 
@@ -115,6 +127,7 @@ func _gen_id(type: String) -> String:
 		"diode": prefix = "D"
 		"zener": prefix = "DZ"
 		"potentiometer": prefix = "RV"
+		"and", "or", "not", "nand", "nor", "xor", "buffer": prefix = "U"
 		_: prefix = type.substr(0, 1).to_upper()
 	var n := int(_id_counters.get(prefix, 0)) + 1
 	_id_counters[prefix] = n
@@ -394,6 +407,7 @@ func new_project() -> void:
 	selected_id = ""
 	last_result = {}
 	waveforms = {}
+	_dirty = false
 	changed.emit()
 	selection_changed.emit("")
 	status_message.emit("New project")
@@ -410,6 +424,7 @@ func load_project(path: String) -> bool:
 	selected_id = ""
 	last_result = {}
 	waveforms = {}
+	_dirty = false
 	_id_counters.clear()
 	changed.emit()
 	selection_changed.emit("")
@@ -428,6 +443,7 @@ func save_project(path: String) -> bool:
 		status_message.emit("Save failed: " + last_error)
 		return false
 	_current_file = path
+	_dirty = false
 	status_message.emit("Saved " + path)
 	return true
 

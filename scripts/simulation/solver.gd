@@ -140,7 +140,7 @@ func _prepare(circuit) -> Dictionary:
 	var node_unknowns := nets.size() - 1
 	var k := 0
 	for el in circuit.elements:
-		if el.type == "vsource" or el.type == "inductor":
+		if el.type == "vsource" or el.type == "inductor" or el.type == "logic":
 			branch_rows[el.id] = node_unknowns + k
 			k += 1
 
@@ -298,6 +298,17 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 			var d := _diode_eval(el, ev)
 			mna.add_g(p, n, d.g)
 			mna.add_i(p, n, d.g * ev - d.i)
+		"logic":
+			var row: int = branch_rows[el.id]
+			var out_net: String = String(el.nets[el.nets.size() - 1])
+			var outp: int = node_index.get(out_net, -1)
+			if outp < 0:
+				_warn("Logic gate '%s' has an unconnected output; ignored." % el.id)
+				return
+			var vout: float = _logic_eval(el, node_index, ctx)
+			var rout: float = max(0.0, float(el.params.get("rout", 1.0)))
+			mna.add_branch(outp, 0, row)
+			mna.branch_extra(row, -rout, vout)
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -329,6 +340,37 @@ func _source_value(el, t: float) -> float:
 			return v2 if phase < duty else v1
 		_:
 			return float(wf.get("value", el.params.get("v", el.params.get("i", 0.0))))
+
+
+func _logic_eval(el, node_index: Dictionary, ctx: Dictionary) -> float:
+	var guess: Dictionary = ctx.get("guess", {})
+	var vdd: float = float(el.params.get("vdd", 5.0))
+	var vth: float = float(el.params.get("vth", vdd * 0.5))
+	var fn: String = String(el.params.get("fn", "and"))
+	var a: bool = _logic_level(el.nets[0], node_index, guess, vth)
+	var b: bool = true
+	if el.nets.size() >= 3:
+		b = _logic_level(el.nets[1], node_index, guess, vth)
+	return vdd if _apply_logic(fn, a, b) else 0.0
+
+
+func _logic_level(net, node_index: Dictionary, guess: Dictionary, vth: float) -> bool:
+	var n := String(net)
+	if not node_index.has(n):
+		return false
+	return float(guess.get(n, 0.0)) > vth
+
+
+func _apply_logic(fn: String, a: bool, b: bool) -> bool:
+	match fn:
+		"and": return a and b
+		"or": return a or b
+		"not": return not a
+		"nand": return not (a and b)
+		"nor": return not (a or b)
+		"xor": return a != b
+		"buffer", "buf": return a
+		_: return false
 
 
 func _diode_eval(el, vd: float) -> Dictionary:
@@ -407,6 +449,10 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			if branch_rows.has(el.id):
 				return x[branch_rows[el.id]]
 			return 0.0
+		"logic":
+			if branch_rows.has(el.id):
+				return x[branch_rows[el.id]]
+			return 0.0
 		"isource":
 			return _source_value(el, ctx.t)
 		"capacitor":
@@ -441,7 +487,7 @@ func _is_linear(circuit) -> bool:
 
 
 func _is_nonlinear(t: String) -> bool:
-	return t == "diode" or t == "led" or t == "zener"
+	return t == "diode" or t == "led" or t == "zener" or t == "logic"
 
 
 func _warn(msg: String) -> void:

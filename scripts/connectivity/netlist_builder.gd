@@ -160,13 +160,23 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 		"switch":
 			var r := 0.001 if bool(params.get("closed", false)) else 1e9
 			out.append(_el(cid, "resistor", nets, {"r": r}))
+		"and", "or", "not", "nand", "nor", "xor", "buffer":
+			var def := ComponentDB.get_def(type)
+			out.append(_el(cid, "logic", nets, {
+				"fn": String(def.get("logic_fn", "and")),
+				"vdd": float(params.get("vdd", 5.0)),
+				"vth": float(params.get("vth", 2.5)),
+				"rout": float(params.get("rout", 1.0)),
+			}))
 		"potentiometer":
 			var rt: float = max(1.0, float(params.get("r", 10000.0)))
 			var pos: float = clampf(float(params.get("position", 0.5)), 0.0, 1.0)
 			var rupper: float = max(0.001, pos * rt)
 			var rlower: float = max(0.001, (1.0 - pos) * rt)
-			out.append(_el(cid + ".a", "resistor", [nets[0], nets[1]], {"r": rupper}))
-			out.append(_el(cid + ".b", "resistor", [nets[1], nets[2]], {"r": rlower}))
+			# First half keeps the component id so per-component readouts work;
+			# the second half gets a suffixed internal id.
+			out.append(_el(cid, "resistor", [nets[0], nets[1]], {"r": rupper}))
+			out.append(_el(cid + "#2", "resistor", [nets[1], nets[2]], {"r": rlower}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out

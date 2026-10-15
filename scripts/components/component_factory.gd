@@ -16,6 +16,13 @@ const TYPE_COLORS := {
 	"led": Color(0.9, 0.25, 0.3),
 	"diode": Color(0.25, 0.25, 0.28),
 	"zener": Color(0.3, 0.3, 0.4),
+	"and": Color(0.35, 0.55, 0.75),
+	"or": Color(0.35, 0.55, 0.75),
+	"not": Color(0.35, 0.55, 0.75),
+	"nand": Color(0.35, 0.55, 0.75),
+	"nor": Color(0.35, 0.55, 0.75),
+	"xor": Color(0.35, 0.55, 0.75),
+	"buffer": Color(0.35, 0.55, 0.75),
 }
 
 static var _materials := {}

@@ -74,10 +74,10 @@
 	"instruments": {},
 	"metadata": {
 		"app_version": "0.1.0",
-		"created": "2026-10-15T23:26:11",
+		"created": "2026-10-16T00:10:36",
 		"description": "5 V through 100 Ohm and 10 mH. tau = L/R = 0.1 ms.",
 		"measurement": "Run Transient (1 ms, 1 us). Current rises to ~50 mA.",
-		"modified": "2026-10-15T23:26:11",
+		"modified": "2026-10-16T00:10:36",
 		"name": "RL Transient Response"
 	},
 	"schema_version": 1,

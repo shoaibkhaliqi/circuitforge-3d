@@ -81,10 +81,10 @@
 	"instruments": {},
 	"metadata": {
 		"app_version": "0.1.0",
-		"created": "2026-10-15T23:26:11",
+		"created": "2026-10-16T00:10:36",
 		"description": "A sine source through a diode produces half-wave output.",
 		"measurement": "Run Transient. Output is only positive half-cycles minus the diode drop.",
-		"modified": "2026-10-15T23:26:11",
+		"modified": "2026-10-16T00:10:36",
 		"name": "Half-Wave Rectifier"
 	},
 	"schema_version": 1,

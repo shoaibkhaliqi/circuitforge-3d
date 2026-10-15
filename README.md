@@ -9,29 +9,34 @@ wire the holes together, and solve the circuit with a genuine
 Nothing in the results is faked. Every number shown on a component label or on
 the oscilloscope comes from the solver.
 
-> Status: **0.1.0** — Windows build verified end-to-end. Linux is documented only.
+> Status: **0.1.0** — Windows build verified end-to-end. Linux build produced
+> and ELF-validated; its runtime was not executed (no Linux/WSL guest available
+> on the build host). See `docs/releases/platform_checklist.md`.
 
 ## Features
 
 - **3D workbench** with an interactive breadboard: 30-row board, five-hole
   terminal groups, centre channel, and four continuous power rails
-  (with an optional split-rail mode).
+  (with an optional split-rail mode), plus adjustable lighting
+  (studio / bright / night).
 - **Real solver**: MNA with DC, backward-Euler transient (R/C/L), and
   Newton–Raphson nonlinear elements with SPICE-style junction limiting.
 - **Components** (data-driven definitions):
   Resistor, Capacitor, Inductor, Potentiometer, Switch, Ground,
   DC Voltage Source (with sine/square/pulse/triangle waveform support),
   DC Current Source, Diode, LED, Zener Diode.
+- **Logic gates**: AND, OR, NOT, NAND, NOR, XOR and buffer (5 V levels).
 - **Connectivity graph** built from physical hole adjacency plus explicit wires,
   with union-find net extraction.
-- **Instruments**: an oscilloscope that plots real recorded transient samples
-  with auto-scaling, plus node-voltage and branch-current readouts.
+- **Instruments**: an auto-scaling oscilloscope that plots real recorded
+  transient samples, a multimeter for net-voltage / branch-current probes, and
+  node-voltage and branch-current readouts.
 - **Persistence**: versioned, validated JSON (`.cf3d`) projects with safe
-  migration, plus undo/redo.
-- **10 bundled example circuits** (LED, divider, RC/RL, rectifier, zener…)
+  migration, undo/redo, **Save As** and an unsaved-changes guard.
+- **11 bundled example circuits** (LED, divider, RC/RL, rectifier, zener, logic…)
   loadable from the toolbar or the command line.
-- **186 automated tests** covering the solver, connectivity, persistence,
-  units, camera and full end-to-end workflows.
+- **248 automated tests** covering the solver, connectivity, persistence,
+  units, camera, logic, placement and full end-to-end workflows.
 
 ## Quick start
 
@@ -44,7 +49,8 @@ the oscilloscope comes from the solver.
 
 Control the camera with **right-drag = orbit**, **middle-drag = pan**,
 **wheel = zoom**. Shortcuts: `W` wire, `R` rotate, `Delete` delete,
-`Space` run DC, `F1` help.
+`Space` run DC, `F1` help. Project shortcuts: `Ctrl+N` new, `Ctrl+O` open,
+`Ctrl+S` save, `Ctrl+Shift+S` save as, `Ctrl+Z` / `Ctrl+Y` undo / redo.
 
 ### Run an example from the command line
 
@@ -82,5 +88,5 @@ Exit code `0` means all tests passed. See `docs/releases/test_report.md`.
 
 ## License
 
-The source in this repository is original work. Third-party components and
+Released under the **MIT License** (see `LICENSE`). Third-party components and
 their licenses are listed in `docs/releases/dependency_licenses.md`.

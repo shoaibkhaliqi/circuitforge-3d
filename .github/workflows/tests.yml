@@ -1,0 +1,43 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+env:
+  # Keep this in step with the engine version used by the project.
+  GODOT_VERSION: 4.7.2
+  GODOT_RELEASE: 4.7.2-stable
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: Godot_v4.7.2-stable_linux.x86_64.zip
+            bin: Godot_v4.7.2-stable_linux.x86_64
+          - os: windows-latest
+            asset: Godot_v4.7.2-stable_win64.exe.zip
+            bin: Godot_v4.7.2-stable_win64_console.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot ${{ env.GODOT_RELEASE }}
+        shell: bash
+        run: |
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/${asset}"
+          curl -L -o godot.zip "$url"
+          unzip -q godot.zip
+        env:
+          asset: ${{ matrix.asset }}
+
+      - name: Make executable
+        if: runner.os != 'Windows'
+        run: chmod +x "${{ matrix.bin }}"
+
+      - name: Run automated tests
+        shell: bash
+        run: "./${{ matrix.bin }}" --headless --path . --script res://tests/run_tests.gd

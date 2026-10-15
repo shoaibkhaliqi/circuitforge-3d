@@ -1,0 +1,17 @@
+# Normalise line endings across the repository.
+* text=auto
+
+*.gd     text eol=lf
+*.tscn   text eol=lf
+*.tres   text eol=lf
+*.godot  text eol=lf
+*.cfg    text eol=lf
+*.cf3d   text eol=lf
+*.md     text eol=lf
+*.svg    text eol=lf
+*.yml    text eol=lf
+*.uid    text eol=lf
+
+*.png binary
+*.exe binary
+*.pck binary

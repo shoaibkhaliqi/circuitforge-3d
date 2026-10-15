@@ -177,25 +177,30 @@ func column_neighbor(hole: String, steps: int) -> String:
 	return "%s%s" % [COLUMNS[ni], row]
 
 
-## Default holes for a component pinned at `anchor`, spread horizontally.
+## Default holes for a component pinned at `anchor`.
+##
+## Pins are placed in successive ROWS of the same column, because the five holes
+## of one row-half (a-e of f-j) all share one net. Placing the pins across
+## columns would put every pin on the same net and short the component.
 func default_holes(type: String, pin_count: int, anchor: String) -> Array:
 	var out := []
 	if type == "ground" or pin_count <= 1:
 		return [anchor]
-	# Place pins on successive columns, walking away from the centre channel.
-	var dir := -1
-	var col := anchor.substr(0, 1)
-	var idx := COLUMNS.find(col)
-	if idx >= 5:
-		dir = 1
-	var cur := anchor
-	out.append(cur)
+	var prefix := anchor.substr(0, 2)
+	var is_rail: bool = RAIL_X.has(prefix)
+	var col := "a"
+	var start_row := 1
+	if is_rail:
+		start_row = int(anchor.substr(2))
+	else:
+		col = anchor.substr(0, 1)
+		start_row = int(anchor.substr(1))
+	out.append(anchor)
 	for i in range(1, pin_count):
-		var nxt := column_neighbor(cur, dir)
-		if nxt == "":
-			nxt = column_neighbor(anchor, -dir * i)
-		if nxt == "":
-			nxt = cur
-		out.append(nxt)
-		cur = nxt
+		var r := start_row + i
+		if r > rows:
+			r = start_row - i
+		if r < 1:
+			r = start_row
+		out.append("%s%d" % [col, r])
 	return out

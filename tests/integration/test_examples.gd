@@ -81,4 +81,16 @@ func run(t) -> void:
 					found = true
 			t.check(found, "divider has a 5 V node somewhere")
 
+	var lr11 = Persistence.load_from_file("%s/11_logic_and.cf3d" % EX_DIR)
+	if lr11.ok:
+		var bb11 = Breadboard.new(30)
+		var b11 = builder.build(bb11, lr11.project.components, lr11.project.wires)
+		var r11 = solver.solve_dc(b11.circuit)
+		if t.check(r11.ok, "logic AND example solves"):
+			var led_i := 0.0
+			for k in r11.element_currents:
+				if String(k) == "D1":
+					led_i = absf(float(r11.element_currents[k]))
+			t.check(led_i > 0.001, "AND(1,1) lights the LED", "I=" + str(led_i))
+
 	t.done()

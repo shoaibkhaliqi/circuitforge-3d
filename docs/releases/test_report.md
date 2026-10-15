@@ -8,7 +8,7 @@
 | CPU / RAM   | Intel Core i7-9750H / 15.9 GB                                |
 | GPU         | NVIDIA GTX 1660 Ti                                           |
 | Engine      | Godot 4.7.2.stable.official (`ed1daf0bf`)                    |
-| Date        | 2026-10-15                                                    |
+| Date        | 2026-10-16                                                    |
 
 ## How to reproduce
 
@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 186 / 186 passed
+RESULT: 248 / 248 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -35,13 +35,15 @@ STATUS: ALL TESTS PASSED
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
+| Logic — full truth tables for AND/OR/NOT/NAND/NOR/XOR/BUF  | logic gates         |
 | Invalid 8a–8g — no ref, floating, conflict, empty, …       | error handling      |
 | Breadboard — groups, rails, split, wires, move, rotate     | connectivity graph  |
+| Placement — default hole sets do not short a part          | breadboard layout   |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
 | End-to-end — build, solve, edit, save, reload              | integration         |
-| Examples — load/validate/simulate all 10, documented values| integration         |
+| Examples — load/validate/simulate all 11, documented values| integration         |
 
 ## Numerical validation (physical sanity)
 
@@ -69,17 +71,28 @@ Performed manually on Windows with screenshot evidence:
    complete: 501 samples over 0.5 s"*; the scope drew the classic RC charging
    curve with auto-scaled axes; Measurements reported `net TP1 = 5 V`,
    `net a10 = 4.9658 V`.
+5. **Logic gates** — `11_logic_and.cf3d` loaded from the command line; the
+   window title showed `CircuitForge 3D - Logic AND Gate (DEBUG)`; the **Logic**
+   category appeared in the component library; the AND output `a15` read
+   `4.9903 V` and the LED lit.
+6. **Multimeter** — the **Meter** window read `a15 → 4.9903 V`, matching the
+   solved value.
+7. **Lighting toggle** — the **Lighting** control cycled studio → bright → night
+   and the workbench relit accordingly.
 
 ## Packaging verification
 
-| Artifact                                   | Produced | Booted |
-|--------------------------------------------|----------|--------|
-| `build/windows/CircuitForge3D.exe` (+pck)  | yes      | yes (`--headless --quit-after`, exit 0, incl. CLI example load) |
-| `build/linux/CircuitForge3D.x86_64` (+pck) | yes      | **not verified** (no Linux host) |
+| Artifact                                   | Produced | Verified |
+|--------------------------------------------|----------|----------|
+| `build/windows/CircuitForge3D.exe` (+pck)  | yes      | boots `--headless --quit-after`, exit 0, incl. CLI example load |
+| `build/linux/CircuitForge3D.x86_64` (+pck) | yes      | ELF64 little-endian `e_machine=0x3E` (x86-64), `ET_EXEC`; **not runtime-executed** (host WSL2 unavailable) |
 
 ## Limitations
 
-- Only Windows runtime was executed; Linux is exported but unexecuted.
+- Only Windows runtime was executed. The Linux build was produced and its ELF
+  header validated, but it could not be run: the host's WSL2 "Virtual Machine
+  Platform" feature and BIOS virtualisation are unavailable, so no Linux guest
+  can start (`HCS_E_SERVICE_NOT_AVAILABLE`).
 - Automated tests exercise the simulation core and the session/netlist layer
   headlessly; GUI interaction is covered by the manual checks above, not by an
   automated UI harness.

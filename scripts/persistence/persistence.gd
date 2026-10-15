@@ -52,16 +52,16 @@ static func load_from_file(path: String) -> Dictionary:
 		return {"ok": false, "error": "Cannot open '%s' (%s)." % [path, error_string(FileAccess.get_open_error())]}
 	var text := f.get_as_text()
 	f.close()
-	var parsed = JSON.parse_string(text)
-	if parsed == null:
-		return {"ok": false, "error": "Corrupted project file (invalid JSON): %s" % path}
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return {"ok": false, "error": "Corrupted project file (invalid JSON at line %d): %s" % [json.get_error_line(), path]}
+	var parsed = json.data
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return {"ok": false, "error": "Project file root is not an object."}
 	var migrated := migrate(parsed)
 	var v := validate(migrated)
 	if not v.ok:
 		return {"ok": false, "error": "Project validation failed: " + "; ".join(v.errors), "warnings": v.warnings}
-	migrated["_warnings"] = v.warnings
 	return {"ok": true, "error": "", "project": migrated, "warnings": v.warnings}
 
 

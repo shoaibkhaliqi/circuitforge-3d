@@ -64,4 +64,9 @@ static func solve(a_in: Array, b_in: Array) -> Dictionary:
 		for j in range(i + 1, n):
 			s -= a[i][j] * x[j]
 		x[i] = s / a[i][i]
+		if not is_finite(x[i]):
+			return {
+				"ok": false,
+				"error": "Numerical overflow at row %d. The circuit is ill-conditioned (check for extreme component values)." % i,
+			}
 	return {"ok": true, "x": x}

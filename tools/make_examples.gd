@@ -169,4 +169,20 @@ func _definitions() -> Array:
 			"wires": [[_h("a5"), _h("a10")]],
 			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
 		},
+		{
+			"file": "11_logic_and", "name": "Logic AND Gate",
+			"description": "Two switches drive the inputs of an AND gate; the output drives an LED through 330 Ohm.",
+			"measurement": "Run DC with both switches closed: the output is logic-high (5 V) and the LED lights. Open either switch (closed=false) and re-run: the output drops low.",
+			"components": [
+				{"type": "ground", "holes": ["TM1"]},
+				{"type": "vsource", "holes": ["TP1", "TM1"], "params": {"v": 5.0}},
+				{"type": "switch", "holes": ["TP5", "a5"], "params": {"closed": true}},
+				{"type": "switch", "holes": ["TP10", "a10"], "params": {"closed": true}},
+				{"type": "and", "holes": ["a5", "a10", "a15"]},
+				{"type": "resistor", "holes": ["a15", "a20"], "params": {"r": 330.0}},
+				{"type": "led", "holes": ["a20", "TM20"]},
+			],
+			"wires": [],
+			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
+		},
 	]

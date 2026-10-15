@@ -7,7 +7,25 @@ extends RefCounted
 const PARAM_UNITS := {
 	"r": "Ohm", "c": "F", "l": "H", "v": "V", "i": "A",
 	"closed": "", "position": "", "vz": "V", "is": "A", "n": "",
+	"vdd": "V", "vth": "V", "rout": "Ohm",
 }
+
+
+static func _logic_def(name: String, fn: String, pins: int) -> Dictionary:
+	var plist := [{"name": "A"}]
+	if pins >= 3:
+		plist.append({"name": "B"})
+	plist.append({"name": "Y"})
+	return {
+		"name": name, "category": "Logic", "pins": plist,
+		"params": {
+			"vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
+			"vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
+			"rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"},
+		},
+		"logic_fn": fn,
+		"description": "%s gate. Inputs A%s, output Y at vdd when the function is true." % [name, ", B" if pins >= 3 else ""],
+	}
 
 static func all_defs() -> Dictionary:
 	return {
@@ -90,6 +108,13 @@ static func all_defs() -> Dictionary:
 			},
 			"description": "Diode with a defined reverse breakdown voltage.",
 		},
+		"and": _logic_def("AND Gate", "and", 3),
+		"or": _logic_def("OR Gate", "or", 3),
+		"not": _logic_def("NOT Gate", "not", 2),
+		"nand": _logic_def("NAND Gate", "nand", 3),
+		"nor": _logic_def("NOR Gate", "nor", 3),
+		"xor": _logic_def("XOR Gate", "xor", 3),
+		"buffer": _logic_def("Buffer", "buffer", 2),
 	}
 
 

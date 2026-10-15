@@ -37,9 +37,17 @@ var open_dialog: FileDialog
 var save_dialog: FileDialog
 var lib_defs: Array = []
 var example_paths: Array = []
+var save_as_mode := false
+var meter_window: Window
+var meter_probe: LineEdit
+var meter_label: RichTextLabel
+var quit_dialog: ConfirmationDialog
+var env: Environment
+var light_mode := 0
 
 
 func _ready() -> void:
+	get_tree().set_auto_accept_quit(false)
 	_build_world()
 	_build_ui()
 	session = Session.new()
@@ -50,6 +58,23 @@ func _ready() -> void:
 	_on_session_changed()
 	_on_status("Welcome to CircuitForge 3D. Pick a component, click the board to place it.")
 	_open_from_command_line()
+	_update_title()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if session != null and session.is_dirty():
+			quit_dialog.popup_centered()
+		else:
+			get_tree().quit()
+
+
+func _update_title() -> void:
+	var name := "Untitled"
+	if session != null and session.project.has("metadata"):
+		name = String(session.project.metadata.get("name", "Untitled"))
+	var star := " *" if (session != null and session.is_dirty()) else ""
+	get_window().title = "CircuitForge 3D - %s%s" % [name, star]
 
 
 func _open_from_command_line() -> void:
@@ -73,15 +98,16 @@ func _open_from_command_line() -> void:
 # ---------------------------------------------------------------------------
 
 func _build_world() -> void:
-	var env = WorldEnvironment.new()
+	var env_node = WorldEnvironment.new()
 	var e = Environment.new()
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.09, 0.1, 0.12)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.5, 0.52, 0.6)
 	e.ambient_light_energy = 0.6
-	env.environment = e
-	add_child(env)
+	env_node.environment = e
+	add_child(env_node)
+	env = e
 
 	var sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55, -35, 0)
@@ -128,6 +154,7 @@ func _build_ui() -> void:
 	_build_right(root)
 	_build_bottom(root)
 	_build_scope()
+	_build_meter()
 	_build_dialogs()
 
 
@@ -143,15 +170,17 @@ func _mk_button(parent: Node, text: String, cb: Callable, tip: String = "") -> B
 func _build_toolbar(root: Control) -> void:
 	var bar = PanelContainer.new()
 	bar.anchor_right = 1.0
-	bar.offset_bottom = 40
-	var hb = HBoxContainer.new()
-	hb.add_theme_constant_override("separation", 4)
+	bar.offset_bottom = 70
+	var hb = HFlowContainer.new()
+	hb.add_theme_constant_override("h_separation", 4)
+	hb.add_theme_constant_override("v_separation", 4)
 	bar.add_child(hb)
 	root.add_child(bar)
 
 	_mk_button(hb, "New", _on_new)
 	_mk_button(hb, "Open", _on_open)
 	_mk_button(hb, "Save", _on_save)
+	_mk_button(hb, "Save As", _on_save_as)
 	_build_examples_menu(hb)
 	var sep1 = VSeparator.new(); hb.add_child(sep1)
 	_mk_button(hb, "Wire", _on_wire_mode, "Toggle wire drawing (click two holes)")
@@ -166,10 +195,12 @@ func _build_toolbar(root: Control) -> void:
 	_mk_button(hb, "Undo", _on_undo, "Undo")
 	_mk_button(hb, "Redo", _on_redo, "Redo")
 	_mk_button(hb, "Scope", _on_toggle_scope, "Show/hide the oscilloscope")
+	_mk_button(hb, "Meter", _on_toggle_meter, "Show/hide the multimeter")
+	_mk_button(hb, "Lighting", _on_cycle_lighting, "Cycle the workbench lighting")
 	_mk_button(hb, "Reset View", _on_reset_view, "Reset the camera")
 
 
-func _build_examples_menu(hb: HBoxContainer) -> void:
+func _build_examples_menu(hb: Control) -> void:
 	var ex_btn = OptionButton.new()
 	ex_btn.tooltip_text = "Load and simulate a bundled example circuit"
 	ex_btn.add_item("Examples")
@@ -199,7 +230,7 @@ func _build_left(root: Control) -> void:
 	panel.anchor_bottom = 0.0
 	panel.offset_left = 8
 	panel.offset_right = 232
-	panel.offset_top = 48
+	panel.offset_top = 76
 	panel.offset_bottom = 600
 	root.add_child(panel)
 	var vb = VBoxContainer.new()
@@ -226,7 +257,7 @@ func _build_right(root: Control) -> void:
 	panel.anchor_right = 1.0
 	panel.offset_left = -280
 	panel.offset_right = -8
-	panel.offset_top = 48
+	panel.offset_top = 76
 	panel.offset_bottom = 600
 	root.add_child(panel)
 	var vb = VBoxContainer.new()
@@ -295,6 +326,31 @@ func _build_scope() -> void:
 	vb.add_child(scope)
 
 
+func _build_meter() -> void:
+	meter_window = Window.new()
+	meter_window.title = "Multimeter"
+	meter_window.size = Vector2i(320, 220)
+	meter_window.position = Vector2i(900, 200)
+	meter_window.visible = false
+	add_child(meter_window)
+	var vb = VBoxContainer.new()
+	vb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	meter_window.add_child(vb)
+	var lbl = Label.new()
+	lbl.text = "Probe a net name (e.g. a5) or component id (e.g. R1):"
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl)
+	meter_probe = LineEdit.new()
+	meter_probe.placeholder_text = "R1"
+	meter_probe.text_changed.connect(_on_meter_probe)
+	vb.add_child(meter_probe)
+	meter_label = RichTextLabel.new()
+	meter_label.bbcode_enabled = true
+	meter_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	meter_label.custom_minimum_size = Vector2(300, 120)
+	vb.add_child(meter_label)
+
+
 func _build_dialogs() -> void:
 	open_dialog = FileDialog.new()
 	open_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -312,6 +368,14 @@ func _build_dialogs() -> void:
 	save_dialog.current_file = "circuit.cf3d"
 	save_dialog.file_selected.connect(_on_save_selected)
 	add_child(save_dialog)
+
+	quit_dialog = ConfirmationDialog.new()
+	quit_dialog.title = "Unsaved changes"
+	quit_dialog.dialog_text = "This circuit has unsaved changes. Quit anyway?"
+	quit_dialog.ok_button_text = "Quit without saving"
+	quit_dialog.cancel_button_text = "Keep editing"
+	quit_dialog.confirmed.connect(func(): get_tree().quit())
+	add_child(quit_dialog)
 
 
 # ---------------------------------------------------------------------------
@@ -355,7 +419,7 @@ func _on_library_pick(index: int) -> void:
 func _handle_click(pos: Vector2) -> void:
 	var from = camera.project_ray_origin(pos)
 	var dir = camera.project_ray_normal(pos)
-	var hole = bb_view.ray_nearest_hole(from, dir, 8.0)
+	var hole = bb_view.ray_nearest_hole(from, dir, 0.08)
 
 	if pending_type != "":
 		if hole != "":
@@ -403,6 +467,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		var ek = event as InputEventKey
 		if not ek.pressed or ek.echo:
 			return
+		if ek.ctrl_pressed:
+			match ek.keycode:
+				KEY_S:
+					if ek.shift_pressed:
+						_on_save_as()
+					else:
+						_on_save()
+					return
+				KEY_O:
+					_on_open()
+					return
+				KEY_N:
+					_on_new()
+					return
+				KEY_Z:
+					_on_undo()
+					return
+				KEY_Y:
+					_on_redo()
+					return
 		match ek.keycode:
 			KEY_DELETE:
 				_on_delete()
@@ -423,6 +507,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_session_changed() -> void:
 	_rebuild_3d()
 	_refresh_properties()
+	_update_title()
 
 
 func _on_selection_changed(_id: String) -> void:
@@ -433,9 +518,13 @@ func _on_selection_changed(_id: String) -> void:
 func _rebuild_3d() -> void:
 	if comp_root == null:
 		return
+	# Child nodes may be posted for deferred deletion; free them immediately so a
+	# rapid sequence of edits cannot stack duplicate visuals for a frame.
 	for c in comp_root.get_children():
+		comp_root.remove_child(c)
 		c.queue_free()
 	for c in wire_root.get_children():
+		wire_root.remove_child(c)
 		c.queue_free()
 
 	for comp in session.project.components:
@@ -453,7 +542,10 @@ func _rebuild_3d() -> void:
 		node.set_meta("component_id", String(comp.id))
 		comp_root.add_child(node)
 		if not valid:
-			node.modulate = Color(1, 0.5, 0.5)
+			var lbl = node.get_node_or_null("ValueLabel")
+			if lbl != null:
+				lbl.modulate = Color(1.0, 0.45, 0.45)
+				lbl.set_meta("invalid_placement", true)
 
 	for w in session.project.wires:
 		_draw_wire(w)
@@ -671,11 +763,19 @@ func _on_example_selected(index: int) -> void:
 func _on_save() -> void:
 	if session.current_file() != "":
 		session.save_project(session.current_file())
+		_update_title()
 	else:
 		save_dialog.popup_centered(Vector2i(700, 460))
 
 func _on_save_selected(path: String) -> void:
 	session.save_project(path)
+	save_as_mode = false
+	_update_title()
+
+
+func _on_save_as() -> void:
+	save_as_mode = true
+	save_dialog.popup_centered(Vector2i(700, 460))
 
 func _on_wire_mode() -> void:
 	wire_mode = not wire_mode
@@ -722,6 +822,65 @@ func _on_toggle_scope() -> void:
 	_refresh_scope_targets()
 
 
+func _on_toggle_meter() -> void:
+	meter_window.visible = not meter_window.visible
+	_refresh_meter()
+
+
+func _on_cycle_lighting() -> void:
+	if env == null:
+		return
+	light_mode = (light_mode + 1) % 3
+	match light_mode:
+		1:
+			env.background_color = Color(0.16, 0.18, 0.21)
+			env.ambient_light_energy = 0.95
+			_on_status("Lighting: bright")
+		2:
+			env.background_color = Color(0.03, 0.03, 0.05)
+			env.ambient_light_energy = 0.25
+			_on_status("Lighting: night")
+		_:
+			env.background_color = Color(0.09, 0.1, 0.12)
+			env.ambient_light_energy = 0.6
+			_on_status("Lighting: studio")
+
+
+func _on_meter_probe(_text: String) -> void:
+	_refresh_meter()
+
+
+func _refresh_meter() -> void:
+	if meter_label == null:
+		return
+	var probe := meter_probe.text.strip_edges() if meter_probe != null else ""
+	var res = session.last_result
+	var lines := []
+	if probe == "":
+		meter_label.text = "[b]Multimeter[/b]\nEnter a probe."
+		return
+	if not (res is Dictionary) or not res.get("ok", false):
+		meter_label.text = "[b]Multimeter[/b]\nNo simulation run yet."
+		return
+	lines.append("[b]Multimeter - %s[/b]" % probe)
+	var node = res.get("node_voltages", {})
+	var vres = res.get("element_voltages", {})
+	var ires = res.get("element_currents", {})
+	var found := false
+	if node.has(probe):
+		found = true
+		lines.append("Node voltage (%s -> ref): %s" % [probe, Units.format(float(node[probe]), "V")])
+	if vres.has(probe):
+		found = true
+		lines.append("Voltage across %s: %s" % [probe, Units.format(float(vres[probe]), "V")])
+	if ires.has(probe):
+		found = true
+		lines.append("Current through %s: %s" % [probe, Units.format(float(ires[probe]), "A")])
+	if not found:
+		lines.append("[color=orange]No net or component with that name.[/color]")
+	meter_label.text = "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Simulation results
 # ---------------------------------------------------------------------------
@@ -730,6 +889,7 @@ func _on_simulation_updated(res: Dictionary) -> void:
 	_update_labels()
 	_show_measurements(res)
 	_show_diagnostics(res)
+	_refresh_meter()
 
 
 func _show_measurements(res: Dictionary) -> void:
@@ -820,13 +980,17 @@ func _show_help() -> void:
 	dlg.dialog_text = """CircuitForge 3D quick start
 
 1. Pick a component in the left library.
-2. Click a breadboard hole to place it (pins land on adjacent holes).
+2. Click a breadboard hole to place it (pins land on the next rows).
 3. Use Wire mode: click two holes to join them.
 4. Place a Ground component on the net you want as 0 V.
 5. Press Run DC to solve, or Run Transient for waveforms.
 6. Select a component to edit its value in the Properties panel.
 
+Instruments: Scope plots transient traces; Meter reads a net or component.
+Logic: AND / OR / NOT / NAND / NOR / XOR / Buffer gates use 5 V logic levels.
+
 Camera: right-drag = orbit, middle-drag = pan, wheel = zoom.
-Shortcuts: W = wire mode, R = rotate, Delete = delete, Space = run DC, F1 = help."""
+Shortcuts: W wire, R rotate, Delete delete, Space run DC, F1 help,
+           Ctrl+S save, Ctrl+Shift+S save as, Ctrl+O open, Ctrl+Z/Y undo/redo."""
 	add_child(dlg)
 	dlg.popup_centered()

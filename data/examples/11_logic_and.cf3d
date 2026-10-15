@@ -1,0 +1,145 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "SW1",
+			"params": {
+				"closed": true
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "switch"
+		},
+		{
+			"holes": [
+				"TP10",
+				"a10"
+			],
+			"id": "SW2",
+			"params": {
+				"closed": true
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "switch"
+		},
+		{
+			"holes": [
+				"a5",
+				"a10",
+				"a15"
+			],
+			"id": "U1",
+			"params": {
+				"rout": 1.0,
+				"vdd": 5.0,
+				"vth": 2.5
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "and"
+		},
+		{
+			"holes": [
+				"a15",
+				"a20"
+			],
+			"id": "R1",
+			"params": {
+				"r": 330.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		},
+		{
+			"holes": [
+				"a20",
+				"TM20"
+			],
+			"id": "D1",
+			"params": {
+				"is": 2e-19,
+				"n": 1.8
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "led"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-16T00:10:36",
+		"description": "Two switches drive the inputs of an AND gate; the output drives an LED through 330 Ohm.",
+		"measurement": "Run DC with both switches closed: the output is logic-high (5 V) and the LED lights. Open either switch (closed=false) and re-run: the output drops low.",
+		"modified": "2026-10-16T00:10:36",
+		"name": "Logic AND Gate"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": []
+}
