@@ -1,9 +1,14 @@
 # Building CircuitForge 3D for Linux
 
 > **Verification status:** the Linux export was produced successfully from a
-> Windows host using the official Godot 4.7.2 Linux templates, but the resulting
-> binary was **not executed** (no Linux machine was available during
-> development). Treat Linux as *documented / exported*, not *runtime-verified*.
+> Windows host using the official Godot 4.7.2 Linux templates. The resulting
+> binary was **statically validated** (ELF64, little-endian, `e_machine = 0x3E`
+> i.e. x86-64, `ET_EXEC`) but its **runtime was not executed**: this build host
+> cannot start any Linux guest, because the WSL2 "Virtual Machine Platform"
+> optional component and BIOS virtualisation are unavailable
+> (`HCS_E_SERVICE_NOT_AVAILABLE`). Treat Linux as *exported and ELF-validated*,
+> not *runtime-verified*. To complete the check, run the build on a real Linux
+> host (or a host with working WSL2/Hyper-V) using the commands below.
 
 ## Prerequisites
 
