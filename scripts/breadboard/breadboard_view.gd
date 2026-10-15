@@ -40,6 +40,7 @@ func build(p_rows: int = 30, p_split: bool = false) -> void:
 	_compute_holes()
 	_build_base()
 	_build_holes()
+	_build_labels()
 
 
 func _compute_holes() -> void:
@@ -58,40 +59,94 @@ func _compute_holes() -> void:
 func _build_base() -> void:
 	var width := 1.9
 	var length := float(rows) * PITCH + 0.3
-	var base := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(width, 0.12, length)
-	base.mesh = box
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.78, 0.76, 0.70)
-	m.roughness = 0.9
-	base.material_override = m
-	base.position = Vector3(0, -0.06, 0)
-	add_child(base)
+	var surf := 0.0                       # top surface height
+	var plate_h := 0.012
 
-	# Centre channel groove.
-	var groove := MeshInstance3D.new()
-	var g := BoxMesh.new()
-	g.size = Vector3(0.06, 0.02, length - 0.2)
-	groove.mesh = g
-	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color(0.45, 0.44, 0.42)
-	groove.material_override = gm
-	groove.position = Vector3(0.05, 0.005, 0)
-	add_child(groove)
+	# Bottom foot, slightly larger and darker: reads as a bevel + shadow.
+	_add_box(Vector3(width + 0.04, 0.02, length + 0.04), Vector3(0, -0.12, 0),
+			Color(0.50, 0.48, 0.44), 0.95)
 
-	# Rail colour strips: red = positive, blue = negative.
-	var strip_colors := {"TP": Color(0.75, 0.2, 0.2), "BP": Color(0.75, 0.2, 0.2), "TM": Color(0.2, 0.3, 0.75), "BM": Color(0.2, 0.3, 0.75)}
+	# Main body (top just under the plates).
+	_add_box(Vector3(width, 0.1, length), Vector3(0, surf - plate_h - 0.05, 0),
+			Color(0.80, 0.78, 0.72), 0.9)
+
+	# Recessed centre channel: a dark floor sitting below the surface.
+	var chan_x := 0.05
+	var chan_w := 0.16
+	_add_box(Vector3(chan_w, 0.03, length - 0.2), Vector3(chan_x, surf - 0.02, 0),
+			Color(0.40, 0.39, 0.37), 0.95)
+
+	# Two top plates with a chamfered (inset) rim, split by the centre channel.
+	var edge := width * 0.5 - 0.025
+	var chan_l := chan_x - chan_w * 0.5
+	var chan_r := chan_x + chan_w * 0.5
+	var lx := (-edge + chan_l) * 0.5
+	var lw := chan_l + edge
+	_add_box(Vector3(lw, plate_h, length - 0.05), Vector3(lx, surf - plate_h * 0.5, 0),
+			Color(0.86, 0.84, 0.78), 0.85)
+	var rx := (chan_r + edge) * 0.5
+	var rw := edge - chan_r
+	_add_box(Vector3(rw, plate_h, length - 0.05), Vector3(rx, surf - plate_h * 0.5, 0),
+			Color(0.86, 0.84, 0.78), 0.85)
+
+	# Rail colour strips printed just above the surface: red = positive, blue = negative.
+	var strip_colors := {"TP": Color(0.78, 0.20, 0.20), "BP": Color(0.78, 0.20, 0.20),
+			"TM": Color(0.20, 0.32, 0.78), "BM": Color(0.20, 0.32, 0.78)}
 	for p in RAIL_X.keys():
-		var strip := MeshInstance3D.new()
-		var sb := BoxMesh.new()
-		sb.size = Vector3(0.05, 0.02, length - 0.2)
-		strip.mesh = sb
-		var sm := StandardMaterial3D.new()
-		sm.albedo_color = strip_colors[p]
-		strip.material_override = sm
-		strip.position = Vector3(RAIL_X[p], 0.005, 0)
-		add_child(strip)
+		_add_box(Vector3(0.042, 0.004, length - 0.2), Vector3(RAIL_X[p], surf + 0.002, 0),
+				strip_colors[p], 0.7)
+
+
+func _add_box(size: Vector3, pos: Vector3, color: Color, rough: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var b := BoxMesh.new()
+	b.size = size
+	mi.mesh = b
+	mi.material_override = _mat(color, rough)
+	mi.position = pos
+	add_child(mi)
+	return mi
+
+
+func _mat(color: Color, rough: float = 0.9) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.roughness = rough
+	return m
+
+
+func _build_labels() -> void:
+	var surf := 0.0
+	var letter_col := Color(0.30, 0.30, 0.32)
+	for i in COLUMNS.size():
+		var x := col_x(i)
+		# column letters just past each end
+		_add_label(COLUMNS[i], Vector3(x, surf + 0.004, row_z(1) - 0.11), 0.0011, letter_col)
+		_add_label(COLUMNS[i], Vector3(x, surf + 0.004, row_z(rows) + 0.11), 0.0011, letter_col)
+	# row numbers every five rows, on both sides
+	var r := 5
+	while r <= rows:
+		_add_label(str(r), Vector3(-0.97, surf + 0.004, row_z(r)), 0.0011, letter_col)
+		_add_label(str(r), Vector3(0.97, surf + 0.004, row_z(r)), 0.0011, letter_col)
+		r += 5
+	# rail polarity marks
+	_add_label("+", Vector3(RAIL_X["TP"], surf + 0.004, row_z(1) - 0.11), 0.0016, Color(0.75, 0.20, 0.20))
+	_add_label("-", Vector3(RAIL_X["TM"], surf + 0.004, row_z(1) - 0.11), 0.0016, Color(0.20, 0.32, 0.78))
+	_add_label("+", Vector3(RAIL_X["BP"], surf + 0.004, row_z(rows) + 0.11), 0.0016, Color(0.75, 0.20, 0.20))
+	_add_label("-", Vector3(RAIL_X["BM"], surf + 0.004, row_z(rows) + 0.11), 0.0016, Color(0.20, 0.32, 0.78))
+
+
+func _add_label(text: String, pos: Vector3, px: float, color: Color) -> void:
+	var lbl := Label3D.new()
+	lbl.text = text
+	lbl.font_size = 48
+	lbl.pixel_size = px
+	lbl.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	lbl.rotation_degrees = Vector3(-90, 0, 0)
+	lbl.modulate = color
+	lbl.outline_size = 0
+	lbl.position = pos
+	add_child(lbl)
 
 
 func _build_holes() -> void:
@@ -101,15 +156,18 @@ func _build_holes() -> void:
 	cyl.top_radius = 0.016
 	cyl.bottom_radius = 0.016
 	cyl.height = 0.03
+	cyl.radial_segments = 14
 	mm.mesh = cyl
 	mm.instance_count = _hole_order.size()
 	for i in _hole_order.size():
 		var pos: Vector3 = hole_positions[_hole_order[i]]
-		mm.set_instance_transform(i, Transform3D(Basis(), pos + Vector3(0, 0.015, 0)))
+		# Recessed: the dark cylinder's top sits flush with the board surface.
+		mm.set_instance_transform(i, Transform3D(Basis(), pos + Vector3(0, -0.015, 0)))
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	var hm := StandardMaterial3D.new()
-	hm.albedo_color = Color(0.12, 0.12, 0.13)
+	hm.albedo_color = Color(0.09, 0.09, 0.10)
+	hm.roughness = 0.95
 	node.material_override = hm
 	add_child(node)
 

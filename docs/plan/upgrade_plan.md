@@ -63,7 +63,7 @@ date as milestones land.
 | --- | --- | --- |
 | 1 | Audit + **visual design system** (theme, palette, typography, reusable widgets) | done |
 | 2 | Professional layout: toolbar, resizable/collapsible panels, status bar, component browser | done |
-| 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | in progress |
+| 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | done |
 | 4 | High-quality reusable 3D models for basic components | done (first pass) |
 | 5 | Arduino Uno R3 + Nano: accurate 3D boards + pin metadata | planned |
 | 6 | Arduino pin-level simulation (Stage A) + basic peripherals | planned |
@@ -89,15 +89,24 @@ date as milestones land.
 - Status bar shows state dot, message, project name, tool, zoom, warning count.
 - Evidence: `docs/plan/m2_layout.png`.
 
-### Milestone 3 — breadboard realism (in progress)
-- Done: 3D world moved into a `SubViewport` (MSAA 2×) inside a
-  `SubViewportContainer`, so the workspace no longer sits behind the panels;
-  picking uses `_work_pos()` (window → workspace-local).
-- Done: holes read as recessed dark insets; red/blue rails are printed strips;
-  centre trench is a recessed channel.
-- Remaining: chamfered board edges, printed row/column and rail labels, curved
-  coloured wires, placement preview + valid/invalid highlight, camera close-up
-  preset.
+### Milestone 3 — breadboard realism (done)
+- 3D world moved into a `SubViewport` (MSAA 2×) inside a `SubViewportContainer`,
+  so the workspace no longer sits behind the panels; picking maps root-window
+  coordinates into the SubViewport's pixel space via `_work_pos()`.
+- Board: chamfered two-tone rim (foot + body + inset top plates), split centre
+  channel recessed below the surface, printed red/blue rails, horizontally
+  **recessed** holes (dark, flush with the surface).
+- Printed markings: column letters (a–j) at both ends, row numbers (5…30) on both
+  sides, and +/− rail polarity marks.
+- Wires: drawn as shallow arched curves in a per-wire colour from a palette
+  (`WIRE_PALETTE`, chosen from the endpoint key so a wire keeps its colour).
+- Placement preview: a translucent ghost of the component being placed, tinted
+  green (valid) or red (blocked by an occupied hole), plus a wire rubber-band
+  from the first hole while wiring.
+- Camera presets (Top/Front/Side/Isometric), Frame All and Reset View.
+- Evidence: `docs/plan/m3_board.png`, `docs/plan/m3_wires.png`,
+  `docs/plan/m3_preview.png`.
+- Regression: **248 / 248 tests pass**, headless load exits 0.
 
 ### Milestone 4 — component models (done, first pass)
 - Rewrote `scripts/components/component_factory.gd`: models are built in a local

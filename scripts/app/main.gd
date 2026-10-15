@@ -19,7 +19,15 @@ var bb_view
 var camera
 var comp_root: Node3D
 var wire_root: Node3D
+var preview_root: Node3D
 var viewport3d: SubViewport
+var _hover_hole := ""
+
+const WIRE_PALETTE := [
+	Color(0.93, 0.32, 0.30), Color(0.30, 0.55, 0.95), Color(0.95, 0.74, 0.25),
+	Color(0.36, 0.80, 0.46), Color(0.80, 0.45, 0.88), Color(0.92, 0.55, 0.25),
+	Color(0.35, 0.82, 0.85), Color(0.80, 0.80, 0.84),
+]
 
 # Layout
 var ui_root: Control
@@ -167,6 +175,10 @@ func _build_world() -> void:
 	wire_root = Node3D.new()
 	wire_root.name = "Wires"
 	viewport3d.add_child(wire_root)
+
+	preview_root = Node3D.new()
+	preview_root.name = "Preview"
+	viewport3d.add_child(preview_root)
 
 	camera = OrbitCamera.new()
 	camera.target = Vector3.ZERO
@@ -710,9 +722,17 @@ func _global_basis_of(node: Node3D) -> Basis:
 # ---------------------------------------------------------------------------
 
 func _work_pos(window_pos: Vector2) -> Vector2:
+	# Map an event position (root-viewport space) into the 3D SubViewport's own
+	# pixel space, so project_ray_* sees the same coordinates the camera renders.
 	if workspace == null:
 		return window_pos
-	return window_pos - workspace.get_global_rect().position
+	var rect := workspace.get_global_rect()
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return window_pos - rect.position
+	var n := (window_pos - rect.position) / rect.size
+	if viewport3d != null:
+		return Vector2(n.x * float(viewport3d.size.x), n.y * float(viewport3d.size.y))
+	return n * rect.size
 
 
 func _handle_click(pos: Vector2) -> void:
@@ -747,6 +767,7 @@ func _handle_click(pos: Vector2) -> void:
 		session.select(cid)
 	else:
 		session.select("")
+	_update_preview(pos)
 
 
 func _component_at_hole(hole: String) -> String:
@@ -757,6 +778,69 @@ func _component_at_hole(hole: String) -> String:
 	return ""
 
 
+func _holes_to_positions(holes: Array) -> Array:
+	var out := []
+	for h in holes:
+		out.append(bb_view.hole_positions.get(String(h), Vector3.ZERO))
+	return out
+
+
+func _clear_preview() -> void:
+	if preview_root == null:
+		return
+	for c in preview_root.get_children():
+		preview_root.remove_child(c)
+		c.queue_free()
+
+
+func _tint_ghost(node: Node, color: Color) -> void:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(color.r, color.g, color.b, 0.5)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.emission_enabled = true
+	m.emission = color
+	m.emission_energy_multiplier = 0.7
+	for mi in node.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_override = m
+	var lbl = node.get_node_or_null("ValueLabel")
+	if lbl != null:
+		lbl.text = ""
+
+
+## Show a translucent placement ghost (green = valid, red = blocked) or a wire
+## rubber-band while the pointer is over the board.
+func _update_preview(pos: Vector2) -> void:
+	if preview_root == null or bb_view == null or camera == null:
+		return
+	_clear_preview()
+	var placing: bool = pending_type != ""
+	var wiring: bool = wire_mode and wire_start != null
+	if not placing and not wiring:
+		return
+	var local := _work_pos(pos)
+	var from = camera.project_ray_origin(local)
+	var dir = camera.project_ray_normal(local)
+	var hole = bb_view.ray_nearest_hole(from, dir, 0.08)
+	_hover_hole = hole
+	if hole == "":
+		return
+	if placing:
+		var pc = ComponentDB.pin_count(pending_type)
+		var holes = bb_view.default_holes(pending_type, pc, hole)
+		var valid := true
+		for h in holes:
+			if _component_at_hole(String(h)) != "":
+				valid = false
+		var ghost = ComponentFactory.build(pending_type, _holes_to_positions(holes), false, {})
+		_tint_ghost(ghost, Design.OK if valid else Design.ERR)
+		preview_root.add_child(ghost)
+	elif wiring:
+		var a = _endpoint_world(wire_start)
+		if a != null and bb_view.hole_positions.has(hole):
+			_cylinder_between(a, bb_view.hole_positions[hole] + Vector3(0, 0.01, 0),
+					0.008, Design.ACCENT, preview_root)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb = event as InputEventMouseButton
@@ -764,6 +848,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_click(mb.position)
 		elif mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed and mb.double_click:
 			pass
+	elif event is InputEventMouseMotion:
+		_update_preview((event as InputEventMouseMotion).position)
 	elif event is InputEventKey:
 		var ek = event as InputEventKey
 		if not ek.pressed or ek.echo:
@@ -866,7 +952,34 @@ func _draw_wire(w: Dictionary) -> void:
 	var b = _endpoint_world(w.b)
 	if a == null or b == null:
 		return
-	_cylinder_between(a, b, 0.012, Color(0.85, 0.55, 0.2), wire_root)
+	_wire_curve(a, b, _wire_color(w), wire_root)
+
+
+func _ep_key(ep) -> String:
+	if typeof(ep) != TYPE_DICTIONARY:
+		return "?"
+	var k = String(ep.get("kind", ""))
+	if k == "hole":
+		return "h:" + String(ep.get("id", ""))
+	return "c:" + String(ep.get("component", "")) + ":" + str(ep.get("pin", 0))
+
+
+func _wire_color(w: Dictionary) -> Color:
+	var key := _ep_key(w.get("a")) + "|" + _ep_key(w.get("b"))
+	return WIRE_PALETTE[absi(key.hash()) % WIRE_PALETTE.size()]
+
+
+## Draw a wire as a shallow arched curve (insulation sags, then lifts at the ends).
+func _wire_curve(a: Vector3, b: Vector3, color: Color, parent: Node3D) -> void:
+	var segs := 12
+	var lift := 0.015 + a.distance_to(b) * 0.05
+	var prev := a + Vector3(0, 0.012, 0)
+	for i in range(1, segs + 1):
+		var t := float(i) / float(segs)
+		var p := a.lerp(b, t)
+		p.y += 0.012 + sin(t * PI) * lift
+		_cylinder_between(prev, p, 0.0105, color, parent)
+		prev = p
 
 
 func _endpoint_world(ep) -> Variant:
@@ -1089,6 +1202,7 @@ func _on_wire_mode() -> void:
 	wire_mode = not wire_mode
 	pending_type = ""
 	wire_start = null
+	_clear_preview()
 	_on_status("Wire mode %s." % ("ON - click two holes" if wire_mode else "OFF"))
 	_refresh_statusbar()
 
