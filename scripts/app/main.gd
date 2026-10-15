@@ -11,12 +11,37 @@ const Session = preload("res://scripts/app/session.gd")
 const ComponentDB = preload("res://scripts/components/component_db.gd")
 const Oscilloscope = preload("res://scripts/instruments/oscilloscope.gd")
 const Units = preload("res://scripts/simulation/units.gd")
+const Design = preload("res://scripts/ui/design.gd")
+const Persistence = preload("res://scripts/persistence/persistence.gd")
 
 var session
 var bb_view
 var camera
 var comp_root: Node3D
 var wire_root: Node3D
+var viewport3d: SubViewport
+
+# Layout
+var ui_root: Control
+var mid_split: HSplitContainer
+var center_split: VSplitContainer
+var left_panel: PanelContainer
+var right_panel: PanelContainer
+var bottom_panel: PanelContainer
+var workspace: Control
+var status_state: Label
+var status_msg: Label
+var status_tool: Label
+var status_zoom: Label
+var status_warn: Label
+var cat_filter: OptionButton
+var lib_hint: Label
+var _current_cat := "All"
+var _warn_count := 0
+var _status_text := "Ready."
+var _sim_run_btn: Button
+var _wire_btn: Button
+var _project_label: Label
 
 var pending_type = ""
 var wire_mode = false
@@ -59,6 +84,7 @@ func _ready() -> void:
 	_on_status("Welcome to CircuitForge 3D. Pick a component, click the board to place it.")
 	_open_from_command_line()
 	_update_title()
+	call_deferred("_apply_default_layout")
 
 
 func _notification(what: int) -> void:
@@ -75,6 +101,8 @@ func _update_title() -> void:
 		name = String(session.project.metadata.get("name", "Untitled"))
 	var star := " *" if (session != null and session.is_dirty()) else ""
 	get_window().title = "CircuitForge 3D - %s%s" % [name, star]
+	if _project_label != null:
+		_project_label.text = "%s%s" % [name, star]
 
 
 func _open_from_command_line() -> void:
@@ -98,6 +126,15 @@ func _open_from_command_line() -> void:
 # ---------------------------------------------------------------------------
 
 func _build_world() -> void:
+	# The whole 3D scene lives inside a SubViewport so it renders exactly in the
+	# centre workspace, between the panels, instead of behind them.
+	viewport3d = SubViewport.new()
+	viewport3d.name = "Viewport3D"
+	viewport3d.handle_input_locally = false
+	viewport3d.msaa_3d = Viewport.MSAA_2X
+	viewport3d.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	viewport3d.size = Vector2i(900, 500)
+
 	var env_node = WorldEnvironment.new()
 	var e = Environment.new()
 	e.background_mode = Environment.BG_COLOR
@@ -106,34 +143,34 @@ func _build_world() -> void:
 	e.ambient_light_color = Color(0.5, 0.52, 0.6)
 	e.ambient_light_energy = 0.6
 	env_node.environment = e
-	add_child(env_node)
+	viewport3d.add_child(env_node)
 	env = e
 
 	var sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55, -35, 0)
 	sun.light_energy = 1.1
 	sun.shadow_enabled = true
-	add_child(sun)
+	viewport3d.add_child(sun)
 
 	var fill = DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-25, 140, 0)
 	fill.light_energy = 0.35
-	add_child(fill)
+	viewport3d.add_child(fill)
 
 	bb_view = BreadboardView.new()
-	add_child(bb_view)
+	viewport3d.add_child(bb_view)
 
 	comp_root = Node3D.new()
 	comp_root.name = "Components"
-	add_child(comp_root)
+	viewport3d.add_child(comp_root)
 
 	wire_root = Node3D.new()
 	wire_root.name = "Wires"
-	add_child(wire_root)
+	viewport3d.add_child(wire_root)
 
 	camera = OrbitCamera.new()
 	camera.target = Vector3.ZERO
-	add_child(camera)
+	viewport3d.add_child(camera)
 	camera.current = true
 
 
@@ -143,16 +180,59 @@ func _build_world() -> void:
 
 func _build_ui() -> void:
 	var layer = CanvasLayer.new()
+	layer.name = "UILayer"
 	add_child(layer)
 	var root = Control.new()
+	root.name = "UIRoot"
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = Design.theme()
 	layer.add_child(root)
+	ui_root = root
 
-	_build_toolbar(root)
-	_build_left(root)
-	_build_right(root)
-	_build_bottom(root)
+	# The whole app is a vertical stack: toolbar / middle / status bar. The middle
+	# is a split layout whose transparent centre reveals the 3D workbench.
+	var app := VBoxContainer.new()
+	app.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	app.add_theme_constant_override("separation", 0)
+	app.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(app)
+
+	app.add_child(_build_toolbar())
+
+	mid_split = HSplitContainer.new()
+	mid_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mid_split.add_theme_constant_override("separation", 0)
+	mid_split.mouse_filter = Control.MOUSE_FILTER_PASS
+	app.add_child(mid_split)
+
+	left_panel = _build_left()
+	mid_split.add_child(left_panel)
+
+	center_split = VSplitContainer.new()
+	center_split.add_theme_constant_override("separation", 0)
+	center_split.mouse_filter = Control.MOUSE_FILTER_PASS
+	mid_split.add_child(center_split)
+
+	workspace = SubViewportContainer.new()
+	workspace.name = "Workspace"
+	# PASS (not STOP) so clicks in the empty work area reach _unhandled_input for
+	# 3D picking, while the viewport itself still receives its own events.
+	workspace.mouse_filter = Control.MOUSE_FILTER_PASS
+	workspace.stretch = true
+	workspace.custom_minimum_size = Vector2(320, 220)
+	workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	workspace.add_child(viewport3d)
+	center_split.add_child(workspace)
+
+	bottom_panel = _build_bottom()
+	center_split.add_child(bottom_panel)
+
+	right_panel = _build_right()
+	mid_split.add_child(right_panel)
+
+	app.add_child(_build_statusbar())
+
 	_build_scope()
 	_build_meter()
 	_build_dialogs()
@@ -167,37 +247,71 @@ func _mk_button(parent: Node, text: String, cb: Callable, tip: String = "") -> B
 	return b
 
 
-func _build_toolbar(root: Control) -> void:
-	var bar = PanelContainer.new()
-	bar.anchor_right = 1.0
-	bar.offset_bottom = 70
-	var hb = HFlowContainer.new()
-	hb.add_theme_constant_override("h_separation", 4)
-	hb.add_theme_constant_override("v_separation", 4)
-	bar.add_child(hb)
-	root.add_child(bar)
+func _sep(parent: Node) -> void:
+	var s := VSeparator.new()
+	parent.add_child(s)
 
-	_mk_button(hb, "New", _on_new)
-	_mk_button(hb, "Open", _on_open)
-	_mk_button(hb, "Save", _on_save)
-	_mk_button(hb, "Save As", _on_save_as)
-	_build_examples_menu(hb)
-	var sep1 = VSeparator.new(); hb.add_child(sep1)
-	_mk_button(hb, "Wire", _on_wire_mode, "Toggle wire drawing (click two holes)")
-	_mk_button(hb, "Rotate", _on_rotate, "Rotate selected component")
-	_mk_button(hb, "Dup", _on_duplicate, "Duplicate selected component")
-	_mk_button(hb, "Delete", _on_delete, "Delete selected component")
-	var sep2 = VSeparator.new(); hb.add_child(sep2)
-	_mk_button(hb, "Run DC", _on_run_dc, "Solve the DC operating point")
-	_mk_button(hb, "Run Transient", _on_run_transient, "Run a transient simulation")
-	_mk_button(hb, "Stop", _on_stop, "Clear simulation results")
-	var sep3 = VSeparator.new(); hb.add_child(sep3)
-	_mk_button(hb, "Undo", _on_undo, "Undo")
-	_mk_button(hb, "Redo", _on_redo, "Redo")
-	_mk_button(hb, "Scope", _on_toggle_scope, "Show/hide the oscilloscope")
-	_mk_button(hb, "Meter", _on_toggle_meter, "Show/hide the multimeter")
-	_mk_button(hb, "Lighting", _on_cycle_lighting, "Cycle the workbench lighting")
-	_mk_button(hb, "Reset View", _on_reset_view, "Reset the camera")
+
+func _build_toolbar() -> PanelContainer:
+	var bar := PanelContainer.new()
+	bar.name = "Toolbar"
+	# A flow container wraps to extra rows instead of forcing the window wider,
+	# which keeps the panels on-screen at any width.
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 6)
+	flow.add_theme_constant_override("v_separation", 5)
+	bar.add_child(flow)
+
+	_mk_button(flow, "New", _on_new, "New project (Ctrl+N)")
+	_mk_button(flow, "Open", _on_open, "Open a .cf3d project (Ctrl+O)")
+	_mk_button(flow, "Save", _on_save, "Save (Ctrl+S)")
+	_mk_button(flow, "Save As", _on_save_as, "Save under a new name (Ctrl+Shift+S)")
+	_sep(flow)
+	_build_examples_menu(flow)
+	_build_view_menu(flow)
+	_sep(flow)
+	_mk_button(flow, "Undo", _on_undo, "Undo (Ctrl+Z)")
+	_mk_button(flow, "Redo", _on_redo, "Redo (Ctrl+Y)")
+	_sep(flow)
+	_sim_run_btn = _mk_button(flow, "\u25B6 Run DC", _on_run_dc, "Solve the DC operating point (Space)")
+	_mk_button(flow, "\u223F Transient", _on_run_transient, "Run a transient simulation")
+	_mk_button(flow, "\u25A0 Stop", _on_stop, "Clear simulation results")
+	_sep(flow)
+	_wire_btn = _mk_button(flow, "Wire", _on_wire_mode, "Toggle wire drawing: click two holes (W)")
+	_mk_button(flow, "Rotate", _on_rotate, "Rotate selected component (R)")
+	_mk_button(flow, "Duplicate", _on_duplicate, "Duplicate selected component")
+	_mk_button(flow, "Delete", _on_delete, "Delete selected component (Delete)")
+	_sep(flow)
+	_mk_button(flow, "Library", func(): _toggle_panel("left"), "Show/hide the component library")
+	_mk_button(flow, "Inspector", func(): _toggle_panel("right"), "Show/hide the inspector")
+	_mk_button(flow, "Console", func(): _toggle_panel("bottom"), "Show/hide the console")
+	_mk_button(flow, "Scope", _on_toggle_scope, "Show/hide the oscilloscope")
+	_mk_button(flow, "Meter", _on_toggle_meter, "Show/hide the multimeter")
+	_mk_button(flow, "Lighting", _on_cycle_lighting, "Cycle the workbench lighting")
+	return bar
+
+
+func _build_view_menu(flow: Control) -> void:
+	var view := OptionButton.new()
+	view.tooltip_text = "Camera views"
+	view.add_item("View")
+	view.set_item_disabled(0, true)
+	view.add_item("Top")
+	view.add_item("Front")
+	view.add_item("Side")
+	view.add_item("Isometric")
+	view.add_item("Frame All")
+	view.add_item("Reset View")
+	view.item_selected.connect(func(i: int):
+		match i:
+			1: camera.set_preset("top")
+			2: camera.set_preset("front")
+			3: camera.set_preset("side")
+			4: camera.set_preset("iso")
+			5: _on_frame_all()
+			6: _on_reset_view()
+		view.select(0))
+	flow.add_child(view)
 
 
 func _build_examples_menu(hb: Control) -> void:
@@ -218,89 +332,167 @@ func _build_examples_menu(hb: Control) -> void:
 		edir.list_dir_end()
 		names.sort()
 		for n in names:
-			example_paths.append("res://data/examples/" + n)
-			ex_btn.add_item(String(n).get_basename().replace("_", " "))
+			var path := "res://data/examples/" + String(n)
+			var label := String(n).get_basename().replace("_", " ")
+			if not _example_runnable(path):
+				label += "  (soon)"
+			example_paths.append(path)
+			ex_btn.add_item(label)
 	ex_btn.item_selected.connect(_on_example_selected)
 	hb.add_child(ex_btn)
 
 
-func _build_left(root: Control) -> void:
+func _build_left() -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.anchor_top = 0.0
-	panel.anchor_bottom = 0.0
-	panel.offset_left = 8
-	panel.offset_right = 232
-	panel.offset_top = 76
-	panel.offset_bottom = 600
-	root.add_child(panel)
+	panel.name = "LibraryPanel"
+	panel.custom_minimum_size = Vector2(248, 200)
 	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
 	panel.add_child(vb)
-	var title = Label.new()
-	title.text = "Component Library"
-	title.add_theme_font_size_override("font_size", 16)
-	vb.add_child(title)
+	vb.add_child(Design.heading("Component Library"))
 	search_field = LineEdit.new()
-	search_field.placeholder_text = "Search..."
+	search_field.placeholder_text = "Search by name, category, part number..."
+	search_field.clear_button_enabled = true
 	search_field.text_changed.connect(_on_search)
 	vb.add_child(search_field)
+	cat_filter = OptionButton.new()
+	cat_filter.item_selected.connect(_on_category_selected)
+	vb.add_child(cat_filter)
 	lib_list = ItemList.new()
 	lib_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	lib_list.custom_minimum_size = Vector2(210, 460)
+	lib_list.custom_minimum_size = Vector2(220, 300)
+	lib_list.allow_reselect = true
+	lib_list.fixed_icon_size = Vector2i(20, 20)
 	lib_list.item_selected.connect(_on_library_pick)
 	vb.add_child(lib_list)
+	lib_hint = Design.hint("Pick a component, then click a breadboard hole to place it.")
+	vb.add_child(lib_hint)
+	_refresh_categories()
 	_refresh_library("")
+	return panel
 
 
-func _build_right(root: Control) -> void:
+func _build_right() -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.anchor_left = 1.0
-	panel.anchor_right = 1.0
-	panel.offset_left = -280
-	panel.offset_right = -8
-	panel.offset_top = 76
-	panel.offset_bottom = 600
-	root.add_child(panel)
+	panel.name = "InspectorPanel"
+	panel.custom_minimum_size = Vector2(300, 200)
 	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
 	panel.add_child(vb)
-	var title = Label.new()
-	title.text = "Properties"
-	title.add_theme_font_size_override("font_size", 16)
-	vb.add_child(title)
+	vb.add_child(Design.heading("Inspector"))
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vb.add_child(scroll)
 	props_box = VBoxContainer.new()
-	props_box.custom_minimum_size = Vector2(260, 500)
-	vb.add_child(props_box)
+	props_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	props_box.add_theme_constant_override("separation", 6)
+	scroll.add_child(props_box)
+	return panel
 
 
-func _build_bottom(root: Control) -> void:
+func _build_bottom() -> PanelContainer:
 	var panel = PanelContainer.new()
-	panel.anchor_top = 1.0
-	panel.anchor_bottom = 1.0
-	panel.anchor_right = 1.0
-	panel.offset_left = 240
-	panel.offset_right = -288
-	panel.offset_top = -190
-	panel.offset_bottom = -8
-	root.add_child(panel)
+	panel.name = "ConsolePanel"
+	panel.custom_minimum_size = Vector2(0, 120)
 	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 4)
 	panel.add_child(vb)
-	status_label = Label.new()
-	status_label.text = "Ready."
-	vb.add_child(status_label)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	vb.add_child(head)
+	head.add_child(Design.heading("Console", Design.FONT_LABEL))
 	var hs = HSplitContainer.new()
 	hs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(hs)
 	measure_label = RichTextLabel.new()
 	measure_label.bbcode_enabled = true
-	measure_label.custom_minimum_size = Vector2(360, 120)
+	measure_label.custom_minimum_size = Vector2(320, 90)
 	hs.add_child(measure_label)
 	diag_label = RichTextLabel.new()
 	diag_label.bbcode_enabled = true
-	diag_label.custom_minimum_size = Vector2(360, 120)
+	diag_label.custom_minimum_size = Vector2(320, 90)
 	hs.add_child(diag_label)
+	return panel
+
+
+func _build_statusbar() -> PanelContainer:
+	var bar := PanelContainer.new()
+	bar.name = "StatusBar"
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 14)
+	bar.add_child(hb)
+	status_state = Label.new()
+	status_state.add_theme_color_override("font_color", Design.TEXT_DIM)
+	hb.add_child(status_state)
+	status_msg = Label.new()
+	status_msg.add_theme_color_override("font_color", Design.TEXT_DIM)
+	status_msg.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	hb.add_child(status_msg)
+	var sp1 := Control.new(); sp1.size_flags_horizontal = Control.SIZE_EXPAND_FILL; hb.add_child(sp1)
+	_project_label = Label.new()
+	_project_label.add_theme_color_override("font_color", Design.TEXT)
+	hb.add_child(_project_label)
+	var sp2 := VSeparator.new(); hb.add_child(sp2)
+	status_tool = Label.new()
+	status_tool.add_theme_color_override("font_color", Design.TEXT_DIM)
+	hb.add_child(status_tool)
+	status_zoom = Label.new()
+	status_zoom.add_theme_color_override("font_color", Design.TEXT_DIM)
+	hb.add_child(status_zoom)
+	status_warn = Label.new()
+	status_warn.add_theme_color_override("font_color", Design.WARN)
+	hb.add_child(status_warn)
+	_refresh_statusbar()
+	return bar
+
+
+# --- panel visibility + layout defaults ------------------------------------
+
+func _apply_default_layout() -> void:
+	if mid_split != null:
+		mid_split.split_offset = 264
+	if center_split != null:
+		center_split.split_offset = max(120, int(center_split.size.y) - 210)
+
+
+func _toggle_panel(which: String) -> void:
+	match which:
+		"left":
+			left_panel.visible = not left_panel.visible
+		"right":
+			right_panel.visible = not right_panel.visible
+		"bottom":
+			bottom_panel.visible = not bottom_panel.visible
+	_on_status("Toggled %s panel." % which)
+
+
+func _refresh_statusbar() -> void:
+	if status_state == null:
+		return
+	var state := "Idle"
+	var col := Design.TEXT_DIM
+	if session != null and session.last_result is Dictionary and session.last_result.get("ok", false):
+		state = "Solved"
+		col = Design.OK
+	status_state.text = "\u25CF  %s" % state
+	status_state.add_theme_color_override("font_color", col)
+	if status_msg != null:
+		status_msg.text = _status_text
+	status_tool.text = "Tool: %s" % ("Wire" if wire_mode else ("Place: " + pending_type if pending_type != "" else "Select"))
+	if camera != null:
+		status_zoom.text = "Zoom: %.2f m" % camera.distance
+	if session != null:
+		var n := 0
+		if session.last_result is Dictionary:
+			n = int(session.last_result.get("builder_warnings", []).size()) + int(session.last_result.get("warnings", []).size())
+		_warn_count = n
+	status_warn.text = "" if _warn_count == 0 else "\u26A0 %d warning(s)" % _warn_count
 
 
 func _build_scope() -> void:
 	scope_window = Window.new()
+	scope_window.theme = Design.theme()
 	scope_window.title = "Oscilloscope"
 	scope_window.size = Vector2i(560, 340)
 	scope_window.position = Vector2i(320, 120)
@@ -328,6 +520,7 @@ func _build_scope() -> void:
 
 func _build_meter() -> void:
 	meter_window = Window.new()
+	meter_window.theme = Design.theme()
 	meter_window.title = "Multimeter"
 	meter_window.size = Vector2i(320, 220)
 	meter_window.position = Vector2i(900, 200)
@@ -382,7 +575,34 @@ func _build_dialogs() -> void:
 # Library
 # ---------------------------------------------------------------------------
 
+func _refresh_categories() -> void:
+	if cat_filter == null:
+		return
+	cat_filter.clear()
+	cat_filter.add_item("All categories")
+	cat_filter.add_item("Fully simulated")
+	cat_filter.add_item("Arduino-compatible")
+	for c in ComponentDB.categories():
+		cat_filter.add_item(String(c))
+	cat_filter.select(0)
+
+
+func _on_category_selected(index: int) -> void:
+	match index:
+		0:
+			_current_cat = "All"
+		1:
+			_current_cat = "@full"
+		2:
+			_current_cat = "@arduino"
+		_:
+			_current_cat = cat_filter.get_item_text(index)
+	_refresh_library(search_field.text if search_field != null else "")
+
+
 func _refresh_library(filter: String) -> void:
+	if lib_list == null:
+		return
 	lib_list.clear()
 	lib_defs.clear()
 	var defs = ComponentDB.all_defs()
@@ -391,12 +611,26 @@ func _refresh_library(filter: String) -> void:
 	var f = filter.strip_edges().to_lower()
 	for t in keys:
 		var d = defs[t]
-		var text = "%s  (%s)" % [String(d.name), String(d.category)]
-		if f != "" and not (String(d.name).to_lower().contains(f) or String(t).to_lower().contains(f) or String(d.category).to_lower().contains(f)):
+		var cat := String(d.get("category", ""))
+		var status := String(d.get("simulation_status", "full"))
+		var arduino := bool(d.get("arduino_compatible", false))
+		if _current_cat == "@full" and status == "visual":
 			continue
-		lib_list.add_item(text)
+		if _current_cat == "@arduino" and not arduino:
+			continue
+		if _current_cat != "All" and not _current_cat.begins_with("@"):
+			if cat != _current_cat:
+				continue
+		if f != "":
+			var hay := ("%s %s %s %s %s" % [String(d.name), t, cat, String(d.get("part_number", "")), String(d.get("description", ""))]).to_lower()
+			if not hay.contains(f):
+				continue
+		lib_list.add_item(String(d.name))
 		lib_defs.append(t)
-		lib_list.set_item_tooltip(lib_list.item_count - 1, String(d.description))
+		lib_list.set_item_tooltip(lib_list.item_count - 1,
+			"%s  \u2022  %s\n\n%s\n\nSimulation: %s" % [String(d.name), cat, String(d.get("description", "")), status])
+	if lib_hint != null:
+		lib_hint.text = "%d component(s) shown. Pick one, then click a breadboard hole." % lib_defs.size()
 
 
 func _on_search(text: String) -> void:
@@ -408,17 +642,83 @@ func _on_library_pick(index: int) -> void:
 		return
 	pending_type = lib_defs[index]
 	wire_mode = false
+	_refresh_statusbar()
 	var d = ComponentDB.get_def(pending_type)
-	_on_status("Placing %s - click a breadboard hole." % String(d.name))
+	var status := String(d.get("simulation_status", "full"))
+	var note := ""
+	if status == "visual":
+		note = "  (visual only - not yet simulated)"
+	elif status == "partial":
+		note = "  (partially simulated)"
+	_on_status("Placing %s - click a breadboard hole.%s" % [String(d.name), note])
+
+
+## True when every component in an example has a working electrical model.
+func _example_runnable(path: String) -> bool:
+	var r = Persistence.load_from_file(path)
+	if not r.ok:
+		return false
+	for c in r.project.get("components", []):
+		var d = ComponentDB.get_def(String(c.type))
+		if d.is_empty() or String(d.get("simulation_status", "full")) == "visual":
+			return false
+	return true
+
+
+func _on_frame_all() -> void:
+	var merged := AABB()
+	var first := true
+	for c in comp_root.get_children():
+		var box = _node_aabb(c)
+		if box == null:
+			continue
+		if first:
+			merged = box
+			first = false
+		else:
+			merged = merged.merge(box)
+	if first:
+		camera.focus_on(Vector3.ZERO, 3.2)
+	else:
+		camera.frame_box(merged.position, merged.end)
+
+
+func _node_aabb(node: Node) -> Variant:
+	var found := false
+	var box := AABB()
+	for m in node.find_children("*", "MeshInstance3D", true, false):
+		var mi := m as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		var local := mi.mesh.get_aabb()
+		var t := Transform3D(_global_basis_of(mi), mi.global_position)
+		var world := t * local
+		if found:
+			box = box.merge(world)
+		else:
+			box = world
+			found = true
+	return box if found else null
+
+
+func _global_basis_of(node: Node3D) -> Basis:
+	return node.global_transform.basis
 
 
 # ---------------------------------------------------------------------------
 # Interaction
 # ---------------------------------------------------------------------------
 
+func _work_pos(window_pos: Vector2) -> Vector2:
+	if workspace == null:
+		return window_pos
+	return window_pos - workspace.get_global_rect().position
+
+
 func _handle_click(pos: Vector2) -> void:
-	var from = camera.project_ray_origin(pos)
-	var dir = camera.project_ray_normal(pos)
+	var local := _work_pos(pos)
+	var from = camera.project_ray_origin(local)
+	var dir = camera.project_ray_normal(local)
 	var hole = bb_view.ray_nearest_hole(from, dir, 0.08)
 
 	if pending_type != "":
@@ -428,6 +728,7 @@ func _handle_click(pos: Vector2) -> void:
 			session.add_component(pending_type, holes)
 			pending_type = ""
 			_on_status("Component placed. Select it to edit properties.")
+			_refresh_statusbar()
 		return
 
 	if wire_mode:
@@ -537,7 +838,14 @@ func _rebuild_3d() -> void:
 				pin_positions.append(Vector3.ZERO)
 			else:
 				pin_positions.append(bb_view.hole_positions[hs])
-		var node = ComponentFactory.build(String(comp.type), pin_positions, String(comp.id) == session.selected_id)
+		var info := {"params": comp.params}
+		var lres = session.last_result
+		if lres is Dictionary and lres.get("ok", false):
+			if lres.element_currents.has(String(comp.id)):
+				info["current"] = float(lres.element_currents[String(comp.id)])
+			if lres.element_voltages.has(String(comp.id)):
+				info["voltage"] = float(lres.element_voltages[String(comp.id)])
+		var node = ComponentFactory.build(String(comp.type), pin_positions, String(comp.id) == session.selected_id, info)
 		node.name = String(comp.id)
 		node.set_meta("component_id", String(comp.id))
 		comp_root.add_child(node)
@@ -782,6 +1090,7 @@ func _on_wire_mode() -> void:
 	pending_type = ""
 	wire_start = null
 	_on_status("Wire mode %s." % ("ON - click two holes" if wire_mode else "OFF"))
+	_refresh_statusbar()
 
 func _on_rotate() -> void:
 	if session.selected_id != "":
@@ -890,6 +1199,7 @@ func _on_simulation_updated(res: Dictionary) -> void:
 	_show_measurements(res)
 	_show_diagnostics(res)
 	_refresh_meter()
+	_refresh_statusbar()
 
 
 func _show_measurements(res: Dictionary) -> void:
@@ -939,8 +1249,11 @@ func _show_diagnostics(res: Dictionary) -> void:
 
 
 func _on_status(text: String) -> void:
-	if status_label != null:
-		status_label.text = text
+	_status_text = text
+	if status_msg != null:
+		status_msg.text = text
+	if status_state != null:
+		status_state.tooltip_text = text
 
 
 # ---------------------------------------------------------------------------

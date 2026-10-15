@@ -50,6 +50,32 @@ func focus_on(point: Vector3, new_distance: float = -1.0) -> void:
 	_update_transform()
 
 
+## Snap to a named preset view. Keeps the current target and distance.
+func set_preset(preset: String) -> void:
+	match preset:
+		"top":
+			yaw = 0.0
+			pitch = deg_to_rad(89.0)
+		"front":
+			yaw = 0.0
+			pitch = 0.0
+		"side":
+			yaw = deg_to_rad(90.0)
+			pitch = 0.0
+		"iso":
+			yaw = deg_to_rad(-35.0)
+			pitch = deg_to_rad(32.0)
+	_update_transform()
+
+
+## Frame a bounding box (min/max in world space) with a small margin.
+func frame_box(min_pt: Vector3, max_pt: Vector3) -> void:
+	target = (min_pt + max_pt) * 0.5
+	var extent := (max_pt - min_pt).length()
+	distance = clampf(extent * 1.35 + 0.4, min_distance, max_distance)
+	_update_transform()
+
+
 func _update_transform() -> void:
 	var dir := Vector3(
 		cos(pitch) * sin(yaw),
