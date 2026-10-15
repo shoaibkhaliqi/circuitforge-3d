@@ -48,3 +48,4 @@ func run(t) -> void:
 		var vf3: float = r3.element_voltages["D1"]
 		t.check(vf3 > 0.5 and vf3 < 0.8, "silicon forward drop between 0.5 and 0.8 V", "Vf=%.4f" % vf3)
 		t.check(r3.get("iterations", 0) > 0, "used Newton-Raphson iterations", "iters=%d" % r3.get("iterations", 0))
+	t.done()

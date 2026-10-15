@@ -6,6 +6,21 @@ extends RefCounted
 
 var results: Array = []
 var current_section := ""
+var tree = null
+var _done_marker := false
+
+
+func done() -> void:
+	_done_marker = true
+
+
+func begin_file() -> void:
+	_done_marker = false
+
+
+func finish_file(path: String) -> void:
+	if not _done_marker:
+		check(false, "test file did not run to completion (runtime error?): %s" % path)
 
 
 func section(name: String) -> void:

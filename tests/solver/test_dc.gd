@@ -89,6 +89,7 @@ func run(t) -> void:
 	var r2 = s.solve_dc(c)
 	t.check(r2.ok, "re-solve after edit succeeds")
 	t.near(r2.element_currents["R1"], 0.0025, "current after R=2k is 2.5 mA", 1e-4)
+	t.done()
 
 
 ## Sum of currents leaving `net` over every element of the circuit.

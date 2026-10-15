@@ -22,3 +22,4 @@ func run(t) -> void:
 
 	var r4 = LinAlg.solve([[3.0]], [9.0])
 	t.near(r4.x[0], 3.0, "1x1 solve")
+	t.done()

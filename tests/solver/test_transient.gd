@@ -65,3 +65,4 @@ func run(t) -> void:
 		# At t = 2.5 ms = quarter period, sine should be ~ +10 V.
 		var vq: float = sm[sm.size() - 1].probes["1"]
 		t.near(vq, 10.0, "sine at quarter period ~ +10 V", 0.02)
+	t.done()

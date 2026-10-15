@@ -67,3 +67,4 @@ func run(t) -> void:
 	])
 	r = s.solve_dc(c)
 	t.check(r.ok or not r.ok, "does not crash on r=0")
+	t.done()

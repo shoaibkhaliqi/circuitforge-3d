@@ -27,3 +27,4 @@ func run(t) -> void:
 	t.check(Units.format(1000.0, "Ohm") == "1 kOhm", "1000 -> '1 kOhm'", Units.format(1000.0, "Ohm"))
 	t.check(Units.format(0.02, "A").begins_with("20 m"), "0.02 -> '20 m'", Units.format(0.02, "A"))
 	t.check(Units.format(5.0, "V").begins_with("5 "), "5 -> '5 '", Units.format(5.0, "V"))
+	t.done()
