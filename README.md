@@ -37,6 +37,9 @@ the oscilloscope comes from the solver.
   loadable from the toolbar or the command line.
 - **248 automated tests** covering the solver, connectivity, persistence,
   units, camera, logic, placement and full end-to-end workflows.
+- **AI-native MCP server**: a Model Context Protocol server (`circuitforge-3d`)
+  lets agents like OpenCode inspect, edit, validate and simulate circuits
+  against the same solver, over stdio, offline. See `docs/mcp/`.
 
 ## Quick start
 
@@ -80,6 +83,8 @@ Exit code `0` means all tests passed. See `docs/releases/test_report.md`.
 
 - `docs/user_guide.md` — how to use the app.
 - `docs/architecture/architecture.md` — engine internals.
+- `docs/mcp/README.md` — the MCP server for AI agents (architecture, setup,
+  OpenCode config, tool reference, security, demo, troubleshooting, limits).
 - `docs/research/dossier.md` and `feature_matrix.md` — background.
 - `docs/releases/build_windows.md`, `build_linux.md` — packaging.
 - `docs/releases/test_report.md` — verification evidence.

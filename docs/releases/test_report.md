@@ -87,6 +87,34 @@ Performed manually on Windows with screenshot evidence:
 | `build/windows/CircuitForge3D.exe` (+pck)  | yes      | boots `--headless --quit-after`, exit 0, incl. CLI example load |
 | `build/linux/CircuitForge3D.x86_64` (+pck) | yes      | ELF64 little-endian `e_machine=0x3E` (x86-64), `ET_EXEC`; **not runtime-executed** (host WSL2 unavailable) |
 
+## MCP integration (protocol acceptance tests)
+
+Run with the official MCP Python SDK client (`mcp==2.3.0`) against the real
+adapter process (`python -m circuitforge_mcp`), which in turn drives the real
+headless Godot engine:
+
+```powershell
+mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
+```
+
+```
+RESULTS: 11 / 11 passed
+```
+
+| Test | Checks | Result |
+|------|--------|--------|
+| A. Server initialization | name `circuitforge-3d`, 32 tools present, valid input schemas | pass |
+| A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
+| B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
+| C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
+| D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
+| E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |
+| F. Invalid input safety | 4 error codes, project unchanged | pass |
+| G. Persistence | save → new → load → re-simulate `2.5000 mA` | pass |
+| H. Concurrency | stale `expected_revision` → `OPERATION_CONFLICT` | pass |
+| I. Transport correctness | stdout is clean JSON-RPC, diagnostics on stderr | pass |
+| J. Offline loopback | full flow under unroutable proxy; IPC loopback only | pass |
+
 ## Limitations
 
 - Only Windows runtime was executed. The Linux build was produced and its ELF
@@ -96,3 +124,6 @@ Performed manually on Windows with screenshot evidence:
 - Automated tests exercise the simulation core and the session/netlist layer
   headlessly; GUI interaction is covered by the manual checks above, not by an
   automated UI harness.
+- The MCP integration (adapter + engine + protocol suite) was verified on
+  Windows only. It is platform-neutral Python/GDScript and is expected to work
+  on Linux but was not executed there.

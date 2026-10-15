@@ -1,0 +1,8 @@
+# CircuitForge 3D MCP adapter runtime dependencies.
+#
+# The adapter uses the official Model Context Protocol Python SDK.
+# Install into the project-local virtual environment:
+#   python -m venv mcp_server/.venv
+#   mcp_server/.venv/Scripts/python -m pip install -r mcp_server/requirements.txt   (Windows)
+#   mcp_server/.venv/bin/python    -m pip install -r mcp_server/requirements.txt   (Linux)
+mcp==2.3.0

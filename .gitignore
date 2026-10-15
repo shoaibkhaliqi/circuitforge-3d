@@ -4,3 +4,12 @@ build/
 *.exe
 *.pck
 
+# Python / MCP adapter
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+

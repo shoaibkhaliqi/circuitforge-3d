@@ -259,6 +259,20 @@ func set_param(id: String, key: String, value) -> void:
 	changed.emit()
 
 
+## Atomically set several parameters on one component with a single undo step.
+## Returns false (without mutating) when the component is unknown.
+func set_params(id: String, values: Dictionary) -> bool:
+	var c = find_component(id)
+	if c == null:
+		return false
+	_push_undo()
+	for k in values:
+		c.params[String(k)] = values[k]
+	changed.emit()
+	status_message.emit("Updated %s" % id)
+	return true
+
+
 func move_component(id: String, holes: Array) -> void:
 	var c = find_component(id)
 	if c == null:

@@ -3,6 +3,28 @@
 All notable changes to CircuitForge 3D are documented here. This project aims to
 follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- AI-native **MCP (Model Context Protocol) server** (`circuitforge-3d`):
+  - Shared, UI-free application service layer (`scripts/api/app_service.gd`)
+    used by the GUI, the tests and MCP.
+  - Headless engine host (`scripts/api/api_server.gd`) exposing a token-
+    authenticated, loopback-only, line-JSON local API
+    (`circuitforge-local-api/1`).
+  - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
+    `mcp==2.3.0` SDK, speaking MCP over stdio.
+  - 32 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+    simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
+  - Structured error codes, `expected_revision` optimistic locking and
+    `operation_id` idempotency; sandboxed persistence and hard limits.
+  - MCP documentation set under `docs/mcp/` and an end-to-end protocol test
+    suite (Tests A–J) driven through the real MCP client.
+
+### Changed
+- Screenshot/consistency: Linux build status documented honestly as ELF-validated
+  but runtime-unverified (no Linux/WSL guest on the build host).
+
 ## [0.1.0] - 2026-10-16
 
 First functional, production-oriented release.
@@ -41,8 +63,9 @@ First functional, production-oriented release.
 - `_warnings` was being persisted into project files.
 
 ### Known limitations
-- Linux build is verified to boot headlessly under WSL2; full GPU runtime on a
-  native Linux desktop was not exercised.
+- Linux build produced and ELF-validated, but its runtime was not executed (no
+  Linux/WSL guest available on the build host). Full GPU runtime on a native
+  Linux desktop was not exercised.
 - Logic gates are combinational only; sequential logic (flip-flops, counters)
   and a programmable MCU are future work.
 - No macOS / Android / Web export in this release.

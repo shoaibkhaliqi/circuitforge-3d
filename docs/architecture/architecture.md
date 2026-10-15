@@ -105,14 +105,25 @@ res://
   scenes/    main, workbench, components, panels, instruments
   scripts/   app, camera, interaction, components, breadboard,
              connectivity, simulation, instruments, persistence, ui, diagnostics
+             api/  (app_service.gd, api_server.gd — UI-free service layer + headless host)
   data/      components, examples, schemas
   assets/    models, materials, textures, icons
   tests/     unit, connectivity, solver, integration, persistence, run_tests.gd
-  docs/      research, architecture, user_guide, testing, releases
+  docs/      research, architecture, user_guide, testing, releases, mcp
   tools/
+mcp_server/  circuitforge_mcp/ (Python MCP adapter), tests/, requirements.txt
 ```
 
-## 8. Platform strategy
+## 8. Application service layer and MCP
+
+All circuit logic is reachable through a UI-free application service layer
+(`scripts/api/app_service.gd`). The GUI, the automated tests and the MCP
+integration all use it, so behaviour is identical across them. A headless host
+(`scripts/api/api_server.gd`) exposes the layer over a token-authenticated
+loopback socket, which the Python MCP adapter (`mcp_server/`) translates to the
+Model Context Protocol over stdio. See `docs/mcp/` for details.
+
+## 9. Platform strategy
 Developed and verified on the machine present in this environment
 (Windows 10, x86-64). All file handling, paths and process calls are platform independent
 (`res://`, `user://`, `OS.get_name()` guards). Linux export templates are documented;

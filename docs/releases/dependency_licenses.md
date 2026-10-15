@@ -10,6 +10,8 @@ proprietary source code, no extracted protected assets and no CRUMB branding.
 | `icon.svg` (project icon) | — | Original, MIT (this project) | Application icon |
 | All `scripts/`, `scenes/`, `data/`, `assets/` | — | Original, MIT (this project) | Application |
 | JSON | RFC 8259 | — | Data format only |
+| Model Context Protocol Python SDK (`mcp`) | 2.3.0 | MIT | MCP adapter (optional, `mcp_server/`) |
+| Python transitive deps (`anyio`, `pydantic`, `httpx-sse`, …) | per SDK | MIT / BSD / Apache-2.0 | Pulled in by the MCP SDK |
 
 No textures shipped: all materials use flat `StandardMaterial3D` colours and generated
 primitives. No external font files: the default Godot font is used.
