@@ -67,7 +67,7 @@
       "params": {"is": {"default": 2e-19, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.9, "unit": "", "label": "Ideality factor"}},
       "model": {"shape": "rgb_led"},
       "mounting": "tht",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Each colour die is a diode; sharing of the common pin depends on the model."
     },
     {

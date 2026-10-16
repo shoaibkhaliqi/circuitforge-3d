@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 485 / 485 passed
+RESULT: 532 / 532 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -33,7 +33,7 @@ STATUS: ALL TESTS PASSED
 |------------------------------------------------------------|---------------------|
 | LinAlg — linear solve                                      | numeric core        |
 | Schema — normalise, validate, status vocabulary            | catalog schema      |
-| Catalog — load, validate all 237, search, facets, status   | catalog             |
+| Catalog — load, validate all 238, search, facets, status   | catalog             |
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
@@ -43,6 +43,7 @@ STATUS: ALL TESTS PASSED
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
+| Netlist — gpio driver, part aliases, status↔solver honesty | simulation mapping  |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -110,7 +111,7 @@ RESULTS: 13 / 13 passed
 | A. Server initialization | name `circuitforge-3d`, 34 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
-| B2. Catalog discovery | 237 entries, status facets/filters, I2C filter, 0 errors | pass |
+| B2. Catalog discovery | 238 entries, status facets/filters, I2C filter, 0 errors | pass |
 | B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |

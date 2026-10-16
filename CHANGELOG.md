@@ -54,6 +54,20 @@ follow [Semantic Versioning](https://semver.org/).
   Sourced provenance references added to every board (and the Android USB host
   shield). Exposed as the `get_board_pinout` MCP/API tool. New `test_boards.gd`
   (108 checks). Descriptive only — it never claims a board is simulatable.
+- **Pin-level simulation (Stage A) + truthful peripherals**:
+  - New `mcu_pin` ("Virtual MCU Pin (Stage A)", `data/components/virtual.json`):
+    an ideal pin driver (`level`/`vlogic`/`rout`) stamped in the solver as a
+    `gpio` element — a Thevenin source written as its Norton equivalent, so it
+    needs no branch unknown. High, low and high-impedance levels are modelled.
+  - Catalogue parts now map to real solver models: capacitor variants,
+    `ferrite_bead`, `trimmer`, `shunt_resistor`, `polyfuse`,
+    `push_button`/`reed_switch`, `toggle_switch` (COM–NO/COM–NC pair), LED
+    variants, `rectifier_diode`/`schottky_diode`, the battery family (ideal
+    source plus a series resistor from internal resistance), `usb_power_5v`,
+    `bench_psu`, `breadboard_psu_5v` (5 V + 3.3 V rails) and `ac_source` (sine).
+  - New `NetlistBuilder.handles(type)` and `tests/unit/test_netlist.gd` (47
+    checks) guarantee a part may only claim `full`/`partial` status if the solver
+    actually maps it; 23 parts with no honest model were downgraded to `visual`.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

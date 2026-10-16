@@ -552,7 +552,7 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}, {"name": "VIN", "type": "analog"}],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Modelled as a resistive divider; the reading is a scaled analog voltage."
     },
     {

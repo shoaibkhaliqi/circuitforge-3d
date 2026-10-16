@@ -13,7 +13,7 @@
       "params": {"r": {"default": 10.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}},
       "model": {"shape": "dc_motor"},
       "mounting": "device",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Modelled electrically as a resistor; back-EMF, torque and speed are not simulated."
     },
     {
@@ -27,7 +27,7 @@
       "params": {"r": {"default": 6.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}},
       "model": {"shape": "dc_motor"},
       "mounting": "device",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "servo_sg90",
@@ -72,7 +72,7 @@
       "params": {"r": {"default": 1.5, "unit": "ohm", "label": "Coil resistance"}, "i_rated": {"default": 1.5, "unit": "A", "label": "Rated current per phase"}},
       "model": {"shape": "nema17"},
       "mounting": "device",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Modelled as two resistors (coils); step sequencing and torque are not simulated."
     },
     {
@@ -88,7 +88,7 @@
       ],
       "model": {"shape": "stepper_unipolar"},
       "mounting": "device",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Modelled as resistors; step sequencing is not simulated."
     },
     {
@@ -225,7 +225,7 @@
       "params": {"r": {"default": 30.0, "unit": "ohm", "label": "Coil resistance"}, "v_nom": {"default": 12.0, "unit": "V", "label": "Nominal voltage"}},
       "model": {"shape": "solenoid"},
       "mounting": "device",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Modelled as a resistor; add a flyback diode in real hardware."
     },
     {
@@ -239,7 +239,7 @@
       "params": {"r": {"default": 75.0, "unit": "ohm", "label": "Resistance"}},
       "model": {"shape": "vibration_motor"},
       "mounting": "device",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "fan_5v",
@@ -252,7 +252,7 @@
       "params": {"r": {"default": 60.0, "unit": "ohm", "label": "Resistance"}},
       "model": {"shape": "fan"},
       "mounting": "device",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     }
   ]
 }

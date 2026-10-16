@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "category": "Virtual",
+  "components": [
+    {
+      "id": "mcu_pin",
+      "name": "Virtual MCU Pin (Stage A)",
+      "category": "Virtual",
+      "subcategory": "Pin Driver",
+      "manufacturer": "",
+      "part_number": "",
+      "description": "One microcontroller pin you drive by hand: an ideal Thevenin driver with a selectable logic level and output resistance. Stage A pin-level simulation - no firmware is executed.",
+      "keywords": ["mcu", "gpio", "pin", "output", "input", "virtual", "stage a", "logic"],
+      "pins": [
+        {"name": "SIG", "type": "bidirectional"},
+        {"name": "GND", "type": "ground"}
+      ],
+      "params": {
+        "level": {"default": 1.0, "unit": "", "label": "Level (-1 input, 0 low, 1 high)", "min": -1.0, "max": 1.0},
+        "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage", "min": 0.0},
+        "rout": {"default": 25.0, "unit": "Ohm", "label": "Output resistance", "min": 0.1}
+      },
+      "protocols": ["GPIO"],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "partial",
+      "simulation_models": ["thevenin-driver"],
+      "simulation_backend": "mna",
+      "arduino_compatible": true,
+      "notes": "Stage A simplification: the pin is an ideal voltage source in series with a fixed output resistance. Level -1 is high-impedance (weak pull). No slew rate, drive-strength curve, protection or firmware are modelled. Stage B/C (real code execution) is feasibility-gated and not implemented.",
+      "references": ["Generic GPIO output stage - ideal Thevenin model (see docs/catalog/schema.md)"]
+    }
+  ]
+}

@@ -66,7 +66,7 @@ date as milestones land.
 | 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | done |
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
-| 6 | Pin-level simulation (Stage A) + basic peripherals | planned |
+| 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (catalogued & searchable; simulations planned) |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (catalog facets/filters exposed) |
@@ -184,9 +184,33 @@ catalog that replaces the hardcoded definition list.
   `simulation_status: planned` and are never reported as simulated.
 - Regression: **485 / 485 tests pass**, MCP **13 / 13**, headless load exits 0.
 
+### Milestone 6 — pin-level simulation Stage A + truthful peripherals (done)
+- **`mcu_pin`** ("Virtual MCU Pin (Stage A)", new `data/components/virtual.json`):
+  an ideal pin driver with `SIG`/`GND` terminals and `level`/`vlogic`/`rout`
+  parameters. Stamped in the solver as a `gpio` element — a Thevenin source
+  written as its **Norton equivalent** (`add_g` + `add_i`), so it needs no branch
+  unknown. `level ≥ 0.5` drives `vlogic`, `level ≤ −1` is high-impedance, and
+  `level 0` drives low.
+- **Catalogue aliases mapped to real models** in `netlist_builder.gd`: capacitor
+  variants, `ferrite_bead`, `trimmer`, `shunt_resistor`, `polyfuse`,
+  `push_button`/`reed_switch` (→ resistor), `toggle_switch` (COM–NO/COM–NC pair),
+  LED variants, `rectifier_diode`/`schottky_diode`, the battery family (ideal
+  source plus a series resistor from `r_internal`/`r_int`), `usb_power_5v`,
+  `bench_psu`, `breadboard_psu_5v` (5 V + 3.3 V rails) and `ac_source` (sine).
+- **Honesty fix**: 23 parts that claimed `partial` but had no solver model
+  (connectors, IC sockets, motors, multi-pin regulators/DC-DC modules, relay,
+  USB power meter, sensor module, RGB LED) are now `visual`. A new
+  `NetlistBuilder.handles(type)` predicate plus `tests/unit/test_netlist.gd`
+  enforce that **no part may claim `full`/`partial` unless it is mapped**, and no
+  `visual` part is secretly simulated.
+- New `tests/unit/test_netlist.gd` (47 checks): honesty sweep over the catalogue,
+  `gpio` Thevenin behaviour (sag, low, high-Z), every alias mapping, and a
+  battery-with-internal-resistance numerical solve.
+- Regression: **532 / 532 tests pass**, MCP **13 / 13**, headless load exits 0.
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 485/485).
+   (currently 532/532).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

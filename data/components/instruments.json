@@ -136,7 +136,7 @@
       ],
       "model": {"shape": "usb_meter"},
       "mounting": "device",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Pass-through connection; measurement values come from the solver."
     }
   ]

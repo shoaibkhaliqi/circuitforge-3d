@@ -17,7 +17,7 @@ const MANIFEST := [
 	"passive.json", "sources.json", "semiconductor.json", "logic.json",
 	"analog_ic.json", "displays.json", "sensors.json", "communication.json",
 	"power.json", "motors.json", "connectors.json", "instruments.json",
-	"boards.json", "android.json", "mobile_devices.json",
+	"boards.json", "android.json", "mobile_devices.json", "virtual.json",
 ]
 
 static var _defs: Dictionary = {}

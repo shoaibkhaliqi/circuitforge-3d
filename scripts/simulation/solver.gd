@@ -309,6 +309,22 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 			var rout: float = max(0.0, float(el.params.get("rout", 1.0)))
 			mna.add_branch(outp, 0, row)
 			mna.branch_extra(row, -rout, vout)
+		"gpio":
+			# Stage A pin driver: a Thevenin source (vout, rout) stamped as its
+			# Norton equivalent so no branch unknown is needed. Level -1 is
+			# high-impedance, modelled as a very weak pull to the pin's reference.
+			var level: float = float(el.params.get("level", 1.0))
+			var vlogic: float = float(el.params.get("vlogic", 5.0))
+			var r: float = max(0.1, float(el.params.get("rout", 25.0)))
+			var vdrv := 0.0
+			if level >= 0.5:
+				vdrv = vlogic
+			elif level <= -0.5:
+				r = 1e8  # input / high-Z
+				vdrv = 0.0
+			var gg: float = 1.0 / r
+			mna.add_g(p, n, gg)
+			mna.add_i(p, n, gg * vdrv)
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -463,6 +479,16 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			return 0.0
 		"diode", "led", "zener":
 			return _diode_eval(el, v).i
+		"gpio":
+			var level: float = float(el.params.get("level", 1.0))
+			var vlogic: float = float(el.params.get("vlogic", 5.0))
+			var r: float = max(0.1, float(el.params.get("rout", 25.0)))
+			var vdrv := 0.0
+			if level >= 0.5:
+				vdrv = vlogic
+			elif level <= -0.5:
+				r = 1e8
+			return (v - vdrv) / r
 		_:
 			return 0.0
 

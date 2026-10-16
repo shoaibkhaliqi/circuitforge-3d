@@ -19,6 +19,34 @@ const Circuit = preload("res://scripts/simulation/circuit.gd")
 const ComponentDB = preload("res://scripts/components/component_db.gd")
 const UnionFind = preload("res://scripts/connectivity/union_find.gd")
 
+## Default source voltage for catalogue parts whose instance parameters may omit
+## `v`. Kept honest: these are the documented nominal values for the part.
+const SOURCE_DEFAULTS := {
+	"battery_aa": 1.5, "battery_aaa": 1.5, "battery_9v": 9.0,
+	"battery_18650": 3.7, "coin_cell_cr2032": 3.0, "battery_aa_holder": 6.0,
+	"lipo_1s": 3.7, "usb_power_5v": 5.0, "bench_psu": 5.0,
+}
+
+
+## Component types that have a real electrical model in the solver (see
+## `_make_elements`). Used by the catalog honesty test so a part may never claim
+## `full`/`partial` status without actually being mappable here.
+const HANDLED_TYPES := [
+	"resistor", "capacitor", "inductor", "potentiometer", "trimmer", "vsource",
+	"isource", "led", "diode", "zener", "switch", "ground",
+	"and", "or", "not", "nand", "nor", "xor", "buffer", "mcu_pin",
+	"electrolytic_capacitor", "film_capacitor", "tantalum_capacitor", "supercapacitor",
+	"ferrite_bead", "shunt_resistor", "polyfuse", "push_button", "reed_switch",
+	"toggle_switch", "led_green", "led_blue", "led_ir", "rectifier_diode",
+	"schottky_diode", "battery_aa", "battery_aaa", "battery_9v", "battery_18650",
+	"coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu",
+	"ac_source", "breadboard_psu_5v",
+]
+
+
+static func handles(type: String) -> bool:
+	return HANDLED_TYPES.has(type)
+
 
 func build(breadboard, placements: Array, wires: Array) -> Dictionary:
 	var uf = UnionFind.new()
@@ -138,12 +166,14 @@ func _endpoint_node(ep: Dictionary, uf) -> String:
 func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, warnings: Array) -> Array:
 	var out := []
 	match type:
-		"resistor":
-			out.append(_el(cid, "resistor", nets, {"r": float(params.get("r", 1000.0))}))
-		"capacitor":
+		"resistor", "shunt_resistor", "polyfuse":
+			var r_default := 0.5 if type == "polyfuse" else (0.1 if type == "shunt_resistor" else 1000.0)
+			out.append(_el(cid, "resistor", nets, {"r": float(params.get("r", r_default))}))
+		"capacitor", "electrolytic_capacitor", "film_capacitor", "tantalum_capacitor", "supercapacitor":
 			out.append(_el(cid, "capacitor", nets, {"c": float(params.get("c", 1e-6)), "ic": float(params.get("ic", 0.0))}))
-		"inductor":
-			out.append(_el(cid, "inductor", nets, {"l": float(params.get("l", 1e-3)), "ic": float(params.get("ic", 0.0))}))
+		"inductor", "ferrite_bead":
+			var l_default := 1e-6 if type == "ferrite_bead" else 1e-3
+			out.append(_el(cid, "inductor", nets, {"l": float(params.get("l", l_default)), "ic": float(params.get("ic", 0.0))}))
 		"vsource":
 			var vp := {"v": float(params.get("v", 5.0))}
 			if params.has("waveform"):
@@ -151,15 +181,20 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			out.append(_el(cid, "vsource", nets, vp))
 		"isource":
 			out.append(_el(cid, "isource", nets, {"i": float(params.get("i", 0.01))}))
-		"led", "diode", "zener":
-			out.append(_el(cid, type, nets, {
+		"led", "led_green", "led_blue", "led_ir", "diode", "rectifier_diode", "schottky_diode", "zener":
+			var el_type := "zener" if type == "zener" else ("led" if type.begins_with("led") else "diode")
+			out.append(_el(cid, el_type, nets, {
 				"is": float(params.get("is", 1e-14)),
 				"n": float(params.get("n", 1.0)),
 				"vz": float(params.get("vz", 5.1)),
 			}))
-		"switch":
+		"switch", "push_button", "reed_switch":
 			var r := 0.001 if bool(params.get("closed", false)) else 1e9
 			out.append(_el(cid, "resistor", nets, {"r": r}))
+		"toggle_switch":
+			var tpos: float = clampf(float(params.get("position", 0.0)), 0.0, 1.0)
+			out.append(_el(cid, "resistor", [nets[0], nets[1]], {"r": 0.001 if tpos >= 0.5 else 1e9}))
+			out.append(_el(cid + "#2", "resistor", [nets[0], nets[2]], {"r": 1e9 if tpos >= 0.5 else 0.001}))
 		"and", "or", "not", "nand", "nor", "xor", "buffer":
 			var def := ComponentDB.get_def(type)
 			out.append(_el(cid, "logic", nets, {
@@ -168,7 +203,28 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 				"vth": float(params.get("vth", 2.5)),
 				"rout": float(params.get("rout", 1.0)),
 			}))
-		"potentiometer":
+		"mcu_pin":
+			# Stage A pin driver: an ideal Thevenin source (level, vlogic, rout).
+			out.append(_el(cid, "gpio", nets, {
+				"level": float(params.get("level", 1.0)),
+				"vlogic": float(params.get("vlogic", 5.0)),
+				"rout": float(params.get("rout", 25.0)),
+			}))
+		"battery_aa", "battery_aaa", "battery_9v", "battery_18650", "coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu":
+			var v_def: float = float(SOURCE_DEFAULTS.get(type, 5.0))
+			var v_val: float = float(params.get("v", params.get("voltage", v_def)))
+			var rr: float = float(params.get("r_internal", params.get("r_int", 0.0)))
+			_source_with_series(cid, nets[0], nets[1], v_val, rr, out)
+		"ac_source":
+			var amp: float = float(params.get("amplitude", 5.0))
+			var frq: float = float(params.get("frequency", 50.0))
+			out.append(_el(cid, "vsource", nets, {
+				"v": amp, "waveform": {"type": "sine", "amplitude": amp, "frequency": frq, "offset": 0.0},
+			}))
+		"breadboard_psu_5v":
+			out.append(_el(cid, "vsource", [nets[2], nets[1]], {"v": 5.0}))
+			out.append(_el(cid + "#3v3", "vsource", [nets[3], nets[1]], {"v": 3.3}))
+		"potentiometer", "trimmer":
 			var rt: float = max(1.0, float(params.get("r", 10000.0)))
 			var pos: float = clampf(float(params.get("position", 0.5)), 0.0, 1.0)
 			var rupper: float = max(0.001, pos * rt)
@@ -180,6 +236,18 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out
+
+
+## An ideal voltage source, optionally with a series internal resistance. When
+## rin > 0 the source and resistor are split over a private internal node so the
+## terminal current still equals the source current under the component id.
+func _source_with_series(cid: String, a: String, b: String, v: float, rin: float, out: Array) -> void:
+	if rin > 1e-9:
+		var mid := cid + "#m"
+		out.append(_el(cid, "vsource", [a, mid], {"v": v}))
+		out.append(_el(cid + "#r", "resistor", [mid, b], {"r": rin}))
+	else:
+		out.append(_el(cid, "vsource", [a, b], {"v": v}))
 
 
 func _el(id: String, type: String, nets: Array, params: Dictionary):

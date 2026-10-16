@@ -43,7 +43,7 @@
       "pins": [{"name": "TIP", "type": "power"}, {"name": "SLEEVE", "type": "ground"}],
       "model": {"shape": "barrel_jack"},
       "mounting": "tht",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Electrically a two-terminal connector; polarity depends on the mating plug."
     },
     {
@@ -56,7 +56,7 @@
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
       "model": {"shape": "terminal_block_2"},
       "mounting": "tht",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "terminal_block_3",
@@ -68,7 +68,7 @@
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}],
       "model": {"shape": "terminal_block_3"},
       "mounting": "tht",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "jst_xh_2",
@@ -80,7 +80,7 @@
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
       "model": {"shape": "jst_xh"},
       "mounting": "tht",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "usb_a_receptacle",
@@ -146,7 +146,7 @@
       ],
       "model": {"shape": "audio_jack"},
       "mounting": "tht",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "rj45_jack",
@@ -193,7 +193,7 @@
       ],
       "model": {"shape": "dip_socket_8"},
       "mounting": "tht",
-      "simulation_status": "partial",
+      "simulation_status": "visual",
       "notes": "Passes through electrically; pin count is fixed at 8."
     },
     {
@@ -211,7 +211,7 @@
       ],
       "model": {"shape": "dip_socket_16"},
       "mounting": "tht",
-      "simulation_status": "partial"
+      "simulation_status": "visual"
     },
     {
       "id": "banana_plug",
