@@ -1,0 +1,219 @@
+{
+  "schema_version": 2,
+  "category": "Analog IC",
+  "components": [
+    {
+      "id": "lm358",
+      "name": "LM358 Dual Op-Amp",
+      "category": "Analog IC",
+      "subcategory": "Operational Amplifiers",
+      "description": "Dual general-purpose operational amplifier, DIP-8. Two independent op-amps.",
+      "keywords": ["opamp", "op-amp", "lm358", "dual", "amplifier"],
+      "part_number": "LM358",
+      "pins": [
+        {"name": "OUT1", "type": "output"}, {"name": "IN1-", "type": "input"}, {"name": "IN1+", "type": "input"},
+        {"name": "V-", "type": "power"}, {"name": "IN2+", "type": "input"}, {"name": "IN2-", "type": "input"},
+        {"name": "OUT2", "type": "output"}, {"name": "V+", "type": "power"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Pin numbers follow the DIP-8 package (pin 1 = OUT1, pin 8 = V+)."
+    },
+    {
+      "id": "lm741",
+      "name": "LM741 Op-Amp",
+      "category": "Analog IC",
+      "subcategory": "Operational Amplifiers",
+      "description": "Classic single operational amplifier, DIP-8.",
+      "keywords": ["opamp", "lm741", "single", "amplifier"],
+      "part_number": "LM741",
+      "pins": [
+        {"name": "OFFSET_N1", "type": "passive"}, {"name": "IN-", "type": "input"}, {"name": "IN+", "type": "input"},
+        {"name": "V-", "type": "power"}, {"name": "OFFSET_N2", "type": "passive"}, {"name": "OUT", "type": "output"},
+        {"name": "V+", "type": "power"}, {"name": "NC", "type": "nc"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "lm393",
+      "name": "LM393 Dual Comparator",
+      "category": "Analog IC",
+      "subcategory": "Comparators",
+      "description": "Dual differential comparator, DIP-8, open-collector outputs.",
+      "keywords": ["comparator", "lm393", "dual"],
+      "part_number": "LM393",
+      "pins": [
+        {"name": "OUT1", "type": "output"}, {"name": "IN1-", "type": "input"}, {"name": "IN1+", "type": "input"},
+        {"name": "GND", "type": "ground"}, {"name": "IN2+", "type": "input"}, {"name": "IN2-", "type": "input"},
+        {"name": "OUT2", "type": "output"}, {"name": "VCC", "type": "power"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ne555",
+      "name": "NE555 Timer",
+      "category": "Analog IC",
+      "subcategory": "Timers",
+      "description": "Versatile timer IC for oscillators, one-shots and PWM. DIP-8.",
+      "keywords": ["555", "ne555", "timer", "oscillator", "pwm", "astable", "monostable"],
+      "part_number": "NE555",
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "TRIG", "type": "input"}, {"name": "OUT", "type": "output"},
+        {"name": "RESET", "type": "input"}, {"name": "CTRL", "type": "input"}, {"name": "THR", "type": "input"},
+        {"name": "DISCH", "type": "passive"}, {"name": "VCC", "type": "power"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "lm386",
+      "name": "LM386 Audio Amplifier",
+      "category": "Analog IC",
+      "subcategory": "Audio",
+      "description": "Low-voltage audio power amplifier, DIP-8.",
+      "keywords": ["audio", "amplifier", "lm386", "speaker"],
+      "part_number": "LM386",
+      "pins": [
+        {"name": "GAIN", "type": "passive"}, {"name": "IN-", "type": "input"}, {"name": "IN+", "type": "input"},
+        {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "output"}, {"name": "VS", "type": "power"},
+        {"name": "BYPASS", "type": "passive"}, {"name": "GAIN2", "type": "passive"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "lm317",
+      "name": "LM317 Adjustable Regulator",
+      "category": "Analog IC",
+      "subcategory": "Voltage References",
+      "description": "Adjustable linear voltage regulator, TO-220. Pins: ADJ, OUT, IN.",
+      "keywords": ["lm317", "adjustable", "regulator", "vref"],
+      "part_number": "LM317",
+      "pins": [{"name": "ADJ", "type": "input"}, {"name": "OUT", "type": "power"}, {"name": "IN", "type": "power"}],
+      "params": {"vref": {"default": 1.25, "unit": "V", "label": "Reference voltage"}},
+      "model": {"shape": "to220"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "tl431",
+      "name": "TL431 Programmable Reference",
+      "category": "Analog IC",
+      "subcategory": "Voltage References",
+      "description": "Adjustable precision shunt regulator / reference.",
+      "keywords": ["tl431", "reference", "shunt regulator", "vref"],
+      "part_number": "TL431",
+      "pins": [{"name": "REF", "type": "input"}, {"name": "ANODE", "type": "passive"}, {"name": "CATHODE", "type": "passive"}],
+      "params": {"vref": {"default": 2.495, "unit": "V", "label": "Reference voltage"}},
+      "model": {"shape": "to92"},
+      "mounting": "tht",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "ina219",
+      "name": "INA219 Current/Power Monitor",
+      "category": "Analog IC",
+      "subcategory": "Current Sense",
+      "description": "I2C current, voltage and power monitor module with a shunt resistor.",
+      "keywords": ["ina219", "current", "power", "i2c", "monitor", "shunt"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"},
+        {"name": "VIN+", "type": "power"}, {"name": "VIN-", "type": "power"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "I2C register behaviour requires a peripheral backend."
+    },
+    {
+      "id": "mcp3008",
+      "name": "MCP3008 8-channel ADC",
+      "category": "Analog IC",
+      "subcategory": "ADCs",
+      "description": "10-bit, 8-channel SPI analog-to-digital converter, DIP-16.",
+      "keywords": ["mcp3008", "adc", "spi", "10-bit", "8 channel"],
+      "protocols": ["SPI"],
+      "part_number": "MCP3008",
+      "pins": [
+        {"name": "CH0", "type": "analog"}, {"name": "CH1", "type": "analog"}, {"name": "CH2", "type": "analog"}, {"name": "CH3", "type": "analog"},
+        {"name": "CH4", "type": "analog"}, {"name": "CH5", "type": "analog"}, {"name": "CH6", "type": "analog"}, {"name": "CH7", "type": "analog"},
+        {"name": "DGND", "type": "ground"}, {"name": "CS", "type": "input"}, {"name": "DIN", "type": "input"},
+        {"name": "DOUT", "type": "output"}, {"name": "CLK", "type": "clock"}, {"name": "AGND", "type": "ground"},
+        {"name": "VREF", "type": "power"}, {"name": "VDD", "type": "power"}
+      ],
+      "model": {"shape": "dip16"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "SPI conversion requires a peripheral backend."
+    },
+    {
+      "id": "ads1115",
+      "name": "ADS1115 16-bit ADC",
+      "category": "Analog IC",
+      "subcategory": "ADCs",
+      "description": "16-bit I2C ADC breakout with 4 single-ended / 2 differential inputs.",
+      "keywords": ["ads1115", "adc", "i2c", "16-bit"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VDD", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"},
+        {"name": "ADDR", "type": "input"}, {"name": "ALRT", "type": "output"},
+        {"name": "A0", "type": "analog"}, {"name": "A1", "type": "analog"}, {"name": "A2", "type": "analog"}, {"name": "A3", "type": "analog"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "mcp4725",
+      "name": "MCP4725 12-bit DAC",
+      "category": "Analog IC",
+      "subcategory": "DACs",
+      "description": "Single-channel 12-bit I2C digital-to-analog converter breakout.",
+      "keywords": ["mcp4725", "dac", "i2c", "12-bit"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}, {"name": "VOUT", "type": "analog"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "txs0108e",
+      "name": "TXS0108E Level Translator",
+      "category": "Analog IC",
+      "subcategory": "Interface",
+      "description": "8-channel bidirectional level translator (3.3 V <-> 5 V).",
+      "keywords": ["level translator", "txs0108e", "3.3v", "5v", "bidirectional"],
+      "pins": [
+        {"name": "A1", "type": "bidirectional"}, {"name": "A2", "type": "bidirectional"}, {"name": "A3", "type": "bidirectional"}, {"name": "A4", "type": "bidirectional"},
+        {"name": "A5", "type": "bidirectional"}, {"name": "A6", "type": "bidirectional"}, {"name": "A7", "type": "bidirectional"}, {"name": "A8", "type": "bidirectional"},
+        {"name": "VCCA", "type": "power"}, {"name": "VCCB", "type": "power"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "dip20"},
+      "mounting": "smd",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    }
+  ]
+}

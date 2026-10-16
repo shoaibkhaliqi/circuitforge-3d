@@ -6,6 +6,23 @@ follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Data-driven component catalog** (schema v2) replacing the hardcoded list:
+  - `scripts/components/component_schema.gd` — one versioned definition format
+    with `normalize()`/`validate()` and an honest implementation-status
+    vocabulary (`full`/`partial`/`visual`/`external`/`planned`).
+  - `scripts/components/component_catalog.gd` — loads + validates
+    `data/components/*.json`, exposes facets and tokenised search with filters
+    (category, status, protocol, interface, mounting, arduino-compatible,
+    simulatable-only, pagination).
+  - **237 definitions across 15 categories** (`data/components/`), 0 validation
+    errors: passives, sources, semiconductors, logic, analog ICs, displays,
+    sensors, communication, power, motors, connectors, instruments, development
+    boards, Android hardware and mobile devices.
+  - UI library filters (Fully simulated / Simulatable / Arduino-compatible /
+    Not yet simulated) with status tags; MCP `get_component_catalog` filters +
+    metadata and new `get_catalog_facets`.
+  - `tools/catalog_report.gd` and `docs/catalog/{schema,import,status_report}.md`.
+  - New unit tests `test_schema.gd` / `test_catalog.gd`.
 - AI-native **MCP (Model Context Protocol) server** (`circuitforge-3d`):
   - Shared, UI-free application service layer (`scripts/api/app_service.gd`)
     used by the GUI, the tests and MCP.
@@ -14,7 +31,7 @@ follow [Semantic Versioning](https://semver.org/).
     (`circuitforge-local-api/1`).
   - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
     `mcp==2.3.0` SDK, speaking MCP over stdio.
-  - 32 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+  - 33 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
     simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
   - Structured error codes, `expected_revision` optimistic locking and
     `operation_id` idempotency; sandboxed persistence and hard limits.

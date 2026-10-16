@@ -170,14 +170,50 @@ def get_capabilities() -> dict[str, Any]:
 
 
 @mcp.tool(annotations=_ro(), structured_output=True)
-def get_component_catalog(category: str = "", search: str = "") -> dict[str, Any]:
-    """List component definitions (type id, pins, parameters, ranges, models).
+def get_component_catalog(
+    category: str = "",
+    search: str = "",
+    subcategory: str = "",
+    status: str = "",
+    protocol: str = "",
+    interface: str = "",
+    manufacturer: str = "",
+    mounting: str = "",
+    arduino_compatible: bool = False,
+    simulatable_only: bool = False,
+    limit: int = 0,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """List component definitions (type id, pins, parameters, ranges, models, status).
 
     Args:
-        category: Optional category filter (e.g. "Passive", "Sources").
-        search: Optional case-insensitive search over id/name/description.
+        category: Optional category filter (e.g. "Passive", "Board").
+        search: Optional case-insensitive search over name/id/keywords/description.
+        subcategory: Optional subcategory filter (e.g. "Environmental").
+        status: Optional simulation-status filter: full/partial/visual/external/planned.
+        protocol: Optional protocol filter (e.g. "I2C", "SPI").
+        interface: Optional interface filter (e.g. "USB").
+        manufacturer: Optional manufacturer filter.
+        mounting: Optional mounting filter: tht/smd/module/board/device/virtual.
+        arduino_compatible: Only return Arduino-compatible parts.
+        simulatable_only: Only return parts with a working solver model (full/partial).
+        limit: Max items to return (0 = all).
+        offset: Pagination offset.
     """
-    return _wrap(call_engine("get_component_catalog", {"category": category, "search": search}))
+    filters = {
+        "subcategory": subcategory, "status": status, "protocol": protocol,
+        "interface": interface, "manufacturer": manufacturer, "mounting": mounting,
+        "arduino_compatible": arduino_compatible, "simulatable_only": simulatable_only,
+        "limit": limit, "offset": offset,
+    }
+    return _wrap(call_engine("get_component_catalog",
+                             {"category": category, "search": search, "filters": filters}))
+
+
+@mcp.tool(annotations=_ro(), structured_output=True)
+def get_catalog_facets() -> dict[str, Any]:
+    """Return catalog facets (categories, statuses, protocols, ...) and validation errors."""
+    return _wrap(call_engine("get_catalog_facets"))
 
 
 # ---------------------------------------------------------------------------

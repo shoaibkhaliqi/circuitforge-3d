@@ -65,11 +65,11 @@ date as milestones land.
 | 2 | Professional layout: toolbar, resizable/collapsible panels, status bar, component browser | done |
 | 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | done |
 | 4 | High-quality reusable 3D models for basic components | done (first pass) |
-| 5 | Arduino Uno R3 + Nano: accurate 3D boards + pin metadata | planned |
-| 6 | Arduino pin-level simulation (Stage A) + basic peripherals | planned |
-| 7 | Arduino code execution backend (Stage B/C) — feasibility-gated | planned |
-| 8 | Sensors, displays, motors, advanced analog/digital parts | planned |
-| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | planned |
+| 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | in progress (20 board defs catalogued; accurate 3D pending) |
+| 6 | Pin-level simulation (Stage A) + basic peripherals | planned |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
+| 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (catalogued & searchable; simulations planned) |
+| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (catalog facets/filters exposed) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | planned |
 
 ## 3a. Progress log
@@ -123,17 +123,47 @@ date as milestones land.
   9.73 mA; resistor shows orange-orange-brown = 330 Ω).
 - Regression: **248 / 248 tests pass**, headless load exits 0.
 
+### Library catalog foundation (done)
+The largest sub-project so far: a single, versioned, data-driven component
+catalog that replaces the hardcoded definition list.
+- `scripts/components/component_schema.gd` (v2): `normalize()` /
+  `validate()` and the honest status vocabulary
+  (`full`/`partial`/`visual`/`external`/`planned`) with `is_simulatable()`.
+- `scripts/components/component_catalog.gd`: loads + validates every
+  `data/components/*.json`, exposes facets and `search(query, filters)`
+  (category, subcategory, package, mounting, manufacturer, status, protocol,
+  interface, arduino_compatible, simulatable_only, pagination); `MANIFEST`
+  fallback for exports.
+- `scripts/components/component_db.gd`: façade kept API-compatible; adds
+  status/search/facets + `count()`.
+- **15 category files, 237 definitions, 0 validation errors.** Preserves all 18
+  original types/params exactly. Honest statuses: 25 `full`, 43 `partial`,
+  6 `visual`, 36 `external`, 127 `planned`.
+- UI: `main.gd` library now filters by *Fully simulated / Simulatable /
+  Arduino-compatible / Not yet simulated* and tags non-simulatable parts with
+  their status.
+- MCP: `get_component_catalog` gains filters + richer metadata;
+  new `get_catalog_facets`.
+- Docs: `docs/catalog/{schema,import,status_report}.md`;
+  `tools/catalog_report.gd` prints the live breakdown.
+- Evidence: `docs/plan/catalog_ui.png`.
+- Regression: **322 / 322 tests pass** (added `test_schema`, `test_catalog`);
+  MCP suite **12 / 12**; headless load exits 0.
+
 ### Verification habit (per milestone)
-1. `godot --headless --script res://tests/run_tests.gd` → must stay 248/248.
+1. `godot --headless --script res://tests/run_tests.gd` → must stay green
+   (currently 322/322).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
+4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
+   12/12.
 
 ## 4. Component implementation status vocabulary
 
 Every catalog entry gains:
 
 ```json
-"simulation_status": "full" | "partial" | "visual",
+"simulation_status": "full" | "partial" | "visual" | "external" | "planned",
 "simulation_models": ["ohmic", "nonlinear-diode", ...],
 "simulation_backend": "" | "mna" | "gpio" | "mcu-avr",
 "notes": "free text shown in the inspector and returned over MCP"
@@ -141,9 +171,12 @@ Every catalog entry gains:
 
 - **full** — the solver produces real voltages/currents for it.
 - **partial** — simulated with documented simplifications (e.g. ideal switch,
-  fixed-threshold logic).
-- **visual** — appears in 3D and can be wired, but has no electrical model yet;
-  clearly labelled and never reported as working.
+  fixed-threshold logic, ideal source + series resistance).
+- **visual** — appears in 3D and can be wired, but has no electrical model yet.
+- **external** — behaviour belongs to a host/backend (USB, ADB, firmware).
+- **planned** — catalogued and placeable, not simulated yet.
+- Everything except `full`/`partial` is clearly labelled and never reported as
+  working. See `docs/catalog/schema.md`.
 
 ## 5. Baseline preservation
 

@@ -593,7 +593,9 @@ func _refresh_categories() -> void:
 	cat_filter.clear()
 	cat_filter.add_item("All categories")
 	cat_filter.add_item("Fully simulated")
+	cat_filter.add_item("Simulatable")
 	cat_filter.add_item("Arduino-compatible")
+	cat_filter.add_item("Not yet simulated")
 	for c in ComponentDB.categories():
 		cat_filter.add_item(String(c))
 	cat_filter.select(0)
@@ -606,7 +608,11 @@ func _on_category_selected(index: int) -> void:
 		1:
 			_current_cat = "@full"
 		2:
+			_current_cat = "@sim"
+		3:
 			_current_cat = "@arduino"
+		4:
+			_current_cat = "@notimpl"
 		_:
 			_current_cat = cat_filter.get_item_text(index)
 	_refresh_library(search_field.text if search_field != null else "")
@@ -626,7 +632,12 @@ func _refresh_library(filter: String) -> void:
 		var cat := String(d.get("category", ""))
 		var status := String(d.get("simulation_status", "full"))
 		var arduino := bool(d.get("arduino_compatible", false))
-		if _current_cat == "@full" and status == "visual":
+		var simulatable := ComponentDB.is_simulatable(t)
+		if _current_cat == "@full" and status != "full":
+			continue
+		if _current_cat == "@sim" and not simulatable:
+			continue
+		if _current_cat == "@notimpl" and simulatable:
 			continue
 		if _current_cat == "@arduino" and not arduino:
 			continue
@@ -637,10 +648,13 @@ func _refresh_library(filter: String) -> void:
 			var hay := ("%s %s %s %s %s" % [String(d.name), t, cat, String(d.get("part_number", "")), String(d.get("description", ""))]).to_lower()
 			if not hay.contains(f):
 				continue
-		lib_list.add_item(String(d.name))
+		var label := String(d.name)
+		if not simulatable:
+			label += "  \u00b7 %s" % ComponentDB.status_label(t)
+		lib_list.add_item(label)
 		lib_defs.append(t)
 		lib_list.set_item_tooltip(lib_list.item_count - 1,
-			"%s  \u2022  %s\n\n%s\n\nSimulation: %s" % [String(d.name), cat, String(d.get("description", "")), status])
+			"%s  \u2022  %s\n\n%s\n\nSimulation: %s" % [String(d.name), cat, String(d.get("description", "")), ComponentDB.status_label(t)])
 	if lib_hint != null:
 		lib_hint.text = "%d component(s) shown. Pick one, then click a breadboard hole." % lib_defs.size()
 
@@ -658,8 +672,8 @@ func _on_library_pick(index: int) -> void:
 	var d = ComponentDB.get_def(pending_type)
 	var status := String(d.get("simulation_status", "full"))
 	var note := ""
-	if status == "visual":
-		note = "  (visual only - not yet simulated)"
+	if not ComponentDB.is_simulatable(pending_type):
+		note = "  (%s - it will be placed but not solved)" % ComponentDB.status_label(pending_type).to_lower()
 	elif status == "partial":
 		note = "  (partially simulated)"
 	_on_status("Placing %s - click a breadboard hole.%s" % [String(d.name), note])
@@ -671,8 +685,7 @@ func _example_runnable(path: String) -> bool:
 	if not r.ok:
 		return false
 	for c in r.project.get("components", []):
-		var d = ComponentDB.get_def(String(c.type))
-		if d.is_empty() or String(d.get("simulation_status", "full")) == "visual":
+		if not ComponentDB.exists(String(c.type)) or not ComponentDB.is_simulatable(String(c.type)):
 			return false
 	return true
 

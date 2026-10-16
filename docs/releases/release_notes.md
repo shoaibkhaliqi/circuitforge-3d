@@ -26,8 +26,12 @@ simulator built with Godot 4.7 and GDScript.
   plus undo/redo, Save As and an unsaved-changes guard.
 - **Adjustable workbench lighting** (studio / bright / night).
 - **11 bundled examples**, loadable from the toolbar or the command line.
-- **248 automated tests** (solver, connectivity, persistence, units, camera,
-  logic, placement, end-to-end integration, examples).
+- **Data-driven component catalog** — 237 definitions across 15 categories
+  (passives, semiconductors, logic, analog ICs, displays, sensors,
+  communication, power, motors, connectors, instruments, development boards,
+  Android hardware and mobile devices), each with an honest simulation status.
+- **322 automated tests** (solver, connectivity, persistence, units, camera,
+  logic, placement, catalog schema/search, end-to-end integration, examples).
 
 ### Packaging
 

@@ -122,6 +122,26 @@ async def main() -> int:
             except Exception as exc:
                 record("B. Read-only discovery", False, repr(exc))
 
+            # ---------------------------------------------------- Test B2
+            try:
+                facets = await call_ok(s, "get_catalog_facets")
+                full = await call_ok(s, "get_component_catalog", {"status": "full"})
+                sim = await call_ok(s, "get_component_catalog", {"simulatable_only": True})
+                i2c = await call_ok(s, "get_component_catalog", {"protocol": "I2C"})
+                statuses = set(facets.get("statuses", []))
+                ok = (facets.get("count", 0) >= 100
+                      and {"full", "partial", "planned"} <= statuses
+                      and full.get("count", 0) >= 10
+                      and all(it["simulation_status"] == "full" for it in full["items"])
+                      and all(it["simulatable"] for it in sim["items"])
+                      and all("I2C" in it["protocols"] for it in i2c["items"])
+                      and not facets.get("validation_errors"))
+                record("B2. Catalog discovery (facets/filters/status)", ok,
+                       f"count={facets.get('count')} full={full.get('count')} "
+                       f"simulatable={sim.get('count')} i2c={i2c.get('count')}")
+            except Exception as exc:
+                record("B2. Catalog discovery (facets/filters/status)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

@@ -171,7 +171,9 @@ func _dispatch(method: String, p: Dictionary) -> Dictionary:
 		"get_capabilities":
 			return _service.get_capabilities()
 		"get_component_catalog":
-			return _service.get_component_catalog(String(p.get("category", "")), String(p.get("search", "")))
+			return _service.get_component_catalog(String(p.get("category", "")), String(p.get("search", "")), p.get("filters", {}))
+		"get_catalog_facets":
+			return _service.get_catalog_facets()
 		"get_project_summary":
 			return _service.get_project_summary()
 		"list_components":

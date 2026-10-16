@@ -1,0 +1,585 @@
+{
+  "schema_version": 2,
+  "category": "Sensor",
+  "components": [
+    {
+      "id": "dht11",
+      "name": "DHT11 Temperature & Humidity",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Low-cost digital temperature and humidity sensor with a single-wire interface.",
+      "keywords": ["dht11", "temperature", "humidity", "sensor"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "DATA", "type": "bidirectional"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "dht11"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "dht22",
+      "name": "DHT22 / AM2302 Temperature & Humidity",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Higher-accuracy digital temperature and humidity sensor.",
+      "keywords": ["dht22", "am2302", "temperature", "humidity", "sensor"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "DATA", "type": "bidirectional"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "dht22"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "sht31",
+      "name": "SHT31 Temperature & Humidity",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "High-accuracy I2C temperature and humidity sensor.",
+      "keywords": ["sht31", "sht30", "temperature", "humidity", "i2c"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "bme280",
+      "name": "BME280 Environment Sensor",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Temperature, humidity and barometric pressure sensor (I2C / SPI).",
+      "keywords": ["bme280", "pressure", "humidity", "temperature", "i2c", "spi"],
+      "protocols": ["I2C", "SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "bmp280",
+      "name": "BMP280 Pressure Sensor",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Barometric pressure and temperature sensor (I2C / SPI).",
+      "keywords": ["bmp280", "pressure", "altitude", "temperature"],
+      "protocols": ["I2C", "SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ds18b20",
+      "name": "DS18B20 Digital Temperature",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Waterproof digital temperature sensor on a 1-Wire bus.",
+      "keywords": ["ds18b20", "temperature", "1-wire", "waterproof", "probe"],
+      "protocols": ["1-Wire"],
+      "pins": [{"name": "GND", "type": "ground"}, {"name": "DQ", "type": "bidirectional"}, {"name": "VDD", "type": "power"}],
+      "model": {"shape": "ds18b20_probe"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Requires a 4.7k pull-up on the data line in real hardware."
+    },
+    {
+      "id": "lm35",
+      "name": "LM35 Analog Temperature",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Analog temperature sensor, 10 mV/degC, TO-92. Pins: +VS, VOUT, GND.",
+      "keywords": ["lm35", "temperature", "analog", "to92"],
+      "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
+      "model": {"shape": "to92"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "tmp36",
+      "name": "TMP36 Analog Temperature",
+      "category": "Sensor",
+      "subcategory": "Environmental",
+      "description": "Analog temperature sensor, 10 mV/degC with 500 mV offset, TO-92.",
+      "keywords": ["tmp36", "temperature", "analog", "to92"],
+      "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
+      "model": {"shape": "to92"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ldr_module",
+      "name": "LDR Light Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Light",
+      "description": "Photoresistor module with analog and digital (comparator) outputs.",
+      "keywords": ["ldr", "light", "photoresistor", "module", "analog", "digital"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      ],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "soil_moisture",
+      "name": "Soil Moisture Sensor",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Resistive soil-moisture probe module with analog and digital outputs.",
+      "keywords": ["soil", "moisture", "agriculture", "irrigation", "probe"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      ],
+      "model": {"shape": "soil_probe_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Resistive probes corrode over time; capacitive probes are preferred for long-term use."
+    },
+    {
+      "id": "rain_sensor",
+      "name": "Rain Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Rain/fc-37 detector board with analog and digital outputs.",
+      "keywords": ["rain", "water", "moisture", "weather"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      ],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "water_level_sensor",
+      "name": "Water Level Sensor",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Conductive water-level sensing strip module.",
+      "keywords": ["water level", "liquid", "tank", "float"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "water_flow_yfs201",
+      "name": "Water Flow Sensor (YF-S201)",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Hall-effect inline water flow sensor producing a pulse per volume.",
+      "keywords": ["flow", "yf-s201", "water", "hall", "pulse"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "output"}],
+      "model": {"shape": "flow_sensor"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "hcsr04",
+      "name": "HC-SR04 Ultrasonic Distance",
+      "category": "Sensor",
+      "subcategory": "Distance",
+      "description": "Ultrasonic distance sensor with separate trigger and echo pins.",
+      "keywords": ["ultrasonic", "hc-sr04", "distance", "range", "sonar"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "TRIG", "type": "input"},
+        {"name": "ECHO", "type": "output"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "hcsr04"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Echo output is 5 V; level-shift when driving a 3.3 V MCU input."
+    },
+    {
+      "id": "tof_vl53l0x",
+      "name": "VL53L0X Time-of-Flight Distance",
+      "category": "Sensor",
+      "subcategory": "Distance",
+      "description": "Laser time-of-flight distance sensor, I2C.",
+      "keywords": ["vl53l0x", "tof", "time of flight", "distance", "laser", "i2c"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "pir_hcsr501",
+      "name": "HC-SR501 PIR Motion Sensor",
+      "category": "Sensor",
+      "subcategory": "Motion",
+      "description": "Passive-infrared motion detector with a digital output.",
+      "keywords": ["pir", "motion", "hc-sr501", "infrared", "presence"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
+      "model": {"shape": "pir_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ir_obstacle",
+      "name": "IR Obstacle Sensor",
+      "category": "Sensor",
+      "subcategory": "Distance",
+      "description": "Infrared reflective obstacle/proximity sensor module.",
+      "keywords": ["ir", "obstacle", "proximity", "line follower"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "output"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "hall_a3144",
+      "name": "Hall-Effect Sensor (A3144)",
+      "category": "Sensor",
+      "subcategory": "Magnetic",
+      "description": "Digital unipolar Hall-effect switch.",
+      "keywords": ["hall", "a3144", "magnetic", "switch", "rpm"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
+      "model": {"shape": "to92"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "rotary_encoder",
+      "name": "Rotary Encoder (with switch)",
+      "category": "Sensor",
+      "subcategory": "Motion",
+      "description": "Incremental rotary encoder with quadrature outputs and a push switch.",
+      "keywords": ["rotary encoder", "quadrature", "knob", "ky-040"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
+        {"name": "A", "type": "output"}, {"name": "B", "type": "output"}, {"name": "SW", "type": "output"}
+      ],
+      "model": {"shape": "rotary_encoder"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "limit_switch",
+      "name": "Limit Switch",
+      "category": "Sensor",
+      "subcategory": "Motion",
+      "description": "Mechanical end-stop switch. COM, NO and NC contacts.",
+      "keywords": ["limit switch", "endstop", "mechanical", "3d printer"],
+      "pins": [{"name": "COM", "type": "passive"}, {"name": "NO", "type": "passive"}, {"name": "NC", "type": "passive"}],
+      "model": {"shape": "limit_switch"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "mpu6050",
+      "name": "MPU-6050 IMU",
+      "category": "Sensor",
+      "subcategory": "Motion",
+      "description": "6-axis accelerometer and gyroscope, I2C.",
+      "keywords": ["mpu6050", "imu", "accelerometer", "gyroscope", "i2c"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}, {"name": "INT", "type": "output"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "adxl345",
+      "name": "ADXL345 Accelerometer",
+      "category": "Sensor",
+      "subcategory": "Motion",
+      "description": "3-axis digital accelerometer (I2C / SPI).",
+      "keywords": ["adxl345", "accelerometer", "i2c", "spi", "tilt"],
+      "protocols": ["I2C", "SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "hx711",
+      "name": "HX711 Load-Cell Amplifier",
+      "category": "Sensor",
+      "subcategory": "Force",
+      "description": "24-bit load-cell amplifier with a simple two-wire interface.",
+      "keywords": ["hx711", "load cell", "weight", "scale", "amplifier"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "DT", "type": "input"}, {"name": "SCK", "type": "input"}, {"name": "GND", "type": "ground"},
+        {"name": "E+", "type": "passive"}, {"name": "E-", "type": "passive"}, {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "load_cell_5kg",
+      "name": "Load Cell 5 kg",
+      "category": "Sensor",
+      "subcategory": "Force",
+      "description": "Bar-type strain-gauge load cell with a four-wire bridge (E+, E-, A+, A-).",
+      "keywords": ["load cell", "strain gauge", "weight", "scale", "5kg"],
+      "pins": [
+        {"name": "E+", "type": "passive"}, {"name": "E-", "type": "passive"},
+        {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"}
+      ],
+      "model": {"shape": "load_cell"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "mq2_gas",
+      "name": "MQ-2 Combustible Gas Sensor",
+      "category": "Sensor",
+      "subcategory": "Gas",
+      "description": "Analog gas sensor for LPG, methane, propane and smoke. Needs warm-up.",
+      "keywords": ["mq2", "gas", "smoke", "lpg", "methane", "analog"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      ],
+      "model": {"shape": "mq_sensor"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Requires burn-in and calibration; cross-sensitive to multiple gases."
+    },
+    {
+      "id": "mq135_air",
+      "name": "MQ-135 Air Quality Sensor",
+      "category": "Sensor",
+      "subcategory": "Gas",
+      "description": "Analog air-quality sensor for NH3, benzene, smoke and CO2-equivalent readings.",
+      "keywords": ["mq135", "air quality", "voc", "co2", "analog"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      ],
+      "model": {"shape": "mq_sensor"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Provides an estimated air-quality signal, not a calibrated CO2 measurement."
+    },
+    {
+      "id": "ccs811",
+      "name": "CCS811 eCO2 / TVOC Sensor",
+      "category": "Sensor",
+      "subcategory": "Gas",
+      "description": "Metal-oxide sensor giving eCO2 and TVOC estimates over I2C.",
+      "keywords": ["ccs811", "eco2", "tvoc", "air quality", "i2c"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}, {"name": "WAKE", "type": "input"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "eCO2 is an estimate from VOC data, not a true NDIR CO2 measurement."
+    },
+    {
+      "id": "scd40",
+      "name": "SCD40 true CO2 Sensor (NDIR)",
+      "category": "Sensor",
+      "subcategory": "Gas",
+      "description": "Photoacoustic true CO2 sensor with humidity and temperature, I2C.",
+      "keywords": ["scd40", "scd41", "co2", "ndir", "true co2", "i2c"],
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "This sensor performs a genuine CO2 measurement, unlike eCO2 estimates."
+    },
+    {
+      "id": "pms5003",
+      "name": "PMS5003 Particulate Matter Sensor",
+      "category": "Sensor",
+      "subcategory": "Gas",
+      "description": "Laser particle counter reporting PM1.0 / PM2.5 / PM10 over UART.",
+      "keywords": ["pms5003", "pm2.5", "particulate", "dust", "air quality", "uart"],
+      "protocols": ["UART"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "TX", "type": "output"}, {"name": "RX", "type": "input"}, {"name": "SET", "type": "input"}, {"name": "RST", "type": "input"}
+      ],
+      "model": {"shape": "sensor_module"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ph_sensor_module",
+      "name": "pH Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Analog pH interface board for water and soil solutions; requires calibration.",
+      "keywords": ["ph", "water quality", "hydroponics", "analog", "probe"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "PO", "type": "analog"}, {"name": "TO", "type": "analog"}
+      ],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Probes require regular two-point calibration; results are not temperature-compensated by default."
+    },
+    {
+      "id": "ec_sensor_module",
+      "name": "EC / TDS Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Agriculture",
+      "description": "Analog electrical-conductivity / TDS interface for nutrient and water monitoring.",
+      "keywords": ["ec", "tds", "conductivity", "hydroponics", "analog"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "rtd_pt100",
+      "name": "PT100 RTD",
+      "category": "Sensor",
+      "subcategory": "Industrial",
+      "description": "Platinum resistance temperature detector (100 ohm at 0 degC).",
+      "keywords": ["pt100", "rtd", "temperature", "industrial", "platinum"],
+      "pins": [{"name": "P1", "type": "passive"}, {"name": "P2", "type": "passive"}],
+      "model": {"shape": "rtd_probe"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "notes": "Use a dedicated RTD amplifier; 2/3/4-wire wiring affects accuracy."
+    },
+    {
+      "id": "max6675_thermocouple",
+      "name": "MAX6675 K-Type Thermocouple",
+      "category": "Sensor",
+      "subcategory": "Industrial",
+      "description": "K-type thermocouple amplifier with cold-junction compensation, SPI.",
+      "keywords": ["max6675", "thermocouple", "k-type", "temperature", "spi"],
+      "protocols": ["SPI"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
+        {"name": "SCK", "type": "clock"}, {"name": "CS", "type": "input"}, {"name": "SO", "type": "output"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "pressure_transducer_420ma",
+      "name": "Pressure Transducer (4-20 mA)",
+      "category": "Sensor",
+      "subcategory": "Industrial",
+      "description": "Industrial two-wire 4-20 mA pressure transmitter.",
+      "keywords": ["pressure", "4-20ma", "transmitter", "industrial", "loop"],
+      "pins": [{"name": "LOOP+", "type": "power"}, {"name": "LOOP-", "type": "power"}],
+      "params": {"range_min": {"default": 0.0, "unit": "bar", "label": "Range minimum"}, "range_max": {"default": 10.0, "unit": "bar", "label": "Range maximum"}},
+      "model": {"shape": "industrial_sensor"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "notes": "Reading the loop requires a sense resistor / current-loop receiver."
+    },
+    {
+      "id": "acs712",
+      "name": "ACS712 Current Sensor",
+      "category": "Sensor",
+      "subcategory": "Current",
+      "description": "Hall-effect AC/DC current sensor module (5A / 20A / 30A variants).",
+      "keywords": ["acs712", "current", "hall", "ac", "dc", "analog"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "analog"}],
+      "params": {"sensitivity": {"default": 0.185, "unit": "V/A", "label": "Sensitivity"}},
+      "model": {"shape": "acs712_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "voltage_sensor_module",
+      "name": "Voltage Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Voltage",
+      "description": "Resistive-divider voltage sensor module (up to ~25 V input).",
+      "keywords": ["voltage sensor", "divider", "b25", "analog"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}, {"name": "VIN", "type": "analog"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "partial",
+      "notes": "Modelled as a resistive divider; the reading is a scaled analog voltage."
+    },
+    {
+      "id": "flame_sensor",
+      "name": "Flame Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Safety",
+      "description": "Infrared flame detector module with analog and digital outputs.",
+      "keywords": ["flame", "fire", "infrared", "safety"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "DO", "type": "output"}, {"name": "AO", "type": "analog"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "sound_sensor",
+      "name": "Sound / Microphone Sensor Module",
+      "category": "Sensor",
+      "subcategory": "Sound",
+      "description": "Electret microphone module with analog envelope and digital threshold outputs.",
+      "keywords": ["sound", "microphone", "noise", "clap", "audio"],
+      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}],
+      "model": {"shape": "sensor_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    }
+  ]
+}

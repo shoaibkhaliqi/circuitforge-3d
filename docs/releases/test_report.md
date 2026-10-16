@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 248 / 248 passed
+RESULT: 322 / 322 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -32,6 +32,8 @@ STATUS: ALL TESTS PASSED
 | Suite / section                                            | Area                |
 |------------------------------------------------------------|---------------------|
 | LinAlg — linear solve                                      | numeric core        |
+| Schema — normalise, validate, status vocabulary            | catalog schema      |
+| Catalog — load, validate all 237, search, facets, status   | catalog             |
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
@@ -98,14 +100,15 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 11 / 11 passed
+RESULTS: 12 / 12 passed
 ```
 
 | Test | Checks | Result |
 |------|--------|--------|
-| A. Server initialization | name `circuitforge-3d`, 32 tools present, valid input schemas | pass |
+| A. Server initialization | name `circuitforge-3d`, 33 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
+| B2. Catalog discovery | 237 entries, status facets/filters, I2C filter, 0 errors | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

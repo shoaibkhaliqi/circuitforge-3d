@@ -112,6 +112,7 @@ func get_simulator_info() -> Dictionary:
 func get_capabilities() -> Dictionary:
 	var caps := {
 		"read": ["get_simulator_info", "get_capabilities", "get_component_catalog",
+			"get_catalog_facets",
 			"get_project_summary", "list_components", "get_component", "get_connections",
 			"get_node_voltage", "get_branch_current", "get_simulation_results",
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
@@ -173,35 +174,89 @@ func _param_range(key: String) -> Array:
 			return []
 
 
-func get_component_catalog(category: String = "", search: String = "") -> Dictionary:
+func get_component_catalog(category: String = "", search: String = "", filters: Dictionary = {}) -> Dictionary:
+	var f := {}
+	for key in ["subcategory", "package", "mounting", "manufacturer", "status", "protocol", "interface"]:
+		if filters.has(key) and String(filters[key]) != "":
+			f[key] = String(filters[key])
+	if bool(filters.get("arduino_compatible", false)):
+		f["arduino_compatible"] = true
+	if bool(filters.get("simulatable_only", false)):
+		f["simulatable_only"] = true
+	if category != "":
+		f["category"] = category
+	var limit := int(filters.get("limit", 0))
+	var offset := int(filters.get("offset", 0))
+	if limit > 0:
+		f["limit"] = limit
+	if offset > 0:
+		f["offset"] = offset
+	var result := ComponentDB.search(search, f)
 	var items := []
-	var needle := search.to_lower()
-	for type in ComponentDB.all_defs():
-		var def: Dictionary = ComponentDB.get_def(type)
-		if category != "" and String(def.category) != category:
-			continue
-		if needle != "":
-			var hay: String = (type + " " + String(def.name) + " " + String(def.get("description", ""))).to_lower()
-			if not hay.contains(needle):
-				continue
-		var pins := []
-		for p in def.pins:
-			pins.append(String(p.name))
-		items.append({
-			"type": type,
-			"name": String(def.name),
-			"category": String(def.category),
-			"description": String(def.get("description", "")),
-			"pin_names": pins,
-			"pin_count": pins.size(),
-			"default_parameters": ComponentDB.default_params(type),
-			"parameters": _param_meta(type),
-			"simulation_models": _models_for(type),
-			"model_limitations": _model_limits(type),
-			"placeable_on_breadboard": true,
-		})
-	items.sort_custom(func(a, b): return String(a.type) < String(b.type))
-	return _ok({"categories": ComponentDB.categories(), "count": items.size(), "items": items})
+	for type in result.items:
+		items.append(_catalog_entry(String(type)))
+	return _ok({
+		"categories": ComponentDB.categories(),
+		"count": int(result.count),
+		"returned": items.size(),
+		"offset": offset,
+		"items": items,
+		"facets": ComponentDB.facets(),
+		"status_labels": ComponentDB.status_labels(),
+	})
+
+
+func _catalog_entry(type: String) -> Dictionary:
+	var def: Dictionary = ComponentDB.get_def(type)
+	var pins := []
+	for p in def.pins:
+		pins.append(String(p.name))
+	var mounting := String(def.get("mounting", ""))
+	return {
+		"type": type,
+		"name": String(def.name),
+		"category": String(def.category),
+		"subcategory": String(def.get("subcategory", "")),
+		"manufacturer": String(def.get("manufacturer", "")),
+		"part_number": String(def.get("part_number", "")),
+		"description": String(def.get("description", "")),
+		"keywords": def.get("keywords", []),
+		"aliases": def.get("aliases", []),
+		"pin_names": pins,
+		"pin_count": pins.size(),
+		"default_parameters": ComponentDB.default_params(type),
+		"parameters": _param_meta(type),
+		"simulation_status": String(def.get("simulation_status", "full")),
+		"simulation_status_label": ComponentDB.status_label(type),
+		"simulatable": ComponentDB.is_simulatable(type),
+		"simulation_models": _models_for(type),
+		"model_limitations": _model_limits(type),
+		"mounting": mounting,
+		"package": String(def.get("package", "")),
+		"protocols": def.get("protocols", []),
+		"interfaces": def.get("interfaces", []),
+		"arduino_compatible": bool(def.get("arduino_compatible", false)),
+		"firmware_required": bool(def.get("firmware_required", false)),
+		"placeable_on_breadboard": mounting in ["tht", "smd", "module", ""],
+		"notes": String(def.get("notes", "")),
+	}
+
+
+func get_catalog_facets() -> Dictionary:
+	var f := ComponentDB.facets()
+	return _ok({
+		"count": ComponentDB.count(),
+		"categories": f.categories,
+		"subcategories": f.subcategories,
+		"packages": f.packages,
+		"mountings": f.mountings,
+		"manufacturers": f.manufacturers,
+		"statuses": f.statuses,
+		"protocols": f.protocols,
+		"interfaces": f.interfaces,
+		"status_labels": ComponentDB.status_labels(),
+		"validation_errors": ComponentDB.catalog_errors(),
+	})
 
 
 func _models_for(type: String) -> Array:

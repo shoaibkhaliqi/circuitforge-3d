@@ -1,0 +1,230 @@
+{
+  "schema_version": 2,
+  "category": "Android Hardware",
+  "components": [
+    {
+      "id": "android_tv_box_amlogic_s905x3",
+      "name": "Android TV Box (Amlogic S905X3)",
+      "category": "Android Hardware",
+      "subcategory": "TV Box",
+      "manufacturer": "Amlogic",
+      "part_number": "S905X3",
+      "description": "Amlogic S905X3 Android TV box. Exposed interfaces: HDMI, USB-A, Ethernet, DC power, microSD, AV.",
+      "keywords": ["android", "tv box", "amlogic", "s905x3", "media player"],
+      "interfaces": ["HDMI", "USB", "Ethernet", "microSD"],
+      "protocols": ["USB", "Ethernet", "ADB"],
+      "pins": [
+        {"name": "DC_IN", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "HDMI", "type": "open"}, {"name": "USB1", "type": "open"},
+        {"name": "USB2", "type": "open"}, {"name": "ETH", "type": "open"}, {"name": "SD", "type": "open"}
+      ],
+      "recommended_voltage": 5.0,
+      "model": {"shape": "tv_box"},
+      "mounting": "device",
+      "simulation_status": "external",
+      "notes": "A host device, not a breadboardable part. There are no exposed GPIO pins; connect via HDMI/USB/Ethernet/ADB only."
+    },
+    {
+      "id": "android_tv_box_rockchip_rk3399",
+      "name": "Android TV Box (Rockchip RK3399)",
+      "category": "Android Hardware",
+      "subcategory": "TV Box",
+      "manufacturer": "Rockchip",
+      "part_number": "RK3399",
+      "description": "Rockchip RK3399 Android media box with HDMI, USB, Ethernet and DC power.",
+      "keywords": ["android", "tv box", "rockchip", "rk3399"],
+      "interfaces": ["HDMI", "USB", "Ethernet"],
+      "protocols": ["USB", "Ethernet", "ADB"],
+      "pins": [
+        {"name": "DC_IN", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "HDMI", "type": "open"}, {"name": "USB", "type": "open"}, {"name": "ETH", "type": "open"}
+      ],
+      "recommended_voltage": 12.0,
+      "model": {"shape": "tv_box"},
+      "mounting": "device",
+      "simulation_status": "external",
+      "notes": "Host device; no exposed GPIO. Interface via HDMI/USB/Ethernet/ADB."
+    },
+    {
+      "id": "android_tv_box_allwinner_h6",
+      "name": "Android TV Box (Allwinner H6)",
+      "category": "Android Hardware",
+      "subcategory": "TV Box",
+      "manufacturer": "Allwinner",
+      "part_number": "H6",
+      "description": "Allwinner H6 Android TV box with HDMI, USB and Ethernet.",
+      "keywords": ["android", "tv box", "allwinner", "h6"],
+      "interfaces": ["HDMI", "USB", "Ethernet"],
+      "protocols": ["USB", "Ethernet", "ADB"],
+      "pins": [
+        {"name": "DC_IN", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "HDMI", "type": "open"}, {"name": "USB", "type": "open"}, {"name": "ETH", "type": "open"}
+      ],
+      "recommended_voltage": 5.0,
+      "model": {"shape": "tv_box"},
+      "mounting": "device",
+      "simulation_status": "external",
+      "notes": "Host device; no exposed GPIO. Interface via HDMI/USB/Ethernet/ADB."
+    },
+    {
+      "id": "android_tv_stick",
+      "name": "Android TV Stick (HDMI)",
+      "category": "Android Hardware",
+      "subcategory": "TV Stick",
+      "description": "HDMI stick-format Android device powered over USB.",
+      "keywords": ["android", "tv stick", "hdmi", "media"],
+      "interfaces": ["HDMI", "USB", "microSD"],
+      "protocols": ["USB", "ADB"],
+      "pins": [
+        {"name": "HDMI", "type": "open"}, {"name": "USB_OTG", "type": "open"},
+        {"name": "5V", "type": "power"}, {"name": "GND", "type": "ground"}
+      ],
+      "recommended_voltage": 5.0,
+      "model": {"shape": "tv_stick"},
+      "mounting": "device",
+      "simulation_status": "external"
+    },
+    {
+      "id": "usb_otg_adapter",
+      "name": "USB OTG Adapter",
+      "category": "Android Hardware",
+      "subcategory": "Adapter",
+      "description": "USB On-The-Go adapter (Micro-B or USB-C to USB-A) for host peripherals.",
+      "keywords": ["otg", "usb", "adapter", "android", "host"],
+      "interfaces": ["USB"],
+      "protocols": ["USB", "USB-OTG"],
+      "pins": [
+        {"name": "VBUS", "type": "power"}, {"name": "D-", "type": "bidirectional"},
+        {"name": "D+", "type": "bidirectional"}, {"name": "ID", "type": "input"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "otg_adapter"},
+      "mounting": "module",
+      "simulation_status": "external",
+      "notes": "OTG role switching is a USB-stack behaviour; not solved electrically."
+    },
+    {
+      "id": "usb_otg_y_cable",
+      "name": "USB OTG Y-Cable",
+      "category": "Android Hardware",
+      "subcategory": "Adapter",
+      "description": "OTG Y-cable allowing simultaneous charging and USB host on Android devices.",
+      "keywords": ["otg", "y cable", "power", "android", "host", "charge"],
+      "interfaces": ["USB"],
+      "protocols": ["USB", "USB-OTG"],
+      "pins": [
+        {"name": "VBUS", "type": "power"}, {"name": "D-", "type": "bidirectional"},
+        {"name": "D+", "type": "bidirectional"}, {"name": "ID", "type": "input"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "y_cable"},
+      "mounting": "module",
+      "simulation_status": "external"
+    },
+    {
+      "id": "usb_uart_cp2102",
+      "name": "CP2102 USB-to-UART Adapter",
+      "category": "Android Hardware",
+      "subcategory": "Debug Adapter",
+      "description": "USB-to-UART bridge used for serial consoles and Android UART debugging.",
+      "keywords": ["cp2102", "usb uart", "serial", "debug", "console"],
+      "interfaces": ["USB", "UART"],
+      "protocols": ["USB", "UART"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "TXD", "type": "output"},
+        {"name": "RXD", "type": "input"}, {"name": "3V3", "type": "power"}, {"name": "5V", "type": "power"}, {"name": "DTR", "type": "output"}
+      ],
+      "model": {"shape": "usb_serial_adapter"},
+      "mounting": "module",
+      "simulation_status": "external"
+    },
+    {
+      "id": "usb_uart_ft232h",
+      "name": "FT232H USB Multi-Protocol Adapter",
+      "category": "Android Hardware",
+      "subcategory": "Debug Adapter",
+      "description": "FTDI FT232H USB adapter supporting UART, SPI, I2C and JTAG/MPSSE.",
+      "keywords": ["ft232h", "ftdi", "usb", "spi", "i2c", "jtag", "debug"],
+      "interfaces": ["USB", "UART", "SPI", "I2C", "JTAG"],
+      "protocols": ["USB", "UART", "SPI", "I2C", "JTAG"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
+        {"name": "AD0", "type": "bidirectional"}, {"name": "AD1", "type": "bidirectional"}, {"name": "AD2", "type": "bidirectional"}, {"name": "AD3", "type": "bidirectional"},
+        {"name": "SCK", "type": "clock"}, {"name": "MOSI", "type": "bidirectional"}, {"name": "MISO", "type": "bidirectional"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      ],
+      "model": {"shape": "usb_serial_adapter"},
+      "mounting": "module",
+      "simulation_status": "external"
+    },
+    {
+      "id": "usb_hub_4port",
+      "name": "USB 4-Port Hub",
+      "category": "Android Hardware",
+      "subcategory": "Adapter",
+      "description": "Powered or unpowered USB hub for connecting multiple peripherals.",
+      "keywords": ["usb hub", "4 port", "usb", "expansion"],
+      "interfaces": ["USB"],
+      "protocols": ["USB"],
+      "pins": [
+        {"name": "VIN", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "D-", "type": "bidirectional"}, {"name": "D+", "type": "bidirectional"},
+        {"name": "VOUT", "type": "power"}
+      ],
+      "model": {"shape": "usb_hub"},
+      "mounting": "module",
+      "simulation_status": "external"
+    },
+    {
+      "id": "hdmi_capture",
+      "name": "HDMI Capture Card",
+      "category": "Android Hardware",
+      "subcategory": "Capture",
+      "description": "USB HDMI video capture device for recording an Android device's output.",
+      "keywords": ["hdmi", "capture", "video", "usb", "record", "android"],
+      "interfaces": ["HDMI", "USB"],
+      "protocols": ["USB", "HDMI"],
+      "pins": [
+        {"name": "HDMI_IN", "type": "open"}, {"name": "USB_OUT", "type": "open"}
+      ],
+      "model": {"shape": "capture_card"},
+      "mounting": "device",
+      "simulation_status": "external"
+    },
+    {
+      "id": "android_debug_bridge",
+      "name": "Android Debug Bridge (ADB) Host Port",
+      "category": "Android Hardware",
+      "subcategory": "Debug Adapter",
+      "description": "Abstract Android Debug Bridge connection endpoint over USB or TCP.",
+      "keywords": ["adb", "android debug bridge", "debug", "usb", "tcp", "logcat"],
+      "interfaces": ["USB", "Ethernet", "WiFi"],
+      "protocols": ["ADB", "USB", "TCP"],
+      "pins": [
+        {"name": "D+", "type": "bidirectional"}, {"name": "D-", "type": "bidirectional"},
+        {"name": "VBUS", "type": "power"}, {"name": "GND", "type": "ground"}
+      ],
+      "model": {"shape": "virtual"},
+      "mounting": "virtual",
+      "simulation_status": "external",
+      "notes": "A connection endpoint, not a physical part. The host handles ADB; the solver does not."
+    },
+    {
+      "id": "android_uart_console",
+      "name": "Android UART Debug Console",
+      "category": "Android Hardware",
+      "subcategory": "Debug Adapter",
+      "description": "3.3 V UART debug console header endpoint found on many Android boards.",
+      "keywords": ["android", "uart", "console", "debug", "serial", "bootloader"],
+      "interfaces": ["UART"],
+      "protocols": ["UART"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "TX", "type": "output"},
+        {"name": "RX", "type": "input"}, {"name": "VCC", "type": "power"}
+      ],
+      "recommended_voltage": 3.3,
+      "model": {"shape": "virtual"},
+      "mounting": "virtual",
+      "simulation_status": "external",
+      "notes": "UART debug pins vary by board and firmware; treat as a 3.3 V console only and verify against the specific device."
+    }
+  ]
+}

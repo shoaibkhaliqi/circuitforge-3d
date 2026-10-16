@@ -1,0 +1,258 @@
+{
+  "schema_version": 2,
+  "category": "Motor & Actuator",
+  "components": [
+    {
+      "id": "dc_motor",
+      "name": "DC Motor",
+      "category": "Motor & Actuator",
+      "subcategory": "DC Motor",
+      "description": "Brushed DC motor, two terminals. Speed depends on applied voltage.",
+      "keywords": ["motor", "dc", "brushed", "rotation"],
+      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "params": {"r": {"default": 10.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}},
+      "model": {"shape": "dc_motor"},
+      "mounting": "device",
+      "simulation_status": "partial",
+      "notes": "Modelled electrically as a resistor; back-EMF, torque and speed are not simulated."
+    },
+    {
+      "id": "dc_gearmotor_tt",
+      "name": "TT DC Gear Motor",
+      "category": "Motor & Actuator",
+      "subcategory": "DC Motor",
+      "description": "Yellow TT gearbox DC motor used in small robot chassis.",
+      "keywords": ["tt motor", "gearmotor", "robot", "dc", "gear"],
+      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "params": {"r": {"default": 6.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}},
+      "model": {"shape": "dc_motor"},
+      "mounting": "device",
+      "simulation_status": "partial"
+    },
+    {
+      "id": "servo_sg90",
+      "name": "SG90 Micro Servo",
+      "category": "Motor & Actuator",
+      "subcategory": "Servo",
+      "description": "9 g micro hobby servo, 50 Hz PWM position control, 3-wire connector.",
+      "keywords": ["servo", "sg90", "pwm", "position", "micro"],
+      "pins": [{"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}, {"name": "PWM", "type": "input"}],
+      "params": {"v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}},
+      "model": {"shape": "servo"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Angle output requires a PWM peripheral backend; not electrically solved."
+    },
+    {
+      "id": "servo_mg996r",
+      "name": "MG996R Metal-Gear Servo",
+      "category": "Motor & Actuator",
+      "subcategory": "Servo",
+      "description": "High-torque metal-gear hobby servo, 50 Hz PWM control.",
+      "keywords": ["servo", "mg996r", "torque", "pwm", "metal gear"],
+      "pins": [{"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}, {"name": "PWM", "type": "input"}],
+      "params": {"v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}},
+      "model": {"shape": "servo_large"},
+      "mounting": "device",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "stepper_nema17",
+      "name": "NEMA 17 Bipolar Stepper",
+      "category": "Motor & Actuator",
+      "subcategory": "Stepper",
+      "description": "Bipolar stepper motor, two coils (A+, A-, B+, B-).",
+      "keywords": ["stepper", "nema17", "bipolar", "3d printer", "motor"],
+      "pins": [
+        {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"},
+        {"name": "B+", "type": "passive"}, {"name": "B-", "type": "passive"}
+      ],
+      "params": {"r": {"default": 1.5, "unit": "ohm", "label": "Coil resistance"}, "i_rated": {"default": 1.5, "unit": "A", "label": "Rated current per phase"}},
+      "model": {"shape": "nema17"},
+      "mounting": "device",
+      "simulation_status": "partial",
+      "notes": "Modelled as two resistors (coils); step sequencing and torque are not simulated."
+    },
+    {
+      "id": "stepper_28byj48",
+      "name": "28BYJ-48 Unipolar Stepper",
+      "category": "Motor & Actuator",
+      "subcategory": "Stepper",
+      "description": "Small geared unipolar stepper with a 5-wire connector, driven by ULN2003.",
+      "keywords": ["stepper", "28byj-48", "unipolar", "uln2003", "gear"],
+      "pins": [
+        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"},
+        {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"}, {"name": "5", "type": "power"}
+      ],
+      "model": {"shape": "stepper_unipolar"},
+      "mounting": "device",
+      "simulation_status": "partial",
+      "notes": "Modelled as resistors; step sequencing is not simulated."
+    },
+    {
+      "id": "a4988_driver",
+      "name": "A4988 Stepper Driver",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "Microstepping stepper driver carrier (STEP/DIR interface).",
+      "keywords": ["a4988", "stepper driver", "step", "dir", "microstep"],
+      "pins": [
+        {"name": "ENABLE", "type": "input"}, {"name": "MS1", "type": "input"}, {"name": "MS2", "type": "input"}, {"name": "MS3", "type": "input"},
+        {"name": "RESET", "type": "input"}, {"name": "SLEEP", "type": "input"}, {"name": "STEP", "type": "input"}, {"name": "DIR", "type": "input"},
+        {"name": "VDD", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "VMOT", "type": "power"},
+        {"name": "1A", "type": "passive"}, {"name": "1B", "type": "passive"}, {"name": "2A", "type": "passive"}, {"name": "2B", "type": "passive"}
+      ],
+      "model": {"shape": "stepper_driver_pololu"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "drv8825_driver",
+      "name": "DRV8825 Stepper Driver",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "Microstepping stepper driver carrier (STEP/DIR interface), up to 1/32 step.",
+      "keywords": ["drv8825", "stepper driver", "step", "dir", "microstep"],
+      "pins": [
+        {"name": "ENABLE", "type": "input"}, {"name": "M0", "type": "input"}, {"name": "M1", "type": "input"}, {"name": "M2", "type": "input"},
+        {"name": "RESET", "type": "input"}, {"name": "SLEEP", "type": "input"}, {"name": "STEP", "type": "input"}, {"name": "DIR", "type": "input"},
+        {"name": "VDD", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "VMOT", "type": "power"},
+        {"name": "A1", "type": "passive"}, {"name": "A2", "type": "passive"}, {"name": "B1", "type": "passive"}, {"name": "B2", "type": "passive"}
+      ],
+      "model": {"shape": "stepper_driver_pololu"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "tb6600_driver",
+      "name": "TB6600 Stepper Driver",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "External high-current stepper driver with opto-isolated STEP/DIR inputs.",
+      "keywords": ["tb6600", "stepper driver", "step", "dir", "high current"],
+      "pins": [
+        {"name": "ENA+", "type": "input"}, {"name": "ENA-", "type": "ground"},
+        {"name": "PUL+", "type": "input"}, {"name": "PUL-", "type": "ground"},
+        {"name": "DIR+", "type": "input"}, {"name": "DIR-", "type": "ground"},
+        {"name": "B-", "type": "passive"}, {"name": "B+", "type": "passive"},
+        {"name": "A-", "type": "passive"}, {"name": "A+", "type": "passive"},
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}
+      ],
+      "model": {"shape": "stepper_driver_box"},
+      "mounting": "device",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "l298n_module",
+      "name": "L298N Dual H-Bridge Module",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "Dual H-bridge motor driver module, drives two DC motors or one stepper.",
+      "keywords": ["l298n", "h-bridge", "motor driver", "dual", "module"],
+      "pins": [
+        {"name": "IN1", "type": "input"}, {"name": "IN2", "type": "input"}, {"name": "IN3", "type": "input"}, {"name": "IN4", "type": "input"},
+        {"name": "ENA", "type": "input"}, {"name": "ENB", "type": "input"},
+        {"name": "12V", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "5V", "type": "power"},
+        {"name": "OUT1", "type": "passive"}, {"name": "OUT2", "type": "passive"}, {"name": "OUT3", "type": "passive"}, {"name": "OUT4", "type": "passive"}
+      ],
+      "model": {"shape": "l298n_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "tb6612fng",
+      "name": "TB6612FNG Dual Motor Driver",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "Efficient dual H-bridge motor driver breakout.",
+      "keywords": ["tb6612", "motor driver", "h-bridge", "dual", "breakout"],
+      "pins": [
+        {"name": "VM", "type": "power"}, {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "AIN1", "type": "input"}, {"name": "AIN2", "type": "input"}, {"name": "PWMA", "type": "input"}, {"name": "STBY", "type": "input"},
+        {"name": "BIN1", "type": "input"}, {"name": "BIN2", "type": "input"}, {"name": "PWMB", "type": "input"},
+        {"name": "AO1", "type": "passive"}, {"name": "AO2", "type": "passive"}, {"name": "BO1", "type": "passive"}, {"name": "BO2", "type": "passive"}
+      ],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "uln2003_driver",
+      "name": "ULN2003 Driver Board",
+      "category": "Motor & Actuator",
+      "subcategory": "Driver",
+      "description": "Darlington array driver board, commonly paired with the 28BYJ-48 stepper.",
+      "keywords": ["uln2003", "darlington", "driver", "28byj-48", "board"],
+      "pins": [
+        {"name": "IN1", "type": "input"}, {"name": "IN2", "type": "input"}, {"name": "IN3", "type": "input"}, {"name": "IN4", "type": "input"},
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "OUT1", "type": "passive"}, {"name": "OUT2", "type": "passive"}, {"name": "OUT3", "type": "passive"}, {"name": "OUT4", "type": "passive"}
+      ],
+      "model": {"shape": "uln2003_board"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "bldc_esc",
+      "name": "Brushless ESC",
+      "category": "Motor & Actuator",
+      "subcategory": "ESC",
+      "description": "Electronic speed controller for brushless motors with a PWM signal input.",
+      "keywords": ["esc", "brushless", "bldc", "speed controller", "pwm"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}, {"name": "SIG", "type": "input"},
+        {"name": "A", "type": "passive"}, {"name": "B", "type": "passive"}, {"name": "C", "type": "passive"}
+      ],
+      "model": {"shape": "esc_module"},
+      "mounting": "device",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "solenoid_12v",
+      "name": "Solenoid Valve / Actuator",
+      "category": "Motor & Actuator",
+      "subcategory": "Solenoid",
+      "description": "Electromagnetic solenoid coil driven through a transistor or relay.",
+      "keywords": ["solenoid", "coil", "valve", "electromagnet"],
+      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "params": {"r": {"default": 30.0, "unit": "ohm", "label": "Coil resistance"}, "v_nom": {"default": 12.0, "unit": "V", "label": "Nominal voltage"}},
+      "model": {"shape": "solenoid"},
+      "mounting": "device",
+      "simulation_status": "partial",
+      "notes": "Modelled as a resistor; add a flyback diode in real hardware."
+    },
+    {
+      "id": "vibration_motor",
+      "name": "Vibration Motor",
+      "category": "Motor & Actuator",
+      "subcategory": "DC Motor",
+      "description": "Small coin/cylindrical vibration (haptic) motor.",
+      "keywords": ["vibration motor", "haptic", "buzzer motor"],
+      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "params": {"r": {"default": 75.0, "unit": "ohm", "label": "Resistance"}},
+      "model": {"shape": "vibration_motor"},
+      "mounting": "device",
+      "simulation_status": "partial"
+    },
+    {
+      "id": "fan_5v",
+      "name": "5V Cooling Fan",
+      "category": "Motor & Actuator",
+      "subcategory": "Fan",
+      "description": "2-wire 5 V brushless cooling fan.",
+      "keywords": ["fan", "cooling", "5v", "brushless"],
+      "pins": [{"name": "-", "type": "ground"}, {"name": "+", "type": "power"}],
+      "params": {"r": {"default": 60.0, "unit": "ohm", "label": "Resistance"}},
+      "model": {"shape": "fan"},
+      "mounting": "device",
+      "simulation_status": "partial"
+    }
+  ]
+}

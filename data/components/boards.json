@@ -1,0 +1,3123 @@
+{
+  "schema_version": 2,
+  "category": "Board",
+  "components": [
+    {
+      "id": "arduino_uno_r3",
+      "name": "Arduino Uno R3",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "A000066",
+      "description": "ATmega328P development board with the classic Uno R3 shield footprint.",
+      "keywords": [
+        "arduino",
+        "uno",
+        "r3",
+        "atmega328p",
+        "avr",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "IOREF",
+          "type": "power"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        },
+        {
+          "name": "AREF",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "uno"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Pin labels follow the documented Uno R3 headers. Firmware execution requires an external backend (see milestone 7)."
+    },
+    {
+      "id": "arduino_uno_r4_wifi",
+      "name": "Arduino Uno R4 WiFi",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "ABX00087",
+      "description": "Renesas RA4M1 based Uno R4 with ESP32-S3 WiFi and the same header footprint as the Uno.",
+      "keywords": [
+        "arduino",
+        "uno",
+        "r4",
+        "wifi",
+        "ra4m1",
+        "esp32"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "IOREF",
+          "type": "power"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        },
+        {
+          "name": "AREF",
+          "type": "input"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "uno"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Header labels are compatible with the Uno footprint. Firmware execution requires an external backend."
+    },
+    {
+      "id": "arduino_nano",
+      "name": "Arduino Nano",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "A000005",
+      "description": "Compact ATmega328P board with a 30-pin DIP-style footprint.",
+      "keywords": [
+        "arduino",
+        "nano",
+        "atmega328p",
+        "avr",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "A6",
+          "type": "analog"
+        },
+        {
+          "name": "A7",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "nano"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "arduino_mega2560",
+      "name": "Arduino Mega 2560",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "A000067",
+      "description": "ATmega2560 board with 54 digital pins and 16 analog inputs.",
+      "keywords": [
+        "arduino",
+        "mega",
+        "mega2560",
+        "atmega2560",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D23",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D24",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D28",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D29",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D30",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D31",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D32",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D33",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D34",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D35",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D36",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D37",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D38",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D39",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D40",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D41",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D42",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D43",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D44",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D45",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D46",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D47",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D48",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D49",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D50",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D51",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D52",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D53",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "A6",
+          "type": "analog"
+        },
+        {
+          "name": "A7",
+          "type": "analog"
+        },
+        {
+          "name": "A8",
+          "type": "analog"
+        },
+        {
+          "name": "A9",
+          "type": "analog"
+        },
+        {
+          "name": "A10",
+          "type": "analog"
+        },
+        {
+          "name": "A11",
+          "type": "analog"
+        },
+        {
+          "name": "A12",
+          "type": "analog"
+        },
+        {
+          "name": "A13",
+          "type": "analog"
+        },
+        {
+          "name": "A14",
+          "type": "analog"
+        },
+        {
+          "name": "A15",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RESET",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "mega"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "arduino_leonardo",
+      "name": "Arduino Leonardo",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "A000057",
+      "description": "ATmega32u4 board with native USB; digital pins 0-13 and analog A0-A5.",
+      "keywords": [
+        "arduino",
+        "leonardo",
+        "atmega32u4",
+        "usb",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "IOREF",
+          "type": "power"
+        },
+        {
+          "name": "RESET",
+          "type": "input"
+        },
+        {
+          "name": "AREF",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "uno"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "arduino_micro",
+      "name": "Arduino Micro",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "A000053",
+      "description": "Compact ATmega32u4 board with native USB, in the Leonardo-style pinout.",
+      "keywords": [
+        "arduino",
+        "micro",
+        "atmega32u4",
+        "usb",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "micro"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "arduino_pro_mini",
+      "name": "Arduino Pro Mini 5V",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Arduino",
+      "part_number": "",
+      "description": "Minimal ATmega328P board intended for embedded/permanent installation.",
+      "keywords": [
+        "arduino",
+        "pro mini",
+        "atmega328p",
+        "avr",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        },
+        {
+          "name": "A4",
+          "type": "analog"
+        },
+        {
+          "name": "A5",
+          "type": "analog"
+        },
+        {
+          "name": "A6",
+          "type": "analog"
+        },
+        {
+          "name": "A7",
+          "type": "analog"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RAW",
+          "type": "power"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "pro_mini"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "esp8266_nodemcu",
+      "name": "NodeMCU ESP8266 (v3)",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Espressif",
+      "part_number": "ESP8266",
+      "description": "ESP8266 development board with WiFi and a USB-serial bridge.",
+      "keywords": [
+        "esp8266",
+        "nodemcu",
+        "wifi",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "RX",
+          "type": "bidirectional"
+        },
+        {
+          "name": "TX",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SD3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SD2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SD1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "CMD",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SD0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "CLK",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "EN",
+          "type": "input"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "nodemcu"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "esp32_devkit_v1",
+      "name": "ESP32 DevKit V1",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Espressif",
+      "part_number": "ESP32-WROOM-32",
+      "description": "ESP32 development board (DOIT DevKit V1) with WiFi and Bluetooth.",
+      "keywords": [
+        "esp32",
+        "devkit",
+        "wroom",
+        "wifi",
+        "bluetooth",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "EN",
+          "type": "input"
+        },
+        {
+          "name": "VP",
+          "type": "analog"
+        },
+        {
+          "name": "VN",
+          "type": "analog"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D23",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D32",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D33",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D34",
+          "type": "analog"
+        },
+        {
+          "name": "D35",
+          "type": "analog"
+        },
+        {
+          "name": "RX0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "TX0",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "esp32_devkit"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "GPIO number labels follow the DOIT DevKit V1 layout; some pins are input-only or have boot-strapping functions."
+    },
+    {
+      "id": "esp32_c3_devkit",
+      "name": "ESP32-C3 DevKitM-1",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Espressif",
+      "part_number": "ESP32-C3",
+      "description": "RISC-V ESP32-C3 development board.",
+      "keywords": [
+        "esp32",
+        "c3",
+        "risc-v",
+        "wifi",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GPIO0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "RX",
+          "type": "bidirectional"
+        },
+        {
+          "name": "TX",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "esp32_devkit"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "rp2040_pico",
+      "name": "Raspberry Pi Pico",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Raspberry Pi",
+      "part_number": "RP2040",
+      "description": "RP2040 dual-core microcontroller board with 26 GPIO pins.",
+      "keywords": [
+        "raspberry pi",
+        "pico",
+        "rp2040",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "GP0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP26",
+          "type": "analog"
+        },
+        {
+          "name": "GP27",
+          "type": "analog"
+        },
+        {
+          "name": "GP28",
+          "type": "analog"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "3V3_EN",
+          "type": "input"
+        },
+        {
+          "name": "VSYS",
+          "type": "power"
+        },
+        {
+          "name": "VBUS",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RUN",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "pico"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "rp2350_pico2",
+      "name": "Raspberry Pi Pico 2",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Raspberry Pi",
+      "part_number": "RP2350",
+      "description": "RP2350 based Pico 2 board with the same 40-pin footprint as the Pico.",
+      "keywords": [
+        "raspberry pi",
+        "pico 2",
+        "rp2350",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "GP0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GP26",
+          "type": "analog"
+        },
+        {
+          "name": "GP27",
+          "type": "analog"
+        },
+        {
+          "name": "GP28",
+          "type": "analog"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "3V3_EN",
+          "type": "input"
+        },
+        {
+          "name": "VSYS",
+          "type": "power"
+        },
+        {
+          "name": "VBUS",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "RUN",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "pico"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "raspberry_pi_4b",
+      "name": "Raspberry Pi 4 Model B",
+      "category": "Board",
+      "subcategory": "SBC",
+      "manufacturer": "Raspberry Pi",
+      "part_number": "Raspberry Pi 4B",
+      "description": "Quad-core Raspberry Pi 4 single-board computer with a 40-pin GPIO header.",
+      "keywords": [
+        "raspberry pi",
+        "pi 4",
+        "sbc",
+        "linux",
+        "gpio",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "GPIO2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO23",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO24",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL1",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "pi_4b"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "notes": "GPIO header labels are the BCM GPIO numbers at the 40-pin header positions."
+    },
+    {
+      "id": "raspberry_pi_zero_2w",
+      "name": "Raspberry Pi Zero 2 W",
+      "category": "Board",
+      "subcategory": "SBC",
+      "manufacturer": "Raspberry Pi",
+      "part_number": "Raspberry Pi Zero 2 W",
+      "description": "Compact Raspberry Pi Zero 2 W single-board computer with WiFi.",
+      "keywords": [
+        "raspberry pi",
+        "zero",
+        "zero 2 w",
+        "sbc",
+        "linux",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "GPIO2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO23",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO24",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "pi_zero"
+      },
+      "mounting": "board",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "raspberry_pi_5",
+      "name": "Raspberry Pi 5",
+      "category": "Board",
+      "subcategory": "SBC",
+      "manufacturer": "Raspberry Pi",
+      "part_number": "Raspberry Pi 5",
+      "description": "Raspberry Pi 5 single-board computer with a 40-pin GPIO header.",
+      "keywords": [
+        "raspberry pi",
+        "pi 5",
+        "sbc",
+        "linux",
+        "gpio",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "GPIO2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO16",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO17",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO18",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO19",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO20",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO21",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO22",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO23",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO24",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "pi_5"
+      },
+      "mounting": "board",
+      "simulation_status": "planned"
+    },
+    {
+      "id": "stm32_bluepill_f103",
+      "name": "STM32 Blue Pill (F103C8T6)",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "STMicroelectronics",
+      "part_number": "STM32F103C8T6",
+      "description": "Low-cost STM32F103 Cortex-M3 development board.",
+      "keywords": [
+        "stm32",
+        "blue pill",
+        "f103",
+        "arm",
+        "cortex-m3",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "VBAT",
+          "type": "power"
+        },
+        {
+          "name": "PC13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PC14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PC15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PA15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "PB15",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "bluepill"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "stm32_blackpill_f411",
+      "name": "STM32 Black Pill (F411CEU6)",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "STMicroelectronics",
+      "part_number": "STM32F411CEU6",
+      "description": "STM32F411 Cortex-M4 development board, Black Pill footprint.",
+      "keywords": [
+        "stm32",
+        "black pill",
+        "f411",
+        "arm",
+        "cortex-m4",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "VBAT",
+          "type": "power"
+        },
+        {
+          "name": "C13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "C14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "C15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A15",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B14",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B15",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "blackpill"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "teensy_4_1",
+      "name": "Teensy 4.1",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "PJRC",
+      "part_number": "Teensy 4.1",
+      "description": "High-performance i.MX RT1062 (Cortex-M7) development board.",
+      "keywords": [
+        "teensy",
+        "4.1",
+        "imxrt1062",
+        "cortex-m7",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "VUSB",
+          "type": "power"
+        },
+        {
+          "name": "0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "11",
+          "type": "bidirectional"
+        },
+        {
+          "name": "12",
+          "type": "bidirectional"
+        },
+        {
+          "name": "13",
+          "type": "bidirectional"
+        },
+        {
+          "name": "14",
+          "type": "analog"
+        },
+        {
+          "name": "15",
+          "type": "analog"
+        },
+        {
+          "name": "16",
+          "type": "analog"
+        },
+        {
+          "name": "17",
+          "type": "analog"
+        },
+        {
+          "name": "18",
+          "type": "analog"
+        },
+        {
+          "name": "19",
+          "type": "analog"
+        },
+        {
+          "name": "20",
+          "type": "analog"
+        },
+        {
+          "name": "21",
+          "type": "analog"
+        },
+        {
+          "name": "22",
+          "type": "analog"
+        },
+        {
+          "name": "23",
+          "type": "analog"
+        },
+        {
+          "name": "24",
+          "type": "bidirectional"
+        },
+        {
+          "name": "25",
+          "type": "bidirectional"
+        },
+        {
+          "name": "26",
+          "type": "bidirectional"
+        },
+        {
+          "name": "27",
+          "type": "bidirectional"
+        },
+        {
+          "name": "28",
+          "type": "bidirectional"
+        },
+        {
+          "name": "29",
+          "type": "bidirectional"
+        },
+        {
+          "name": "30",
+          "type": "bidirectional"
+        },
+        {
+          "name": "31",
+          "type": "bidirectional"
+        },
+        {
+          "name": "32",
+          "type": "bidirectional"
+        },
+        {
+          "name": "33",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "teensy41"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "seeeduino_xiao",
+      "name": "Seeed XIAO (SAMD21)",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Seeed Studio",
+      "part_number": "XIAO SAMD21",
+      "description": "Thumb-sized SAMD21 Cortex-M0+ development board.",
+      "keywords": [
+        "xiao",
+        "seeeduino",
+        "samd21",
+        "cortex-m0",
+        "board"
+      ],
+      "recommended_voltage": 3.3,
+      "pins": [
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D9",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D10",
+          "type": "bidirectional"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "xiao"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "digispark_attiny85",
+      "name": "Digispark ATtiny85",
+      "category": "Board",
+      "subcategory": "MCU Board",
+      "manufacturer": "Digistump",
+      "part_number": "ATtiny85",
+      "description": "Small ATtiny85 board with a direct USB interface.",
+      "keywords": [
+        "digispark",
+        "attiny85",
+        "usb",
+        "board"
+      ],
+      "recommended_voltage": 5.0,
+      "pins": [
+        {
+          "name": "P0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P3",
+          "type": "analog"
+        },
+        {
+          "name": "P4",
+          "type": "analog"
+        },
+        {
+          "name": "P5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "digispark"
+      },
+      "mounting": "board",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    }
+  ]
+}

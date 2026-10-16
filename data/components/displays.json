@@ -1,0 +1,172 @@
+{
+  "schema_version": 2,
+  "category": "Display",
+  "components": [
+    {
+      "id": "lcd1602",
+      "name": "16x2 Character LCD",
+      "category": "Display",
+      "subcategory": "Character LCD",
+      "description": "HD44780-compatible 16x2 character LCD. 16-pin parallel interface.",
+      "keywords": ["lcd", "1602", "hd44780", "character", "16x2", "display"],
+      "interfaces": ["Parallel"],
+      "pins": [
+        {"name": "VSS", "type": "ground"}, {"name": "VDD", "type": "power"}, {"name": "V0", "type": "analog"},
+        {"name": "RS", "type": "input"}, {"name": "RW", "type": "input"}, {"name": "E", "type": "input"},
+        {"name": "D0", "type": "bidirectional"}, {"name": "D1", "type": "bidirectional"}, {"name": "D2", "type": "bidirectional"}, {"name": "D3", "type": "bidirectional"},
+        {"name": "D4", "type": "bidirectional"}, {"name": "D5", "type": "bidirectional"}, {"name": "D6", "type": "bidirectional"}, {"name": "D7", "type": "bidirectional"},
+        {"name": "A", "type": "power"}, {"name": "K", "type": "ground"}
+      ],
+      "model": {"shape": "lcd1602"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Display rendering requires a peripheral backend."
+    },
+    {
+      "id": "i2c_lcd1602",
+      "name": "16x2 LCD with I2C Backpack",
+      "category": "Display",
+      "subcategory": "Character LCD",
+      "description": "16x2 character LCD with a PCF8574 I2C backpack (4-pin header).",
+      "keywords": ["lcd", "1602", "i2c", "pcf8574", "display"],
+      "protocols": ["I2C"],
+      "interfaces": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      ],
+      "model": {"shape": "lcd1602_i2c"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "oled_ssd1306",
+      "name": "OLED 128x64 (SSD1306, I2C)",
+      "category": "Display",
+      "subcategory": "OLED",
+      "description": "Monochrome 0.96\" OLED display, I2C 4-pin interface.",
+      "keywords": ["oled", "ssd1306", "128x64", "i2c", "display"],
+      "protocols": ["I2C"],
+      "interfaces": ["I2C"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      ],
+      "model": {"shape": "oled_i2c"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "oled_ssd1306_spi",
+      "name": "OLED 128x64 (SSD1306, SPI)",
+      "category": "Display",
+      "subcategory": "OLED",
+      "description": "Monochrome OLED display with a 7-pin SPI interface.",
+      "keywords": ["oled", "ssd1306", "spi", "128x64", "display"],
+      "protocols": ["SPI"],
+      "interfaces": ["SPI"],
+      "pins": [
+        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
+        {"name": "D0", "type": "clock"}, {"name": "D1", "type": "bidirectional"},
+        {"name": "RES", "type": "input"}, {"name": "DC", "type": "input"}, {"name": "CS", "type": "input"}
+      ],
+      "model": {"shape": "oled_spi"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "tft_ili9341",
+      "name": "TFT 2.4\" (ILI9341, SPI)",
+      "category": "Display",
+      "subcategory": "TFT",
+      "description": "240x320 colour TFT display with SPI interface and optional touch controller.",
+      "keywords": ["tft", "ili9341", "spi", "colour", "display", "240x320"],
+      "protocols": ["SPI"],
+      "interfaces": ["SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "CS", "type": "input"}, {"name": "RESET", "type": "input"}, {"name": "DC", "type": "input"},
+        {"name": "MOSI", "type": "bidirectional"}, {"name": "SCK", "type": "clock"},
+        {"name": "LED", "type": "power"}, {"name": "MISO", "type": "bidirectional"}
+      ],
+      "model": {"shape": "tft_ili9341"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "epaper_213",
+      "name": "E-Paper 2.13\" (Waveshare)",
+      "category": "Display",
+      "subcategory": "E-Paper",
+      "description": "2.13\" black/white e-paper display with an SPI interface.",
+      "keywords": ["epaper", "e-ink", "waveshare", "spi", "display"],
+      "protocols": ["SPI"],
+      "interfaces": ["SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "DIN", "type": "bidirectional"}, {"name": "CLK", "type": "clock"},
+        {"name": "CS", "type": "input"}, {"name": "DC", "type": "input"}, {"name": "RST", "type": "input"}, {"name": "BUSY", "type": "output"}
+      ],
+      "model": {"shape": "epaper_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "seven_segment",
+      "name": "7-Segment Display",
+      "category": "Display",
+      "subcategory": "LED",
+      "description": "Single common-cathode 7-segment digit (8 LED segments including decimal point).",
+      "keywords": ["7 segment", "seven segment", "digit", "led", "display"],
+      "pins": [
+        {"name": "A", "type": "passive"}, {"name": "B", "type": "passive"}, {"name": "C", "type": "passive"}, {"name": "D", "type": "passive"},
+        {"name": "E", "type": "passive"}, {"name": "F", "type": "passive"}, {"name": "G", "type": "passive"}, {"name": "DP", "type": "passive"},
+        {"name": "COM", "type": "passive"}
+      ],
+      "model": {"shape": "seven_segment"},
+      "mounting": "tht",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "max7219_matrix",
+      "name": "MAX7219 8x8 LED Matrix",
+      "category": "Display",
+      "subcategory": "LED Matrix",
+      "description": "8x8 LED dot matrix with a MAX7219 SPI driver.",
+      "keywords": ["max7219", "matrix", "8x8", "led", "spi", "display"],
+      "protocols": ["SPI"],
+      "pins": [
+        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
+        {"name": "DIN", "type": "input"}, {"name": "CS", "type": "input"}, {"name": "CLK", "type": "clock"}
+      ],
+      "model": {"shape": "max7219_module"},
+      "mounting": "module",
+      "simulation_status": "planned",
+      "arduino_compatible": true
+    },
+    {
+      "id": "ws2812b",
+      "name": "WS2812B Addressable RGB LED",
+      "category": "Display",
+      "subcategory": "Addressable LED",
+      "description": "Individually addressable RGB LED with an integrated controller (NeoPixel).",
+      "keywords": ["ws2812", "neopixel", "rgb", "addressable", "led"],
+      "pins": [
+        {"name": "VDD", "type": "power"}, {"name": "DOUT", "type": "output"},
+        {"name": "VSS", "type": "ground"}, {"name": "DIN", "type": "input"}
+      ],
+      "model": {"shape": "ws2812"},
+      "mounting": "smd",
+      "simulation_status": "planned",
+      "arduino_compatible": true,
+      "notes": "Needs a 5 V supply and a level-shifted data line; timing is timing-critical."
+    }
+  ]
+}
