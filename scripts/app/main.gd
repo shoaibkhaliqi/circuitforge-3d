@@ -815,9 +815,8 @@ func _tint_ghost(node: Node, color: Color) -> void:
 	m.emission_energy_multiplier = 0.7
 	for mi in node.find_children("*", "MeshInstance3D", true, false):
 		(mi as MeshInstance3D).material_override = m
-	var lbl = node.get_node_or_null("ValueLabel")
-	if lbl != null:
-		lbl.text = ""
+	for lbl in node.find_children("*", "Label3D", true, false):
+		(lbl as Label3D).text = ""
 
 
 ## Show a translucent placement ghost (green = valid, red = blocked) or a wire

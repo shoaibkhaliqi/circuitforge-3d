@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 322 / 322 passed
+RESULT: 377 / 377 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -41,6 +41,7 @@ STATUS: ALL TESTS PASSED
 | Invalid 8a–8g — no ref, floating, conflict, empty, …       | error handling      |
 | Breadboard — groups, rails, split, wires, move, rotate     | connectivity graph  |
 | Placement — default hole sets do not short a part          | breadboard layout   |
+| Factory — package shapes + terminal alignment              | 3D visuals          |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |

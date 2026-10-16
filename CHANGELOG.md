@@ -37,6 +37,21 @@ follow [Semantic Versioning](https://semver.org/).
     `operation_id` idempotency; sandboxed persistence and hard limits.
   - MCP documentation set under `docs/mcp/` and an end-to-end protocol test
     suite (Tests A–J) driven through the real MCP client.
+- **3D model quality + pin alignment** pass (`scripts/components/component_factory.gd`):
+  - Package bodies chosen from the definition's `model.shape` (DIP, TO-92,
+    TO-220, seven-segment, servo, LED, PCB module, developer board) with a
+    keyword classifier and a pin-count fallback, so every catalog part renders
+    as a plausible package instead of a generic box.
+  - A lead is drawn to **every** terminal (not just the two outer pins), and
+    bodies are sized from the real pin span so they never overhang their pins.
+  - Bodies now rest on the board surface and pin/label sizes were tuned.
+  - New `tests/unit/test_factory.gd` (55 checks) asserting each terminal has a
+    mesh at its exact hole position.
+
+### Fixed
+- Component visuals drew only one lead: the model frame used `Node3D.to_local()`
+  before the node was inside the SceneTree. The pin axis is now projected
+  directly, so leads are symmetric and the "not inside tree" errors are gone.
 
 ### Changed
 - Screenshot/consistency: Linux build status documented honestly as ELF-validated

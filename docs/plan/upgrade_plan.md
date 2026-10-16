@@ -64,7 +64,7 @@ date as milestones land.
 | 1 | Audit + **visual design system** (theme, palette, typography, reusable widgets) | done |
 | 2 | Professional layout: toolbar, resizable/collapsible panels, status bar, component browser | done |
 | 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | done |
-| 4 | High-quality reusable 3D models for basic components | done (first pass) |
+| 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | in progress (20 board defs catalogued; accurate 3D pending) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | planned |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
@@ -150,9 +150,26 @@ catalog that replaces the hardcoded definition list.
 - Regression: **322 / 322 tests pass** (added `test_schema`, `test_catalog`);
   MCP suite **12 / 12**; headless load exits 0.
 
+### Milestone 4b — 3D model quality + pin alignment (done)
+- `scripts/components/component_factory.gd` now picks the body from the
+  definition's `model.shape` (DIP, TO-92, TO-220, seven-segment, servo, LED, PCB
+  module, developer board) via a keyword classifier plus a pin-count fallback, so
+  catalog parts render as plausible packages rather than a generic box.
+- Every terminal gets a real lead (previously only the two outer pins did), and
+  bodies are sized from the real pin span so they never overhang their pins.
+- Bodies rest on the board surface; pin-pad and label sizes tuned down.
+- **Fixed**: the model frame called `Node3D.to_local()` before the node joined the
+  SceneTree, so only one lead was drawn and the console logged
+  "not inside tree" errors. The pin axis is now projected directly.
+- Ghost preview clears all labels (value + package name) when tinting.
+- New `tests/unit/test_factory.gd` (55 checks): every terminal has a mesh at its
+  exact hole position; core and catalog package shapes build.
+- Evidence: `docs/plan/m7_package_models.png`.
+- Regression: **377 / 377 tests pass**, headless load exits 0.
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 322/322).
+   (currently 377/377).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
