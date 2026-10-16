@@ -216,6 +216,20 @@ def get_catalog_facets() -> dict[str, Any]:
     return _wrap(call_engine("get_catalog_facets"))
 
 
+@mcp.tool(annotations=_ro(), structured_output=True)
+def get_board_pinout(type: str) -> dict[str, Any]:
+    """Return a development board's documented pin map, grouped by type.
+
+    Covers Arduino, ESP, Pico, Raspberry Pi, STM32, Teensy and similar boards.
+    The pin map is descriptive metadata (name, electrical type, header position);
+    it does not imply the board is simulated.
+
+    Args:
+        type: Board type id (e.g. "arduino_uno_r3", "esp32_devkit_v1").
+    """
+    return _wrap(call_engine("get_board_pinout", {"type": type}))
+
+
 # ---------------------------------------------------------------------------
 # B. Circuit inspection
 # ---------------------------------------------------------------------------

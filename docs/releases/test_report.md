@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 377 / 377 passed
+RESULT: 485 / 485 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -42,6 +42,7 @@ STATUS: ALL TESTS PASSED
 | Breadboard — groups, rails, split, wires, move, rotate     | connectivity graph  |
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
+| Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -101,15 +102,16 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 12 / 12 passed
+RESULTS: 13 / 13 passed
 ```
 
 | Test | Checks | Result |
 |------|--------|--------|
-| A. Server initialization | name `circuitforge-3d`, 33 tools present, valid input schemas | pass |
+| A. Server initialization | name `circuitforge-3d`, 34 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
 | B2. Catalog discovery | 237 entries, status facets/filters, I2C filter, 0 errors | pass |
+| B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

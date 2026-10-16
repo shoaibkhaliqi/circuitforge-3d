@@ -245,7 +245,8 @@
       "mounting": "board",
       "simulation_status": "planned",
       "arduino_compatible": true,
-      "notes": "USB host behaviour requires a dedicated backend; not yet implemented."
+      "notes": "USB host behaviour requires a dedicated backend; not yet implemented.",
+      "references": ["Arduino USB Host Shield 2.0 - shield documentation", "Android Open Accessory (AOA) protocol - Android developer documentation"]
     }
   ]
 }

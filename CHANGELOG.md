@@ -47,6 +47,13 @@ follow [Semantic Versioning](https://semver.org/).
   - Bodies now rest on the board surface and pin/label sizes were tuned.
   - New `tests/unit/test_factory.gd` (55 checks) asserting each terminal has a
     mesh at its exact hole position.
+- **Board pin metadata** (`scripts/components/board_pins.gd`): board-aware
+  helpers over the documented pin maps — discovery (`all_boards`), grouping
+  (digital/analog/power/ground/other), lookup (`named`/`first`/`by_type`),
+  counts, structural consistency checks (`issues`) and a `summary` payload.
+  Sourced provenance references added to every board (and the Android USB host
+  shield). Exposed as the `get_board_pinout` MCP/API tool. New `test_boards.gd`
+  (108 checks). Descriptive only — it never claims a board is simulatable.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

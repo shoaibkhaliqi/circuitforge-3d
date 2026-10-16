@@ -65,7 +65,7 @@ date as milestones land.
 | 2 | Professional layout: toolbar, resizable/collapsible panels, status bar, component browser | done |
 | 3 | Breadboard realism, camera controls, wire rendering, placement preview/highlight | done |
 | 4 | High-quality reusable 3D models for basic components | done |
-| 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | in progress (20 board defs catalogued; accurate 3D pending) |
+| 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | planned |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (catalogued & searchable; simulations planned) |
@@ -167,13 +167,30 @@ catalog that replaces the hardcoded definition list.
 - Evidence: `docs/plan/m7_package_models.png`.
 - Regression: **377 / 377 tests pass**, headless load exits 0.
 
+### Milestone 5 — board pin metadata (done)
+- `scripts/components/board_pins.gd`: board-aware helpers over the documented pin
+  maps — `all_boards`, `is_board`, `pinout`, `named`/`first`/`by_type`,
+  `groups` (digital/analog/power/ground/other), `counts`, `issues` (structural
+  checks) and `summary` (a presentation payload).
+- Provenance: every board now carries a `references` citation (official vendor
+  documentation / datasheets); the Android USB host shield too. No pin values were
+  invented — the maps are the ones already documented in `data/components/`.
+- Exposed as `get_board_pinout` in the local API and the MCP server
+  (**34 tools**; the integration suite now runs Tests A–J + B2 + B3 = 13/13).
+- New `tests/unit/test_factory.gd`-style suite `tests/unit/test_boards.gd`:
+  discovery, per-board consistency, group/count arithmetic, the documented Uno R3
+  map, summary payload, and provenance for every board.
+- **Honest scope**: this is descriptive metadata. Boards remain
+  `simulation_status: planned` and are never reported as simulated.
+- Regression: **485 / 485 tests pass**, MCP **13 / 13**, headless load exits 0.
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 377/377).
+   (currently 485/485).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
-   12/12.
+   13/13.
 
 ## 4. Component implementation status vocabulary
 

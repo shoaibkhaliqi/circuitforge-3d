@@ -25,7 +25,9 @@ Component ids are stable strings (`V1`, `R1`, `GND1`, …). Pin indices start at
 | --- | --- | --- |
 | `get_simulator_info` | — | Application name/version, API protocol, schema version, categories, instruments, limitations, current project id/name, revision, simulation state. |
 | `get_capabilities` | — | Supported operations grouped by `read` / `simulate` / `edit_reversible` / `edit_destructive` / `persistence`, plus `limits`, `concurrency`, `idempotency`. |
-| `get_component_catalog` | `category:str=""`, `search:str=""` | Every component definition: type id, name, category, pins, parameters with units/ranges, simulation models. |
+| `get_component_catalog` | `category:str=""`, `search:str=""`, `subcategory`, `status`, `protocol`, `interface`, `manufacturer`, `mounting`, `arduino_compatible`, `simulatable_only`, `limit`, `offset` | Every component definition: type id, name, category, pins, parameters with units/ranges, status, protocols, simulation models. |
+| `get_catalog_facets` | — | Catalog facets (categories, subcategories, packages, mountings, manufacturers, statuses, protocols, interfaces), total count, status labels and validation errors. |
+| `get_board_pinout` | `type:str` | A development board's documented pin map (Arduino/ESP/Pico/Pi/STM32/Teensy/...): pins with name/type/header position, digital/analog/power/ground groups, counts, notes and provenance references. Descriptive only; does not imply simulation. |
 | `get_solver_info` | — | Solver method (MNA), modes, nonlinear settings, device models, reference node, last convergence info. |
 
 ## B. Inspection

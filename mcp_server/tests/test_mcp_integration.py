@@ -96,7 +96,8 @@ async def main() -> int:
                             "get_edit_preview", "run_dc_simulation", "run_transient_simulation",
                             "get_simulation_status", "stop_simulation", "get_waveform_data",
                             "save_project", "load_project", "list_example_projects",
-                            "load_example_project", "get_diagnostics", "get_solver_info"}
+                            "load_example_project", "get_diagnostics", "get_solver_info",
+                            "get_catalog_facets", "get_board_pinout"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -141,6 +142,23 @@ async def main() -> int:
                        f"simulatable={sim.get('count')} i2c={i2c.get('count')}")
             except Exception as exc:
                 record("B2. Catalog discovery (facets/filters/status)", False, repr(exc))
+
+            # ---------------------------------------------------- Test B3
+            try:
+                pin = await call_ok(s, "get_board_pinout", {"type": "arduino_uno_r3"})
+                counts = pin.get("counts", {})
+                groups = pin.get("groups", {})
+                ok = (pin.get("type") == "arduino_uno_r3"
+                      and pin.get("pin_count", 0) >= 20
+                      and counts.get("ground", 0) >= 1
+                      and counts.get("power", 0) >= 1
+                      and isinstance(groups, dict)
+                      and "GND" in groups.get("ground", [])
+                      and bool(pin.get("references")))
+                record("B3. Board pinout metadata", ok,
+                       f"pins={pin.get('pin_count')} counts={counts}")
+            except Exception as exc:
+                record("B3. Board pinout metadata", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

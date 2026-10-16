@@ -19,6 +19,7 @@ extends RefCounted
 const Session = preload("res://scripts/app/session.gd")
 const Persistence = preload("res://scripts/persistence/persistence.gd")
 const ComponentDB = preload("res://scripts/components/component_db.gd")
+const BoardPins = preload("res://scripts/components/board_pins.gd")
 const Units = preload("res://scripts/simulation/units.gd")
 const CircuitSolver = preload("res://scripts/simulation/solver.gd")
 
@@ -112,7 +113,7 @@ func get_simulator_info() -> Dictionary:
 func get_capabilities() -> Dictionary:
 	var caps := {
 		"read": ["get_simulator_info", "get_capabilities", "get_component_catalog",
-			"get_catalog_facets",
+			"get_catalog_facets", "get_board_pinout",
 			"get_project_summary", "list_components", "get_component", "get_connections",
 			"get_node_voltage", "get_branch_current", "get_simulation_results",
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
@@ -240,6 +241,17 @@ func _catalog_entry(type: String) -> Dictionary:
 		"placeable_on_breadboard": mounting in ["tht", "smd", "module", ""],
 		"notes": String(def.get("notes", "")),
 	}
+
+
+## Return the documented pin map of a development board (Arduino, ESP, Pico,
+## Pi, STM32, Teensy, Android ...). Describes pins only; it does not simulate.
+func get_board_pinout(type: String) -> Dictionary:
+	if not BoardPins.is_board(type):
+		return _err("NOT_A_BOARD",
+			"'%s' is not a development board." % type,
+			"Use get_component_catalog with mounting=\"board\" to list boards.")
+	var s := BoardPins.summary(type)
+	return _ok(s)
 
 
 func get_catalog_facets() -> Dictionary:
