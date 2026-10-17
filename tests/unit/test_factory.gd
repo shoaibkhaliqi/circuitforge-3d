@@ -63,6 +63,12 @@ func run(t) -> void:
 		"lcd1602": "module",
 		"arduino_uno_r3": "board",
 		"lm7805": "to220",
+		"thermistor_ntc": "bead_thermistor",
+		"photoresistor_ldr": "ldr_disc",
+		"rtd_pt100": "rtd_probe",
+		"dc_motor": "motor",
+		"fan_5v": "fan",
+		"solenoid_12v": "solenoid",
 	}
 	for id in samples:
 		if not ComponentDB.exists(id):

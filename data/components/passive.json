@@ -197,8 +197,8 @@
       },
       "model": {"shape": "bead_thermistor"},
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "A temperature-dependent resistance model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "Beta-equation model R = R25*exp(B*(1/T - 1/T25)); the resistance is set by the temperature parameter. Self-heating is not simulated."
     },
     {
       "id": "photoresistor_ldr",
@@ -215,8 +215,8 @@
       },
       "model": {"shape": "ldr_disc"},
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "An illuminance-dependent resistance model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "Log-linear interpolation R = R_dark*(R_light/R_dark)^light, driven by the light-level parameter (0 dark to 1 bright)."
     },
     {
       "id": "shunt_resistor",

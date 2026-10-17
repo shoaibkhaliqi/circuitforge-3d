@@ -12,17 +12,17 @@ This report is deliberately blunt: it separates *what looks like a part* from
 |--------|-------|
 | Definitions | 238 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 46 |
+| Simulatable (`full` + `partial`) | 54 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 21 | real but approximate electrical model |
-| `visual` | 29 | rendered only, no electrical behaviour |
+| `partial` | 29 | real but approximate electrical model |
+| `visual` | 24 | rendered only, no electrical behaviour |
 | `external` | 36 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 127 | catalogued and placeable, not simulated yet |
+| `planned` | 124 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -61,18 +61,24 @@ Documented approximations: capacitor variants (`electrolytic_capacitor`,
 `toggle_switch`, `reed_switch`, `polyfuse`; ideal-source batteries and cells
 (`battery_aa`/`aaa`/`9v`/`18650`, `coin_cell_cr2032`, `lipo_1s`,
 `battery_aa_holder`), `usb_power_5v`, `bench_psu`, `breadboard_psu_5v`,
-`ac_source`; the infra-red `led_ir`; and the Stage-A virtual MCU pin `mcu_pin`
-(an ideal Thevenin driver).
+`ac_source`; the infra-red `led_ir`; the Stage-A virtual MCU pin `mcu_pin`
+(an ideal Thevenin driver); resistive sensors (`thermistor_ntc`,
+`photoresistor_ldr`, `rtd_pt100`) whose resistance is set by a stimulus
+parameter; and brushed motors (`dc_motor`, `dc_gearmotor_tt`, `fan_5v`,
+`vibration_motor`) modelled as winding resistance plus an assumed back-EMF,
+with `solenoid_12v` as a coil.
 
 ## Honest caveats
 
 - A part may only claim `full`/`partial` if the netlist builder actually maps it;
   this is enforced by `tests/unit/test_netlist.gd`, so the status can never drift
   ahead of the solver. Parts without a truthful model are `visual`.
-- Connectors and IC sockets, motors/solenoids/steppers, multi-pin regulators and
-  DC-DC modules, relays, the USB power meter and sensor modules are `visual` for
-  now — their 3D models render, but no electrical model is claimed. Sensors,
-  displays and motors are the M8 milestone.
+- Connectors and IC sockets, stepper/servo motors and their drivers, multi-pin
+  regulators and DC-DC modules, relays, the USB power meter and digital sensor
+  modules are `visual`/`planned` for now — their 3D models render, but no
+  electrical model is claimed. Displays and digital/protocol sensors are the
+  next simulation milestone; brushed DC motors are modelled in steady state only
+  (winding resistance + a user-supplied back-EMF), not spinning up.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU; firmware execution is a separate, gated
   milestone.

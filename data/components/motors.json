@@ -10,11 +10,11 @@
       "description": "Brushed DC motor, two terminals. Speed depends on applied voltage.",
       "keywords": ["motor", "dc", "brushed", "rotation"],
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 10.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}},
+      "params": {"r": {"default": 10.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}, "back_emf": {"default": 0.0, "unit": "V", "label": "Assumed back-EMF (0 = stalled)"}},
       "model": {"shape": "dc_motor"},
       "mounting": "device",
-      "simulation_status": "visual",
-      "notes": "Modelled electrically as a resistor; back-EMF, torque and speed are not simulated."
+      "simulation_status": "partial",
+      "notes": "Winding resistance with an assumed back-EMF you set; speed, torque and spin-up dynamics are not simulated, and 0 V means stalled."
     },
     {
       "id": "dc_gearmotor_tt",
@@ -24,10 +24,11 @@
       "description": "Yellow TT gearbox DC motor used in small robot chassis.",
       "keywords": ["tt motor", "gearmotor", "robot", "dc", "gear"],
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 6.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}},
+      "params": {"r": {"default": 6.0, "unit": "ohm", "label": "Winding resistance"}, "v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}, "back_emf": {"default": 0.0, "unit": "V", "label": "Assumed back-EMF (0 = stalled)"}},
       "model": {"shape": "dc_motor"},
       "mounting": "device",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "notes": "Winding resistance with an assumed back-EMF you set; speed and torque are not simulated."
     },
     {
       "id": "servo_sg90",
@@ -222,11 +223,11 @@
       "description": "Electromagnetic solenoid coil driven through a transistor or relay.",
       "keywords": ["solenoid", "coil", "valve", "electromagnet"],
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 30.0, "unit": "ohm", "label": "Coil resistance"}, "v_nom": {"default": 12.0, "unit": "V", "label": "Nominal voltage"}},
+      "params": {"r": {"default": 30.0, "unit": "ohm", "label": "Coil resistance"}, "l": {"default": 0.05, "unit": "H", "label": "Coil inductance"}, "v_nom": {"default": 12.0, "unit": "V", "label": "Nominal voltage"}},
       "model": {"shape": "solenoid"},
       "mounting": "device",
-      "simulation_status": "visual",
-      "notes": "Modelled as a resistor; add a flyback diode in real hardware."
+      "simulation_status": "partial",
+      "notes": "Coil inductance in series with resistance; add a flyback diode in real hardware."
     },
     {
       "id": "vibration_motor",
@@ -236,10 +237,11 @@
       "description": "Small coin/cylindrical vibration (haptic) motor.",
       "keywords": ["vibration motor", "haptic", "buzzer motor"],
       "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 75.0, "unit": "ohm", "label": "Resistance"}},
+      "params": {"r": {"default": 75.0, "unit": "ohm", "label": "Resistance"}, "back_emf": {"default": 0.0, "unit": "V", "label": "Assumed back-EMF (0 = stalled)"}},
       "model": {"shape": "vibration_motor"},
       "mounting": "device",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "notes": "Winding resistance with an assumed back-EMF you set."
     },
     {
       "id": "fan_5v",
@@ -249,10 +251,11 @@
       "description": "2-wire 5 V brushless cooling fan.",
       "keywords": ["fan", "cooling", "5v", "brushless"],
       "pins": [{"name": "-", "type": "ground"}, {"name": "+", "type": "power"}],
-      "params": {"r": {"default": 60.0, "unit": "ohm", "label": "Resistance"}},
+      "params": {"r": {"default": 60.0, "unit": "ohm", "label": "Resistance"}, "back_emf": {"default": 0.0, "unit": "V", "label": "Assumed back-EMF (0 = stalled)"}},
       "model": {"shape": "fan"},
       "mounting": "device",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "notes": "Approximate winding resistance with an assumed back-EMF; brushless drive electronics are not simulated."
     }
   ]
 }

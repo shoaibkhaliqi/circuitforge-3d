@@ -68,6 +68,16 @@ follow [Semantic Versioning](https://semver.org/).
   - New `NetlistBuilder.handles(type)` and `tests/unit/test_netlist.gd` (47
     checks) guarantee a part may only claim `full`/`partial` status if the solver
     actually maps it; 23 parts with no honest model were downgraded to `visual`.
+- **Honest analog sensors + brushed DC motors**:
+  - Resistive sensors whose resistance follows a stimulus parameter:
+    `thermistor_ntc` (beta equation), `photoresistor_ldr` (log-linear from a 0–1
+    light level) and `rtd_pt100` (linear RTD).
+  - Brushed motors `dc_motor`, `dc_gearmotor_tt`, `fan_5v` and `vibration_motor`
+    are modelled as winding resistance plus an **assumed back-EMF** you set
+    (0 V = stalled); `solenoid_12v` as a coil. Steady state only — no spin-up,
+    torque or speed dynamics, and the catalog notes say so.
+  - New 3D package bodies: a sensing bead (thermistor/LDR/RTD) and motor shapes
+    (brushed motor, vibration motor, solenoid, fan).
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

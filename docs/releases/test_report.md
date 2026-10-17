@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 532 / 532 passed
+RESULT: 557 / 557 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -43,7 +43,7 @@ STATUS: ALL TESTS PASSED
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
-| Netlist — gpio driver, part aliases, status↔solver honesty | simulation mapping  |
+| Netlist — gpio driver, aliases, sensors/motors, status↔solver honesty | simulation mapping  |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -60,6 +60,7 @@ STATUS: ALL TESTS PASSED
 | LED example (5 V, 330 Ω, red LED)     | Vf≈1.8 V, I≈9–10 mA   | 1.788 V, 9.733 mA     |
 | RC charge (1 kΩ, 100 µF, 5 V) at 0.5 s| 4.966 V               | 4.9658 V              |
 | Silicon diode forward drop            | ≈0.6–0.7 V            | within range (test)   |
+| DC motor (5 V, 10 Ω, 2 V back-EMF)    | 0.3 A                 | 0.3 A                 |
 
 ## Interactive (GUI) verification
 

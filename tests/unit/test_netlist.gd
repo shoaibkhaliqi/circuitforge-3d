@@ -178,6 +178,43 @@ func run(t) -> void:
 		t.near(br.element_currents["R1"], 0.75, "load current = 1.5/(1+1) = 0.75 A", 1e-3)
 		t.near(br.node_voltages[circ.pin_nets["B1"][0]], 0.75, "terminal voltage = 0.75 V", 1e-3)
 
+	# ---- analog sensors: thermistor, LDR, RTD -----------------------------
+	t.section("Netlist - resistive sensors follow their stimulus")
+	r = builder.build(bb, [_place("TH1", "thermistor_ntc", ["a1", "a9"], {"r25": 10000.0, "beta": 3950.0, "temperature": 25.0})], [])
+	t.near(float(_by_id(r, "TH1").params["r"]), 10000.0, "NTC at 25 degC equals R25", 1e-6)
+	r = builder.build(bb, [_place("TH1", "thermistor_ntc", ["a1", "a9"], {"r25": 10000.0, "beta": 3950.0, "temperature": 50.0})], [])
+	t.near(float(_by_id(r, "TH1").params["r"]), 3588.0, "NTC at 50 degC drops to ~3.6k", 1e-2)
+	r = builder.build(bb, [_place("L1", "photoresistor_ldr", ["a1", "a9"], {"r_light": 1000.0, "r_dark": 1000000.0, "light": 0.0})], [])
+	t.near(float(_by_id(r, "L1").params["r"]), 1000000.0, "LDR dark = 1 MOhm", 1e-6)
+	r = builder.build(bb, [_place("L1", "photoresistor_ldr", ["a1", "a9"], {"r_light": 1000.0, "r_dark": 1000000.0, "light": 1.0})], [])
+	t.near(float(_by_id(r, "L1").params["r"]), 1000.0, "LDR bright = 1 kOhm", 1e-6)
+	r = builder.build(bb, [_place("L1", "photoresistor_ldr", ["a1", "a9"], {"r_light": 1000.0, "r_dark": 1000000.0, "light": 0.5})], [])
+	t.near(float(_by_id(r, "L1").params["r"]), 31622.7766, "LDR mid = geometric mean", 1e-4)
+	r = builder.build(bb, [_place("PT1", "rtd_pt100", ["a1", "a9"], {"temperature": 100.0, "r0": 100.0})], [])
+	t.near(float(_by_id(r, "PT1").params["r"]), 138.5, "PT100 at 100 degC = 138.5 Ohm", 1e-6)
+
+	# ---- motors: winding + assumed back-EMF -------------------------------
+	t.section("Netlist - brushed motor winding and back-EMF")
+	r = builder.build(bb, [_place("M1", "dc_motor", ["a1", "a9"], {"r": 10.0, "back_emf": 0.0})], [])
+	t.check(_by_id(r, "M1") != null and _by_id(r, "M1#emf") == null, "stalled motor is just its winding resistance")
+	r = builder.build(bb, [_place("M1", "dc_motor", ["a1", "a9"], {"r": 10.0, "back_emf": 2.0})], [])
+	t.check(_by_id(r, "M1") != null and _by_id(r, "M1#emf") != null, "running motor adds a back-EMF source")
+	if _by_id(r, "M1#emf") != null:
+		t.near(float(_by_id(r, "M1#emf").params["v"]), 2.0, "back-EMF = 2 V")
+	var mcirc = builder.build(bb, [
+		_place("V1", "vsource", ["TP1", "TM1"], {"v": 5.0}),
+		_place("M1", "dc_motor", ["TP5", "a5"], {"r": 10.0, "back_emf": 2.0}),
+		_place("GND", "ground", ["TM1"], {}),
+	], [{"id": "W1", "a": _hole("a5"), "b": _hole("TM5")}])
+	var mr = CircuitSolver.new().solve_dc(mcirc.circuit)
+	t.check(mr.ok, "motor circuit solves", mr.get("error", ""))
+	if mr.ok:
+		t.near(mr.element_currents["M1"], 0.3, "current = (5-2)/10 = 0.3 A", 1e-3)
+	r = builder.build(bb, [_place("SOL1", "solenoid_12v", ["a1", "a9"], {"r": 30.0, "l": 0.05})], [])
+	t.check(_by_id(r, "SOL1") != null and _by_id(r, "SOL1#r") != null, "solenoid is a coil plus winding resistance")
+	if _by_id(r, "SOL1") != null:
+		t.check(_by_id(r, "SOL1").type == "inductor", "solenoid coil maps to an inductor")
+
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
 	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])

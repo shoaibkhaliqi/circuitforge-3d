@@ -298,6 +298,30 @@ static func _body_inductor(frame: Node3D, span: float, pin_along: Array) -> void
 		_add(frame, _torus(0.017, 0.021), _material(Color(0.72, 0.42, 0.18), 0.4, 0.7), Vector3(0, 0.016, t), Vector3(90, 0, 0))
 
 
+## Small two-lead sensing bead (thermistor, LDR, RTD probe).
+static func _body_bead(frame: Node3D, span: float, pin_along: Array, color: Color) -> void:
+	var body_len := maxf(span * 0.5, 0.05)
+	_leads(frame, span, body_len, pin_along)
+	_add(frame, _sphere(0.02), _material(color, 0.45), Vector3(0, 0.024, 0), Vector3.ZERO, Vector3(1.0, 0.9, 1.0))
+
+
+## Two-lead motor / actuator bodies: brushed motor, vibration motor, solenoid, fan.
+static func _body_motor(frame: Node3D, span: float, pin_along: Array, style: String) -> void:
+	var body_len := maxf(span * 0.55, 0.06)
+	_leads(frame, span, body_len * 0.6, pin_along)
+	if style == "fan":
+		_add(frame, _box(Vector3(0.07, 0.03, body_len)), _material(Color(0.16, 0.16, 0.18), 0.5), Vector3(0, 0.016, 0))
+		_add(frame, _cyl(0.022, 0.02, 20), _material(Color(0.10, 0.10, 0.12), 0.5), Vector3(0, 0.031, 0))
+		return
+	if style == "solenoid":
+		_add(frame, _cyl(0.024, body_len, 20), _material(Color(0.35, 0.30, 0.22), 0.5), Vector3(0, 0.024, 0), Vector3(90, 0, 0))
+		_add(frame, _cyl(0.010, body_len * 0.4, 14), _material(METAL, 0.3, 0.7), Vector3(0, 0.024, body_len * 0.55), Vector3(90, 0, 0))
+		return
+	var radius := 0.022 if style == "vibration" else 0.03
+	_add(frame, _cyl(radius, body_len, 20), _material(Color(0.55, 0.55, 0.58), 0.4), Vector3(0, radius, 0), Vector3(90, 0, 0))
+	_add(frame, _cyl(radius * 0.35, body_len * 0.15, 12), _material(METAL, 0.3, 0.7), Vector3(0, radius, body_len * 0.55), Vector3(90, 0, 0))
+
+
 static func _body_potentiometer(frame: Node3D, span: float, pin_along: Array) -> void:
 	var body_len := maxf(span * 0.6, 0.06)
 	_leads(frame, span, body_len, pin_along)
@@ -439,6 +463,20 @@ static func _body_by_shape(type: String, frame: Node3D, span: float, pin_along: 
 			_body_seven_segment(frame, span, pin_along)
 		"ws2812", "led_5mm", "led_dome", "rgb_led":
 			_body_led_package(frame, span, pin_along, def)
+		"thermistor", "ntc_bead", "bead_thermistor":
+			_body_bead(frame, span, pin_along, BODY_BLACK)
+		"ldr", "photoresistor", "ldr_disc":
+			_body_bead(frame, span, pin_along, Color(0.78, 0.75, 0.55))
+		"rtd_probe":
+			_body_bead(frame, span, pin_along, Color(0.72, 0.74, 0.78))
+		"dc_motor", "dc_gearmotor_tt", "motor":
+			_body_motor(frame, span, pin_along, "dc")
+		"vibration_motor":
+			_body_motor(frame, span, pin_along, "vibration")
+		"solenoid", "solenoid_valve":
+			_body_motor(frame, span, pin_along, "solenoid")
+		"fan":
+			_body_motor(frame, span, pin_along, "fan")
 		_:
 			if shape.begins_with("dip") or shape.begins_with("dip_socket"):
 				_body_dip(frame, span, pin_along, label)

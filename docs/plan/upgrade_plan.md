@@ -68,7 +68,7 @@ date as milestones land.
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
-| 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (catalogued & searchable; simulations planned) |
+| 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (resistive sensors + brushed DC motors simulated; displays/digital sensors planned) |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (catalog facets/filters exposed) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | planned |
 
@@ -208,9 +208,27 @@ catalog that replaces the hardcoded definition list.
   battery-with-internal-resistance numerical solve.
 - Regression: **532 / 532 tests pass**, MCP **13 / 13**, headless load exits 0.
 
+### Milestone 8 — honest analog sensors + brushed DC motors (in progress)
+- **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
+  so no solver change was needed): `thermistor_ntc` (beta equation
+  `R = R25*exp(B*(1/T - 1/T25))`), `photoresistor_ldr` (log-linear
+  `R = R_dark*(R_light/R_dark)^light`) and `rtd_pt100` (linear RTD).
+- **Brushed motors** `dc_motor`, `dc_gearmotor_tt`, `fan_5v`, `vibration_motor`:
+  winding resistance plus an **assumed back-EMF** the user sets (0 V = stalled);
+  steady state only, no spin-up or torque. `solenoid_12v` is a coil (inductance
+  in series with winding resistance).
+- 3D: new `_body_bead` (sensor bead) and `_body_motor` (motor/vibration/solenoid/
+  fan) package bodies, wired to the catalog shapes.
+- `tests/unit/test_netlist.gd` extended (sensor resistance at several stimulus
+  points, motor stalled vs running, a numerical 5 V/10 Ω/2 V-BEMF = 0.3 A solve);
+  `tests/unit/test_factory.gd` now builds the new shapes.
+- Regression: **557 / 557 tests pass**, MCP **13 / 13**, headless load exits 0.
+- Still visual/planned: stepper and servo motors and their drivers, displays,
+  and digital/protocol sensors (they need a firmware/Stage-B backend).
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 532/532).
+   (currently 557/557).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

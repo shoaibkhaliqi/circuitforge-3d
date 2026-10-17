@@ -41,6 +41,8 @@ const HANDLED_TYPES := [
 	"schottky_diode", "battery_aa", "battery_aaa", "battery_9v", "battery_18650",
 	"coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu",
 	"ac_source", "breadboard_psu_5v",
+	"thermistor_ntc", "photoresistor_ldr", "rtd_pt100",
+	"dc_motor", "dc_gearmotor_tt", "fan_5v", "vibration_motor", "solenoid_12v",
 ]
 
 
@@ -233,6 +235,44 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			# the second half gets a suffixed internal id.
 			out.append(_el(cid, "resistor", [nets[0], nets[1]], {"r": rupper}))
 			out.append(_el(cid + "#2", "resistor", [nets[1], nets[2]], {"r": rlower}))
+		"thermistor_ntc":
+			# Beta-equation NTC: R = R25 * exp(B * (1/T - 1/T25)), T in kelvin.
+			var r25: float = max(1.0, float(params.get("r25", 10000.0)))
+			var beta: float = max(1.0, float(params.get("beta", 3950.0)))
+			var t_c: float = float(params.get("temperature", 25.0))
+			var t_k: float = t_c + 273.15
+			var r_ntc: float = r25 * exp(beta * (1.0 / t_k - 1.0 / 298.15))
+			out.append(_el(cid, "resistor", nets, {"r": clampf(r_ntc, 1.0, 1e12)}))
+		"photoresistor_ldr":
+			# Log-linear interpolation between dark and bright resistance from a
+			# 0-1 light level: R = R_dark * (R_light/R_dark)^light.
+			var r_dark: float = max(1.0, float(params.get("r_dark", 1000000.0)))
+			var r_light: float = max(1.0, float(params.get("r_light", 1000.0)))
+			var light_lvl: float = clampf(float(params.get("light", 0.5)), 0.0, 1.0)
+			out.append(_el(cid, "resistor", nets, {"r": clampf(r_dark * pow(r_light / r_dark, light_lvl), 1.0, 1e12)}))
+		"rtd_pt100":
+			# Callendar-style linear RTD: R = R0 * (1 + 0.00385 * T_degC).
+			var t_rtd: float = float(params.get("temperature", 0.0))
+			var r0_rtd: float = max(1.0, float(params.get("r0", 100.0)))
+			out.append(_el(cid, "resistor", nets, {"r": clampf(r0_rtd * (1.0 + 0.00385 * t_rtd), 1.0, 1e12)}))
+		"dc_motor", "dc_gearmotor_tt", "fan_5v", "vibration_motor":
+			# Steady-state brushed motor: winding resistance plus an assumed
+			# back-EMF the user supplies (0 V = stalled). No speed dynamics.
+			var rm: float = max(0.1, float(params.get("r", 10.0)))
+			var vemf: float = float(params.get("back_emf", 0.0))
+			if absf(vemf) > 1e-9:
+				var mmid := cid + "#m"
+				out.append(_el(cid, "resistor", [nets[0], mmid], {"r": rm}))
+				out.append(_el(cid + "#emf", "vsource", [mmid, nets[1]], {"v": vemf}))
+			else:
+				out.append(_el(cid, "resistor", nets, {"r": rm}))
+		"solenoid_12v":
+			# Coil: inductance in series with winding resistance.
+			var rl: float = max(0.1, float(params.get("r", 30.0)))
+			var lc: float = max(0.0, float(params.get("l", 0.05)))
+			var lmid := cid + "#m"
+			out.append(_el(cid, "inductor", [nets[0], lmid], {"l": lc, "ic": 0.0}))
+			out.append(_el(cid + "#r", "resistor", [lmid, nets[1]], {"r": rl}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out
