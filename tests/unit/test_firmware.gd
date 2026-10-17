@@ -63,6 +63,19 @@ func run(t) -> void:
 	var addrs := FirmwareBackend.i2c_addresses(ev)
 	t.check(addrs == ["0x27", "0x3C"], "unique sorted addresses", str(addrs))
 	t.check(FirmwareBackend.i2c_addresses([]).is_empty(), "no events -> no addresses")
+	t.check(FirmwareBackend.last_i2c_write_byte(ev, 0x27) == 65,
+		"last write byte to 0x27 is the port byte", str(FirmwareBackend.last_i2c_write_byte(ev, 0x27)))
+	t.check(FirmwareBackend.last_i2c_write_byte(ev, 0x3C) == -1, "a read is not a device write")
+	t.check(FirmwareBackend.last_i2c_write_byte([], 0x27) == -1, "no events -> -1")
+	t.check(FirmwareBackend.last_i2c_write_byte([{"address": 0x27, "write": true, "bytes": []}], 0x27) == -1,
+		"an empty write has no byte")
+	var ev2 := [
+		{"address": 0x27, "write": true, "bytes": [0x55]},
+		{"address": 0x20, "write": true, "bytes": [0xFF]},
+		{"address": 0x27, "write": true, "bytes": [0xAA]},
+	]
+	t.check(FirmwareBackend.last_i2c_write_byte(ev2, 0x27) == 0xAA,
+		"latest write wins", str(FirmwareBackend.last_i2c_write_byte(ev2, 0x27)))
 
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()

@@ -126,18 +126,18 @@ Node). The `simavr`/GPL path was not needed for the spike to succeed.
 - [x] **Board coverage** stated honestly: AVR/ATmega328P only in the spike.
 - [x] **Deterministic, reproducible timing** for blink (reproducible via
       `verify.mjs`); limits documented (§7).
-- [ ] Status changes backed by tests — no catalog status is changed yet; the
-      protocol parts stay `planned`/`visual` until the app actually consumes the
-      harness with test coverage. This is the remaining step before flipping any
-      status.
+- [x] Status changes backed by tests — **`pcf8574` `planned` → `partial`** is
+      backed by a real firmware test (`firmware/sketches/expander` → state `0x55`,
+      §9) plus Node-free mapping tests; other protocol parts stay `planned`/`visual`
+      until they get the same treatment.
 
 **Outcome:** technical feasibility is **confirmed** for the permissive path. The
 harness is now wired into the app (open loop): `FirmwareBackend` +
 `get_firmware_capabilities` / `run_firmware` / `apply_firmware_pins` run a HEX and
 drive real `mcu_pin` components from firmware output at a chosen instant. Verified
 end-to-end: with a 1 kΩ pin-to-ground load, D13 at 100 ms (HIGH) solves the signal
-node to 4.878 V (= 5 V · 1000/1025). Until a firmware-driven protocol part is
-itself tested, the catalog labels do not change.
+node to 4.878 V (= 5 V · 1000/1025). The first device, the **PCF8574** (§9), is now
+modelled and firmware-driven, so its catalog label is honestly `partial`.
 
 ### Protocol surfaces: UART, I2C, SPI
 
@@ -155,17 +155,39 @@ observable through the engine:
 - **SPI**: MOSI bytes are recorded (`spi_bytes`); MISO returns 0x00 (no device).
 
 This is the groundwork for protocol parts: a bus where firmware output is the
-observable. It deliberately stops short of modelling a device on the other end
-(that is the step that would justify changing a protocol part's catalog status).
+observable. The next step — modelling the device at the other end — started with
+the PCF8574 below.
 
-## 9. Recommendation
+## 9. First device: PCF8574 I2C I/O expander (executed)
+
+`pcf8574` (`data/components/analog_ic.json`) is the first *bus* part upgraded from
+`planned` to **`partial`** on the strength of a real firmware path:
+
+- **Model**: the netlist maps the device `state` byte to eight ideal
+  quasi-bidirectional `gpio` outputs P0..P7 against VSS (default `rout` 1 kΩ,
+  approximating the part's weak pull-up; a Thevenin level, so `state` is directly
+  settable and also firmware-writable).
+- **Firmware path**: `apply_firmware_device` runs a HEX, takes the last byte the
+  firmware wrote to the device's I2C address (`FirmwareBackend.last_i2c_write_byte`,
+  default address `0x27`) and sets `state` from it, optionally re-solving DC.
+- **Verified**: `firmware/sketches/expander` writes `0x55` to `0x27`; the device
+  ends at `state=0x55` with port levels `[1,0,1,0,1,0,1,0]` (address `0x27`).
+  Node-free mapping is covered by `tests/unit/test_netlist.gd`; the byte-extraction
+  helper by `tests/unit/test_firmware.gd`; the tool surface by MCP Test B6.
+- **Still open-loop**: P0..P7 do **not** feed back into the firmware (no input
+  reads), and only one device type is modelled. Other protocol parts stay
+  `planned` until they get the same treatment.
+
+## 10. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
 **avr8js (MIT)** result above for the same reason §4 prefers it: no GPL is
 vendored into the MIT binary. The sidecar `get_firmware_capabilities` /
-`run_firmware` / `apply_firmware_pins` surface in §5 is now built on top of
-`firmware/harness/run.mjs`. Remaining work before any catalog status change: run
-firmware at several instants across a protocol part and test the result, and add
-a streaming/interactive mode if a blocking run proves too coarse. If the app-side
-integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
-separately-installed `simavr` and keep the feature capability-flagged.
+`run_firmware` / `apply_firmware_pins` / `apply_firmware_device` surface in §5 is
+now built on top of `firmware/harness/run.mjs`, and the PCF8574 (§9) is the first
+catalog status change backed by a real firmware-driven test. Remaining work:
+device→firmware feedback (so firmware can read inputs), more device models
+(LCD/OLED, I²C ADCs, DHT, ultrasonic), and a streaming/interactive mode if a
+blocking run proves too coarse. If the app-side integration ever cannot meet the
+gate (e.g. timing or packaging), fall back to a separately-installed `simavr` and
+keep the feature capability-flagged.

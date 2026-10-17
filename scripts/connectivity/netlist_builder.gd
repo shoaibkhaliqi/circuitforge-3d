@@ -47,6 +47,7 @@ const HANDLED_TYPES := [
 	"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor",
 	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
 	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
+	"pcf8574",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -55,6 +56,11 @@ const DIGITAL_OUT_PINS := {
 	"flame_sensor": [2, 1], "sound_sensor": [3, 1], "ldr_module": [3, 1],
 	"soil_moisture": [3, 1], "rain_sensor": [3, 1], "mq2_gas": [3, 1], "mq135_air": [3, 1],
 }
+
+## PCF8574 DIP-16 port mapping: P0..P7 pin indices and the VSS (ground) index,
+## following the real package order (pin 1 = A0 ... pin 8 = VSS ... pin 16 = VDD).
+const PCF8574_PORT_PINS := [3, 4, 5, 6, 8, 9, 10, 11]
+const PCF8574_VSS := 7
 
 
 static func handles(type: String) -> bool:
@@ -223,6 +229,19 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 				"vlogic": float(params.get("vlogic", 5.0)),
 				"rout": float(params.get("rout", 25.0)),
 			}))
+		"pcf8574":
+			# I2C I/O expander: P0..P7 follow the 8 bits of the `state` byte. Modelled
+			# as ideal quasi-bidirectional outputs (a Thevenin level per pin) against
+			# VSS; `rout` default 1 kOhm approximates the part's weak pull-up.
+			var bits: int = int(params.get("state", 0)) & 0xFF
+			var vss: String = String(nets[PCF8574_VSS])
+			var vcc: float = float(params.get("vcc", 5.0))
+			var rport: float = maxf(1.0, float(params.get("rout", 1000.0)))
+			for n in 8:
+				var pin_idx: int = PCF8574_PORT_PINS[n]
+				var lvl: float = 1.0 if ((bits >> n) & 1) == 1 else 0.0
+				out.append(_el("%s#P%d" % [cid, n], "gpio", [String(nets[pin_idx]), vss],
+					{"level": lvl, "vlogic": vcc, "rout": rport}))
 		"battery_aa", "battery_aaa", "battery_9v", "battery_18650", "coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu":
 			var v_def: float = float(SOURCE_DEFAULTS.get(type, 5.0))
 			var v_val: float = float(params.get("v", params.get("voltage", v_def)))

@@ -55,6 +55,7 @@ Component ids are stable strings (`V1`, `R1`, `GND1`, …). Pin indices start at
 | `update_component_parameters` | `component_id`, `parameters`, `expected_revision:null` | Validates the **whole** set first; rejects invalid values atomically. |
 | `set_pin_levels` | `levels:dict[str,float]`, `simulate=false`, `expected_revision:null` | Drive virtual MCU pins (`mcu_pin`): `1` high, `0` low, `-1` high-Z; optionally re-runs the DC solve. Non-pin ids are reported as skipped. |
 | `apply_firmware_pins` | `hex_path:str`, `pin_map:dict[str,str]`, `ms=2000`, `at_ms=-1`, `simulate=false`, `expected_revision:null` | Run firmware and drive mapped `mcu_pin`s from its output at one instant (`at_ms`, default end of run); open loop (no analog feedback). |
+| `apply_firmware_device` | `hex_path:str`, `component_id:str`, `ms=2000`, `simulate=false`, `expected_revision:null` | Feed firmware I2C traffic into a device model (currently `pcf8574`): sets its `state` from the last byte written to its address; open loop. |
 | `move_component` | `component_id`, `holes:list[str]=[]`, `orientation:null`, `expected_revision:null` | Repositions without silently breaking connectivity. |
 | `remove_component` | `component_id`, `confirm=false`, `expected_revision:null`, `operation_id=""` | **Destructive.** Call with `confirm=false` to preview affected connections, then `confirm=true`. |
 | `connect_terminals` | `a`, `b`, `expected_revision:null` | Returns the connection id and affected nodes. |

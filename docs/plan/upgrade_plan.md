@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration still gated |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); first device (PCF8574) modelled `partial` |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -243,7 +243,18 @@ catalog that replaces the hardcoded definition list.
   bytes) and SPI MOSI bytes; `run_firmware` returns `i2c` / `i2c_addresses` /
   `spi_bytes`. No device is modelled (I2C is ACKed, reads return 0xFF). Verified
   with `firmware/sketches/i2c_write` (write to `0x27`, bytes `0x00,0x41`). Suite
-  634/634; catalog statuses still unchanged.
+  634/634.
+- **First firmware-driven device — PCF8574 I2C I/O expander** (catalog
+  `planned` → **`partial`**, the first status change justified by a real
+  firmware test): the netlist maps the `state` byte to eight ideal
+  quasi-bidirectional `gpio` outputs P0..P7 against VSS (default 1 kΩ). New tool
+  `apply_firmware_device` runs a HEX, takes the last byte written to the device's
+  I2C address (`FirmwareBackend.last_i2c_write_byte`, default `0x27`) and sets
+  `state` from it, optionally re-solving DC. Verified with
+  `firmware/sketches/expander` (writes `0x55` → state `0x55`, levels
+  `[1,0,1,0,1,0,1,0]`). Suite **645/645**; MCP **16/16** (new Test B6); tools
+  **40**. Open loop: the port does not feed back into the firmware, and it is the
+  only device modelled so far.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

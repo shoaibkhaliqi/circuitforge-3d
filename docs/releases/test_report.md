@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 634 / 634 passed
+RESULT: 645 / 645 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -33,7 +33,7 @@ STATUS: ALL TESTS PASSED
 |------------------------------------------------------------|---------------------|
 | LinAlg — linear solve                                      | numeric core        |
 | Schema — normalise, validate, status vocabulary            | catalog schema      |
-| Catalog — load, validate all 238, search, facets, status   | catalog             |
+| Catalog — load, validate all 239, search, facets, status   | catalog             |
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
@@ -43,8 +43,8 @@ STATUS: ALL TESTS PASSED
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
-| Netlist — gpio driver, aliases, sensors/motors, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, capability honesty | firmware backend    |
+| Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, status↔solver honesty | simulation mapping  |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device byte, capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -105,18 +105,19 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 15 / 15 passed
+RESULTS: 16 / 16 passed
 ```
 
 | Test | Checks | Result |
 |------|--------|--------|
-| A. Server initialization | name `circuitforge-3d`, 39 tools present, valid input schemas | pass |
+| A. Server initialization | name `circuitforge-3d`, 40 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
-| B2. Catalog discovery | 238 entries, status facets/filters, I2C filter, 0 errors | pass |
+| B2. Catalog discovery | 239 entries, status facets/filters, I2C filter, 0 errors | pass |
 | B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | B4. Virtual pin control | mcu_pin high/low/high-Z via set_pin_levels + get_pin_states | pass |
 | B5. Firmware backend | optional/honest capabilities; missing-HEX is a clean error | pass |
+| B6. Firmware device | create `pcf8574`; missing-HEX `apply_firmware_device` is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

@@ -305,6 +305,29 @@ func run(t) -> void:
 		t.near(float(_by_id(r, "LC1").params["r"]), 1002.0, "loaded arm rises by r0*sensitivity", 1e-9)
 		t.near(float(_by_id(r, "LC1#2").params["r"]), 998.0, "opposite arm falls by r0*sensitivity", 1e-9)
 
+	# ---- I2C I/O expander -------------------------------------------------
+	t.section("Netlist - PCF8574 port follows its state byte")
+	var pcf_holes := ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "TM1",
+		"a9", "a10", "a11", "a12", "a13", "a14", "a15", "TP1"]
+	r = builder.build(bb, [_place("U1", "pcf8574", pcf_holes, {"state": 0x55})], [])
+	var port := []
+	for n in 8:
+		port.append(_by_id(r, "U1#P%d" % n))
+	t.check(port[0] != null, "PCF8574 emits one gpio per port pin")
+	if port[0] != null:
+		var levels := ""
+		for pe in port:
+			levels += str(int(float(pe.params["level"])))
+		t.check(levels == "10101010", "state 0x55 -> P0..P7 = 1,0,1,0,1,0,1,0", levels)
+		t.check(port[0].nets[1] == r.pin_nets["U1"][7], "port pins reference VSS (pin 8)")
+		t.near(float(port[0].params["vlogic"]), 5.0, "port logic level follows Vcc", 1e-9)
+	r = builder.build(bb, [_place("U1", "pcf8574", pcf_holes, {"state": 0x00})], [])
+	if _by_id(r, "U1#P0") != null:
+		t.check(float(_by_id(r, "U1#P0").params["level"]) == 0.0, "state 0x00 -> all port pins low")
+	r = builder.build(bb, [_place("U1", "pcf8574", pcf_holes, {"state": 0xFF})], [])
+	if _by_id(r, "U1#P7") != null:
+		t.check(float(_by_id(r, "U1#P7").params["level"]) == 1.0, "state 0xFF -> all port pins high")
+
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
 	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])

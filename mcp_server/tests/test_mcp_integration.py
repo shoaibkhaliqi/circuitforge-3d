@@ -99,7 +99,8 @@ async def main() -> int:
                             "load_example_project", "get_diagnostics", "get_solver_info",
                             "get_catalog_facets", "get_board_pinout",
                             "get_pin_states", "set_pin_levels",
-                            "get_firmware_capabilities", "run_firmware", "apply_firmware_pins"}
+                            "get_firmware_capabilities", "run_firmware", "apply_firmware_pins",
+                            "apply_firmware_device"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -198,6 +199,21 @@ async def main() -> int:
                        f"available={avail} engine={cap.get('engine')} err={code}")
             except Exception as exc:
                 record("B5. Firmware backend (optional, honest)", False, repr(exc))
+
+            # ---------------------------------------------------- Test B6
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-Device"})
+                dev = (await call_ok(s, "add_component",
+                                     {"component_type": "pcf8574",
+                                      "parameters": {"state": 0}}))["component_id"]
+                err = await call_err(s, "apply_firmware_device",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "component_id": dev})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B6. Firmware device (PCF8574)", ok, f"code={code}")
+            except Exception as exc:
+                record("B6. Firmware device (PCF8574)", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

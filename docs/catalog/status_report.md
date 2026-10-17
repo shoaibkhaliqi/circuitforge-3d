@@ -10,16 +10,16 @@ This report is deliberately blunt: it separates *what looks like a part* from
 
 | metric | value |
 |--------|-------|
-| Definitions | 238 |
+| Definitions | 239 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 72 |
+| Simulatable (`full` + `partial`) | 73 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 47 | real but approximate electrical model |
+| `partial` | 48 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
 | `external` | 36 | host/backend behaviour (USB, ADB, firmware) |
 | `planned` | 107 | catalogued and placeable, not simulated yet |
@@ -33,7 +33,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | Sources | 11 |
 | Semiconductor | 22 |
 | Logic | 13 |
-| Analog IC | 12 |
+| Analog IC | 13 |
 | Display | 9 |
 | Sensor | 38 |
 | Communication | 11 |
@@ -74,7 +74,9 @@ sensors (`pir_hcsr501`, `ir_obstacle`, `hall_a3144`, `flame_sensor`,
 `mq135_air`) drive their OUT/DO pin as an ideal logic level set by a `detected`
 stimulus (analog outputs are not modelled). Analog modules: `acs712` (linear
 current sensor, `Vcc/2 + sensitivity·I`), `pressure_transducer_420ma` (4–20 mA
-loop source) and `load_cell_5kg` (four-arm Wheatstone bridge).
+loop source) and `load_cell_5kg` (four-arm Wheatstone bridge). The `pcf8574`
+I2C I/O expander drives P0..P7 as ideal quasi-bidirectional outputs from its
+`state` byte (or from firmware I2C writes via `apply_firmware_device`).
 
 ## Honest caveats
 
@@ -87,12 +89,14 @@ loop source) and `load_cell_5kg` (four-arm Wheatstone bridge).
   ultrasonic, IMU, quadrature encoders) are `visual`/`planned` for now — they need
   a firmware/Stage-B backend to be honest. The `seven_segment` display and the
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
-  levels, so they run without firmware by driving their pins directly.
+  levels, so they run without firmware by driving their pins directly. The
+  `pcf8574` I2C expander is the first *bus* part backed by firmware: it drives its
+  port from the byte the firmware writes (open-loop, no device→firmware feedback).
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional, open-loop firmware backend now
   exists (AVR firmware on the MIT avr8js engine, driving `mcu_pin`s from firmware
-  output and exposing UART/`Serial` plus I2C/SPI bus traces); protocol/digital parts stay `planned`
-  until a firmware-driven part is itself tested and mapped.
+  output and exposing UART/`Serial` plus I2C/SPI bus traces); other protocol/digital
+  parts stay `planned` until a firmware-driven part is itself tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,
   OTG, ADB and UART debug are modelled, and UART debug wiring varies per device.
 - `xnor` is catalogued but not solved; sequential logic (`d_flip_flop`, counters,

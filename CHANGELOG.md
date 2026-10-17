@@ -14,7 +14,7 @@ follow [Semantic Versioning](https://semver.org/).
     `data/components/*.json`, exposes facets and tokenised search with filters
     (category, status, protocol, interface, mounting, arduino-compatible,
     simulatable-only, pagination).
-  - **238 definitions across 16 categories** (`data/components/`), 0 validation
+  - **239 definitions across 16 categories** (`data/components/`), 0 validation
     errors: passives, sources, semiconductors, logic, analog ICs, displays,
     sensors, communication, power, motors, connectors, instruments, development
     boards, Android hardware and mobile devices.
@@ -31,7 +31,7 @@ follow [Semantic Versioning](https://semver.org/).
     (`circuitforge-local-api/1`).
   - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
     `mcp==2.3.0` SDK, speaking MCP over stdio.
-  - 33 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+  - 40 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
     simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
   - Structured error codes, `expected_revision` optimistic locking and
     `operation_id` idempotency; sandboxed persistence and hard limits.
@@ -112,6 +112,14 @@ follow [Semantic Versioning](https://semver.org/).
     `i2c_addresses` and `spi_bytes`. No device is modelled — I2C is ACKed and reads
     return 0xFF (`firmware/sketches/i2c_write` verifier asserts the `0x27` write).
     Suite 632 → **634**.
+  - **First firmware-driven device — PCF8574 I2C I/O expander** (`data/components/analog_ic.json`,
+    `partial`): the netlist maps its `state` byte to eight ideal quasi-bidirectional
+    `gpio` outputs P0..P7 against VSS (default 1 kΩ, approximating the part's weak
+    pull-up). New API/MCP tool `apply_firmware_device` runs firmware, takes the last
+    byte written to the device's I2C address (0x27 default) and sets `state` from it
+    (`FirmwareBackend.last_i2c_write_byte`), optionally re-solving DC. Sketch
+    `firmware/sketches/expander` writes `0x55` → P0..P7 = 1,0,1,0,1,0,1,0. MCP tools
+    39 → **40**; suite 634 → **645**; MCP integration 15 → **16**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

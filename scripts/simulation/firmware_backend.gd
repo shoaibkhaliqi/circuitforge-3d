@@ -165,6 +165,24 @@ static func i2c_addresses(events: Array) -> Array:
 	return out
 
 
+## The last data byte the firmware wrote to `address` (or -1 if none). For a
+## PCF8574-style write this is the final port byte.
+static func last_i2c_write_byte(events: Array, address: int) -> int:
+	var byte := -1
+	for e in events:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		if int(e.get("address", -1)) != address:
+			continue
+		if not bool(e.get("write", false)):
+			continue
+		var bytes: Array = e.get("bytes", [])
+		if bytes.is_empty():
+			continue
+		byte = int(bytes[bytes.size() - 1])
+	return byte
+
+
 static func pins_touched(transitions: Array) -> Array:
 	var seen := {}
 	for tr in transitions:

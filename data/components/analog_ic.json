@@ -214,6 +214,37 @@
       "mounting": "smd",
       "simulation_status": "planned",
       "arduino_compatible": true
+    },
+    {
+      "id": "pcf8574",
+      "name": "PCF8574 I2C I/O Expander",
+      "category": "Analog IC",
+      "subcategory": "Interface",
+      "description": "8-bit I2C I/O expander (DIP-16). Firmware writes a byte to its address and P0..P7 follow.",
+      "keywords": ["i2c", "expander", "pcf8574", "gpio", "io expander", "port"],
+      "part_number": "PCF8574",
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
+        {"name": "P0", "type": "bidirectional"}, {"name": "P1", "type": "bidirectional"},
+        {"name": "P2", "type": "bidirectional"}, {"name": "P3", "type": "bidirectional"},
+        {"name": "VSS", "type": "ground"},
+        {"name": "P4", "type": "bidirectional"}, {"name": "P5", "type": "bidirectional"},
+        {"name": "P6", "type": "bidirectional"}, {"name": "P7", "type": "bidirectional"},
+        {"name": "INT", "type": "output"}, {"name": "SCL", "type": "input"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "VDD", "type": "power"}
+      ],
+      "model": {"shape": "dip16"},
+      "mounting": "tht",
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "params": {
+        "state": {"default": 0, "label": "Port byte", "min": 0, "max": 255},
+        "address": {"default": 39, "label": "I2C address (7-bit)"},
+        "vcc": {"default": 5.0, "unit": "V", "label": "Logic voltage"},
+        "rout": {"default": 1000.0, "unit": "Ohm", "label": "Output resistance"}
+      },
+      "notes": "P0..P7 are ideal quasi-bidirectional outputs (Thevenin level, default 1 kOhm, approximating the part's weak pull-up). Use apply_firmware_pins/apply_firmware_device or set 'state' directly. Pin order follows DIP-16 (pin 1 = A0, pin 8 = VSS, pin 16 = VDD)."
     }
   ]
 }

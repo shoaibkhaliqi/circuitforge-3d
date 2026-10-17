@@ -121,7 +121,7 @@ func get_capabilities() -> Dictionary:
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
 			"get_waveform_data", "get_circuit_text", "get_edit_preview"],
 		"edit_reversible": ["create_project", "add_component", "update_component_parameters",
-			"set_pin_levels", "apply_firmware_pins", "move_component", "connect_terminals", "disconnect_connection"],
+			"set_pin_levels", "apply_firmware_pins", "apply_firmware_device", "move_component", "connect_terminals", "disconnect_connection"],
 		"edit_destructive": ["remove_component", "clear_circuit"],
 		"simulate": ["run_dc_simulation", "run_transient_simulation", "stop_simulation"],
 		"persistence": ["save_project", "load_project", "list_example_projects",
@@ -407,6 +407,49 @@ func apply_firmware_pins(hex_path: String, pin_map: Dictionary, ms: int = 2000, 
 			"Check the pin numbers and that the sketch drives them.")
 	_bump()
 	var out := {"applied": applied, "skipped": skipped, "at_ms": t, "hex": hex_path, "revision": revision}
+	if simulate:
+		out["simulation"] = run_dc_simulation()
+	return _ok(out)
+
+
+func apply_firmware_device(hex_path: String, component_id: String, ms: int = 2000, simulate: bool = false, expected_revision = null) -> Dictionary:
+	var cr := _check_revision(expected_revision)
+	if not cr.success:
+		return cr
+	var c = session.find_component(component_id)
+	if c == null:
+		return _err("UNKNOWN_COMPONENT", "No component '%s'." % component_id,
+			"Use list_components to find the id.")
+	var ctype := String(c.type)
+	if ctype != "pcf8574":
+		return _err("UNSUPPORTED_DEVICE",
+			"Component '%s' is '%s', which has no firmware device model." % [component_id, ctype],
+			"Only 'pcf8574' is supported for now.")
+	var cap := FirmwareBackend.capabilities()
+	if not bool(cap.get("available", false)):
+		return _err("FIRMWARE_UNAVAILABLE",
+			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
+			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
+	var r := FirmwareBackend.run_hex(hex_path, ms)
+	if not bool(r.get("ok", false)):
+		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
+			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
+	var addr := int(c.get("params", {}).get("address", 39)) & 0x7F
+	var byte := FirmwareBackend.last_i2c_write_byte(r.get("i2c", []), addr)
+	if byte < 0:
+		return _err("NO_DEVICE_WRITE",
+			"Firmware did not write to I2C address 0x%02X." % addr,
+			"Check the sketch and the device 'address' parameter.")
+	session.set_params(component_id, {"state": byte})
+	_bump()
+	var levels := []
+	for n in 8:
+		levels.append(1 if ((byte >> n) & 1) == 1 else 0)
+	var out := {
+		"component_id": component_id, "type": ctype,
+		"address": "0x%02X" % addr, "state": byte, "port_levels": levels,
+		"hex": hex_path, "revision": revision,
+	}
 	if simulate:
 		out["simulation"] = run_dc_simulation()
 	return _ok(out)

@@ -27,6 +27,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/serial_hello firmware/sketches/serial_hello
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/i2c_write firmware/sketches/i2c_write
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/expander firmware/sketches/expander
 
 # 2. execute + inspect
 cd firmware/harness
@@ -45,7 +47,9 @@ node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
 500.009/500.008/500.012/500.011 ms). `verify_serial.mjs` asserts the sketch's
 `Serial.print` output is captured (`CircuitForge tick 0…4`, 105 bytes).
 `verify_i2c.mjs` asserts a Wire write to `0x27` with bytes `0x00,0x41` is recorded
-as an I2C bus trace.
+as an I2C bus trace. `sketches/expander` writes the port byte `0x55` to a PCF8574
+at `0x27`; the app's `apply_firmware_device` tool consumes that byte to set the
+device's `state` (P0..P7 = 1,0,1,0,1,0,1,0).
 
 These steps are **not** part of `tests/run_tests.gd`: the Godot suite must stay
 runnable with only Godot installed. They are run manually / in a separate job.

@@ -446,6 +446,33 @@ def apply_firmware_pins(
 
 
 @mcp.tool(annotations=_edit(), structured_output=True)
+def apply_firmware_device(
+    hex_path: str,
+    component_id: str,
+    ms: int = 2000,
+    simulate: bool = False,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    """Feed firmware I2C traffic into a peripheral device model.
+
+    Runs the firmware, takes the last byte it wrote to the device's I2C address and
+    sets the device `state` from it (for a PCF8574: P0..P7 follow the byte's bits),
+    optionally re-solving DC. This is open-loop (no device feedback into firmware).
+
+    Args:
+        hex_path: Path to a compiled Arduino Intel-HEX.
+        component_id: Target device component id (currently a `pcf8574`).
+        ms: Emulated run length in milliseconds (1..10000).
+        simulate: Run a DC simulation after applying the device state.
+        expected_revision: Optional optimistic-concurrency guard.
+    """
+    return _wrap(call_engine("apply_firmware_device", {
+        "hex_path": hex_path, "component_id": component_id, "ms": ms,
+        "simulate": simulate, "expected_revision": expected_revision,
+    }))
+
+
+@mcp.tool(annotations=_edit(), structured_output=True)
 def move_component(
     component_id: str,
     holes: list[str] | None = None,
