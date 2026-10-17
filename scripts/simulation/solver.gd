@@ -325,6 +325,14 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 			var gg: float = 1.0 / r
 			mna.add_g(p, n, gg)
 			mna.add_i(p, n, gg * vdrv)
+		"vout":
+			# Analog output (e.g. a PWM pin's average): a linear Thevenin source
+			# `voltage` in series with `rout`, stamped as its Norton equivalent.
+			var vset: float = float(el.params.get("voltage", 0.0))
+			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))
+			var gp: float = 1.0 / rp
+			mna.add_g(p, n, gp)
+			mna.add_i(p, n, gp * vset)
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -489,6 +497,10 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			elif level <= -0.5:
 				r = 1e8
 			return (v - vdrv) / r
+		"vout":
+			var vset: float = float(el.params.get("voltage", 0.0))
+			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))
+			return (v - vset) / rp
 		_:
 			return 0.0
 

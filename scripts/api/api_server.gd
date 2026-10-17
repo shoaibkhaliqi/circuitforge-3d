@@ -195,6 +195,11 @@ func _dispatch(method: String, p: Dictionary) -> Dictionary:
 				String(p.get("hex_path", "")), String(p.get("component_id", "")),
 				int(p.get("ms", 2000)), bool(p.get("simulate", false)),
 				p.get("expected_revision", null))
+		"apply_firmware_pwm":
+			return _service.apply_firmware_pwm(
+				String(p.get("hex_path", "")), p.get("pin_map", {}),
+				int(p.get("ms", 2000)), float(p.get("vlogic", 5.0)),
+				bool(p.get("simulate", false)), p.get("expected_revision", null))
 		"get_project_summary":
 			return _service.get_project_summary()
 		"list_components":

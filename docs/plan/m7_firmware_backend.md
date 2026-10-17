@@ -64,9 +64,11 @@ project's offline, no-secret, local-only design.
    level) to the app, which stamps them into the MNA solver as time-varying
    `gpio`/`vsource` sources. This reuses the existing Stage-A `gpio` element and
    the line-JSON local API (`scripts/api/`).
-4. **Stage B** is open-loop (firmware drives the circuit; analog does not drive
-   the firmware yet). **Stage C** feeds analog values back into the MCU's ADC to
-   close the loop.
+4. **Stage B** was originally open-loop (firmware drives the circuit; analog does
+   not drive the firmware yet), and **Stage C** feeds analog values back into the
+   MCU's ADC to close the loop. Executed in practice: the analog *input* loop
+   (§10) and the analog *output* loop (§11) are both closed, so the implemented
+   Stage B already reads the circuit back into the firmware.
 
 ### Proposed API additions (not implemented)
 
@@ -207,7 +209,26 @@ voltage.
   2.0 V and `analogRead(A0)` returns 409. Node-free probe mapping is covered by
   `tests/unit/test_netlist.gd`; the tool surface by MCP Test B7.
 
-## 11. Recommendation
+## 11. Output loop: `analogWrite()` → `mcu_pwm_out` (executed)
+
+The last direction — firmware → circuit, analog — is now closed. New virtual part
+**`mcu_pwm_out`** (`data/components/virtual.json`, `partial`) models a PWM pin as
+its DC **average**: an ideal Thevenin source `vout` at `duty · vlogic` in series
+with `rout` (default 25 Ω). No ripple, frequency response or dead-time is modelled,
+so it is only correct *on average* (a switch-mode load is idealised).
+
+- **Harness**: from the recorded pin transitions it computes each pin's duty cycle
+  (`pwm` summary: `duty`, `freq_hz`, `ms_high`, `edges`; pins with <4 edges are not
+  PWM). `AVRADC` is unaffected.
+- **App**: `apply_firmware_pwm(hex_path, pin_map={"9": "PWM1"})` measures the duty on
+  the mapped pins and sets the target's `voltage` to `duty · vlogic`, optionally
+  re-solving DC. The matching engine method is `FirmwareBackend.pwm_duty()`.
+- **Verified**: `firmware/sketches/pwm_out` (`analogWrite(9,128)`) +
+  `verify_pwm.mjs` measure ~50.2% duty at ~490 Hz; end-to-end that drives a
+  `mcu_pwm_out` to 2.509 V, which with a 1 kΩ load sags to 2.448 V. Mapping is
+  covered by `tests/unit/test_netlist.gd`; the tool surface by MCP Test B8.
+
+## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
 **avr8js (MIT)** result above for the same reason §4 prefers it: no GPL is
@@ -216,10 +237,11 @@ vendored into the MIT binary. The sidecar `get_firmware_capabilities` /
 now built on top of `firmware/harness/run.mjs`, and the PCF8574 (§9) is the first
 catalog status change backed by a real firmware-driven test. The bus loop is closed
 for the PCF8574 (§9): firmware reads device state and writes it back. The analog
-loop is also closed (§10): `mcu_analog_in` feeds the AVR `analogRead()` from the
-solved circuit. Remaining work: link the analog source to specific *devices* (e.g.
-an I²C ADC's channels from solved nodes), more device models (LCD/OLED, EEPROM
-through the app, DHT, ultrasonic), and a streaming/interactive mode if a blocking
-run proves too coarse. If the app-side integration ever cannot meet the gate (e.g.
-timing or packaging), fall back to a separately-installed `simavr` and keep the
-feature capability-flagged.
+input loop is also closed (§10): `mcu_analog_in` feeds the AVR `analogRead()` from
+the solved circuit, and the analog output loop (§11) drives the circuit from
+`analogWrite()` via `mcu_pwm_out`. Remaining work: link the analog surface to
+specific *devices* (e.g. an I²C ADC's channels from solved nodes), more device
+models (LCD/OLED, EEPROM through the app, DHT, ultrasonic), and a
+streaming/interactive mode if a blocking run proves too coarse. If the app-side
+integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
+separately-installed `simavr` and keep the feature capability-flagged.

@@ -14,7 +14,7 @@ follow [Semantic Versioning](https://semver.org/).
     `data/components/*.json`, exposes facets and tokenised search with filters
     (category, status, protocol, interface, mounting, arduino-compatible,
     simulatable-only, pagination).
-  - **240 definitions across 16 categories** (`data/components/`), 0 validation
+  - **241 definitions across 16 categories** (`data/components/`), 0 validation
     errors: passives, sources, semiconductors, logic, analog ICs, displays,
     sensors, communication, power, motors, connectors, instruments, development
     boards, Android hardware and mobile devices.
@@ -31,7 +31,7 @@ follow [Semantic Versioning](https://semver.org/).
     (`circuitforge-local-api/1`).
   - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
     `mcp==2.3.0` SDK, speaking MCP over stdio.
-  - 40 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+  - 41 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
     simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
   - Structured error codes, `expected_revision` optimistic locking and
     `operation_id` idempotency; sandboxed persistence and hard limits.
@@ -137,6 +137,15 @@ follow [Semantic Versioning](https://semver.org/).
     2.0 V → code 409. MCP tools unchanged (40); MCP integration 16 → **17** (Test
     B7); suite 648 → **653**; catalog 239 → **240** defs (Virtual 1 → 2), simulatable
     73 → **74**.
+  - **Closed output loop (firmware → circuit)**: new virtual part **`mcu_pwm_out`**
+    (the average-voltage model of a PWM pin, `duty · vlogic`, an ideal Thevenin
+    `vout` source). The harness measures each pin's PWM duty from its transitions
+    (`pwm` summary), and `apply_firmware_pwm(hex_path, pin_map={"9":"PWM1"})` sets the
+    target's `voltage` to `duty·vlogic`, optionally re-solving DC. Sketch
+    `firmware/sketches/pwm_out` (`analogWrite(9,128)`) + `verify_pwm.mjs` measure
+    ~50.2% duty at ~490 Hz (2.51 V), and a 1 kΩ load sags to 2.448 V. MCP tools
+    40 → **41**; MCP integration 17 → **18** (Test B8); suite 653 → **663**; catalog
+    240 → **241** defs (Virtual 2 → 3), simulatable 74 → **75**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

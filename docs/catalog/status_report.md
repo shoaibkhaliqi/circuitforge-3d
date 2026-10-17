@@ -10,16 +10,16 @@ This report is deliberately blunt: it separates *what looks like a part* from
 
 | metric | value |
 |--------|-------|
-| Definitions | 240 |
+| Definitions | 241 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 74 |
+| Simulatable (`full` + `partial`) | 75 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 49 | real but approximate electrical model |
+| `partial` | 50 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
 | `external` | 36 | host/backend behaviour (USB, ADB, firmware) |
 | `planned` | 107 | catalogued and placeable, not simulated yet |
@@ -44,7 +44,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | Board | 20 |
 | Android Hardware | 12 |
 | Mobile Device | 15 |
-| Virtual | 2 |
+| Virtual | 3 |
 
 ## Fully simulated core (`full`)
 
@@ -69,7 +69,9 @@ parameter; and brushed motors (`dc_motor`, `dc_gearmotor_tt`, `fan_5v`,
 `vibration_motor`) modelled as winding resistance plus an assumed back-EMF,
 with `solenoid_12v` as a coil. Also `seven_segment` (8 LEDs to the common pin),
 `limit_switch` (SPDT COM-NO/COM-NC), the analog-output `lm35`/`tmp36`
-temperature sensors and the `voltage_sensor_module` divider. Digital-output
+temperature sensors and the `voltage_sensor_module` divider. The virtual
+`mcu_pwm_out` is the average-voltage (`duty · vlogic`) analog output of a PWM
+pin, driven by firmware `analogWrite()` via `apply_firmware_pwm`. Digital-output
 sensors (`pir_hcsr501`, `ir_obstacle`, `hall_a3144`, `flame_sensor`,
 `sound_sensor`, `ldr_module`, `soil_moisture`, `rain_sensor`, `mq2_gas`,
 `mq135_air`) drive their OUT/DO pin as an ideal logic level set by a `detected`
@@ -93,13 +95,14 @@ marks bits externally held low.
   a firmware/Stage-B backend to be honest. The `seven_segment` display and the
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly. The
-  `pcf8574` I2C expander is the first *bus* part backed by firmware: it drives its
-  port from the byte the firmware writes (open-loop, no device→firmware feedback).
+  `pcf8574` I2C expander is the first *bus* part backed by firmware: firmware drives
+  its port (last I2C write byte) and can read it back (device → firmware).
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
-  A board's 3D model is **not** a CPU. An optional, open-loop firmware backend now
-  exists (AVR firmware on the MIT avr8js engine, driving `mcu_pin`s from firmware
-  output and exposing UART/`Serial` plus I2C/SPI bus traces; `pcf8574` devices can
-  be read/written; and `mcu_analog_in` nodes feed firmware `analogRead()`); other
+  A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
+  firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`
+  (`analogWrite()` duty) from firmware output, and reads the circuit back into the
+  firmware through `mcu_analog_in` (`analogRead()`) and served I2C devices
+  (`pcf8574`); it also exposes UART/`Serial` plus I2C/SPI bus traces. Other
   protocol/digital parts stay `planned` until a firmware-driven part is itself
   tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,

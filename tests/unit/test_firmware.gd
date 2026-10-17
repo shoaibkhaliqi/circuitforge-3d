@@ -85,6 +85,14 @@ func run(t) -> void:
 	t.check(FirmwareBackend.last_i2c_read_byte(ev3, 0x20) == -1, "no read at that address -> -1")
 	t.check(FirmwareBackend.last_i2c_read_byte([], 0x27) == -1, "no events -> no read byte")
 
+	t.section("Firmware - PWM duty summary parsing")
+	var pwm := {"9": {"duty": 0.50176, "freq_hz": 490}, "10": {"duty": 1.0}}
+	t.near(FirmwareBackend.pwm_duty(pwm, 9), 0.50176, "duty from the summary", 1e-6)
+	t.near(FirmwareBackend.pwm_duty(pwm, 10), 1.0, "full duty reads 1.0", 1e-6)
+	t.check(FirmwareBackend.pwm_duty(pwm, 11) < 0.0, "a pin with no PWM -> -1")
+	t.check(FirmwareBackend.pwm_duty({}, 9) < 0.0, "empty summary -> -1")
+	t.near(FirmwareBackend.pwm_duty({"9": {"duty": 2.5}}, 9), 1.0, "duty is clamped to 1", 1e-6)
+
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()
 	t.check(cap.get("engine") == "avr8js", "engine is avr8js")

@@ -494,6 +494,35 @@ def apply_firmware_device(
 
 
 @mcp.tool(annotations=_edit(), structured_output=True)
+def apply_firmware_pwm(
+    hex_path: str,
+    pin_map: dict[str, str],
+    ms: int = 2000,
+    vlogic: float = 5.0,
+    simulate: bool = False,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    """Feed a firmware analogWrite() (PWM) level into an analog output part.
+
+    Runs the firmware, measures each mapped pin's PWM duty cycle and sets the
+    matching `mcu_pwm_out` `voltage` to `duty * vlogic` (the DC average), optionally
+    re-solving. This closes the last direction of the M7 loop: firmware -> circuit.
+
+    Args:
+        hex_path: Path to a compiled Arduino Intel-HEX.
+        pin_map: Firmware pin/digital-pin -> `mcu_pwm_out` id, e.g. {"9": "PWM1"}.
+        ms: Emulated run length in milliseconds (1..10000).
+        vlogic: Full-scale (100% duty) voltage of the pin, in volts (default 5).
+        simulate: Run a DC simulation after applying the average voltages.
+        expected_revision: Optional optimistic-concurrency guard.
+    """
+    return _wrap(call_engine("apply_firmware_pwm", {
+        "hex_path": hex_path, "pin_map": pin_map, "ms": ms, "vlogic": vlogic,
+        "simulate": simulate, "expected_revision": expected_revision,
+    }))
+
+
+@mcp.tool(annotations=_edit(), structured_output=True)
 def move_component(
     component_id: str,
     holes: list[str] | None = None,

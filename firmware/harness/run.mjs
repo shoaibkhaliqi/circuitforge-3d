@@ -261,6 +261,43 @@ while (cpu.cycles < maxCycles) {
 }
 twiTracer.flush();
 
+// PWM summary: for digital pins that toggle rapidly (analogWrite), report the
+// average duty cycle so the app can model the pin as an average analog voltage.
+function computePwm(edges, totalMs) {
+  const byPin = new Map();
+  for (const tr of edges) {
+    if (tr.digital_pin == null) continue;
+    if (!byPin.has(tr.digital_pin)) byPin.set(tr.digital_pin, []);
+    byPin.get(tr.digital_pin).push(tr);
+  }
+  const out = {};
+  for (const [pin, list] of byPin) {
+    if (list.length < 4) continue; // too few edges to be PWM
+    list.sort((a, b) => a.t_ms - b.t_ms);
+    let level = 0; // AVR pins start low before the first change
+    let last = 0;
+    let high = 0;
+    let rising = 0;
+    for (const e of list) {
+      if (level === 1) high += e.t_ms - last;
+      if (e.level === 1) rising++;
+      level = e.level;
+      last = e.t_ms;
+    }
+    if (level === 1) high += totalMs - last;
+    const total = Math.max(1, totalMs);
+    out[pin] = {
+      duty: Math.round((high / total) * 1e6) / 1e6,
+      ms_high: Math.round(high * 1000) / 1000,
+      ms_total: totalMs,
+      edges: list.length,
+      freq_hz: rising > 0 ? Math.round(rising / (totalMs / 1000)) : null,
+    };
+  }
+  return out;
+}
+const pwm = computePwm(transitions, msLimit);
+
 process.stdout.write(
   JSON.stringify(
     {
@@ -276,6 +313,7 @@ process.stdout.write(
       devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
       adc: adcChannels,
       spi_bytes: spi,
+      pwm,
       transitions,
     },
     null,

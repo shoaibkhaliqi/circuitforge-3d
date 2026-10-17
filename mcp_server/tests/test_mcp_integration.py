@@ -100,7 +100,7 @@ async def main() -> int:
                             "get_catalog_facets", "get_board_pinout",
                             "get_pin_states", "set_pin_levels",
                             "get_firmware_capabilities", "run_firmware", "apply_firmware_pins",
-                            "apply_firmware_device"}
+                            "apply_firmware_device", "apply_firmware_pwm"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -230,6 +230,21 @@ async def main() -> int:
                 record("B7. Firmware analog inputs", ok, f"code={code}")
             except Exception as exc:
                 record("B7. Firmware analog inputs", False, repr(exc))
+
+            # ---------------------------------------------------- Test B8
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-PWM"})
+                pwm = (await call_ok(s, "add_component",
+                                     {"component_type": "mcu_pwm_out",
+                                      "holes": ["a1"]}))["component_id"]
+                err = await call_err(s, "apply_firmware_pwm",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "pin_map": {"9": pwm}})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B8. Firmware PWM output", ok, f"code={code}")
+            except Exception as exc:
+                record("B8. Firmware PWM output", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

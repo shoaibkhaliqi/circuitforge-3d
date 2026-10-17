@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()` |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -271,6 +271,13 @@ catalog that replaces the hardcoded definition list.
   mapped node's voltage to `analogRead()`. Verified: 2.5 V → code 512
   (`verify_analog.mjs`); a 4 V/1k+1k divider midpoint (2.0 V) → code 409. Suite
   **653/653**; MCP **17/17** (new Test B7); catalog **240** defs, simulatable **74**.
+- **Closed output loop (firmware → circuit)**: new virtual part **`mcu_pwm_out`**
+  (average-voltage `vout`: `duty · vlogic` in series with `rout`; `partial`,
+  `Virtual` 2 → 3). The harness reports each pin's PWM `duty`/`freq_hz`, and
+  `apply_firmware_pwm(hex_path, pin_map={"9": "PWM1"})` sets the target's `voltage`
+  to `duty·vlogic`, optionally re-solving. Verified: `analogWrite(9,128)` measures
+  ~50.2% duty at ~490 Hz → 2.509 V, sagging to 2.448 V across 1 kΩ (`verify_pwm.mjs`).
+  Suite **663/663**; MCP **18/18** (new Test B8); catalog **241** defs, simulatable **75**.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

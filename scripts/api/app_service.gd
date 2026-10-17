@@ -121,7 +121,7 @@ func get_capabilities() -> Dictionary:
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
 			"get_waveform_data", "get_circuit_text", "get_edit_preview"],
 		"edit_reversible": ["create_project", "add_component", "update_component_parameters",
-			"set_pin_levels", "apply_firmware_pins", "apply_firmware_device", "move_component", "connect_terminals", "disconnect_connection"],
+			"set_pin_levels", "apply_firmware_pins", "apply_firmware_device", "apply_firmware_pwm", "move_component", "connect_terminals", "disconnect_connection"],
 		"edit_destructive": ["remove_component", "clear_circuit"],
 		"simulate": ["run_dc_simulation", "run_transient_simulation", "stop_simulation"],
 		"persistence": ["save_project", "load_project", "list_example_projects",
@@ -517,6 +517,52 @@ func apply_firmware_device(hex_path: String, component_id: String, ms: int = 200
 		"address": "0x%02X" % addr, "state": byte, "port_levels": levels,
 		"hex": hex_path, "revision": revision,
 	}
+	if simulate:
+		out["simulation"] = run_dc_simulation()
+	return _ok(out)
+
+
+func apply_firmware_pwm(hex_path: String, pin_map: Dictionary, ms: int = 2000, vlogic: float = 5.0, simulate: bool = false, expected_revision = null) -> Dictionary:
+	var cr := _check_revision(expected_revision)
+	if not cr.success:
+		return cr
+	if pin_map.is_empty():
+		return _err("INVALID_PARAMETER", "No pin_map was provided.",
+			"Map firmware pins to mcu_pwm_out ids, e.g. {\"9\": \"PWM1\"}.")
+	var cap := FirmwareBackend.capabilities()
+	if not bool(cap.get("available", false)):
+		return _err("FIRMWARE_UNAVAILABLE",
+			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
+			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
+	var r := FirmwareBackend.run_hex(hex_path, ms)
+	if not bool(r.get("ok", false)):
+		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
+			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
+	var pwm: Dictionary = r.get("pwm", {})
+	var applied := []
+	var skipped := []
+	for key in pin_map.keys():
+		var pin := FirmwareBackend.pin_number(key)
+		var cid := String(pin_map[key])
+		var c = session.find_component(cid)
+		if c == null:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "unknown component"})
+			continue
+		if String(c.type) != "mcu_pwm_out":
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "not an mcu_pwm_out"})
+			continue
+		var duty := FirmwareBackend.pwm_duty(pwm, pin)
+		if duty < 0.0:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "pin is not PWM-driving"})
+			continue
+		var volts := duty * vlogic
+		session.set_params(cid, {"voltage": volts})
+		applied.append({"pin": String(key), "component_id": cid, "duty": duty, "voltage": volts})
+	if applied.is_empty():
+		return _err("NO_PWM_APPLIED", "Firmware ran but no mapped pin was PWM-driving.",
+			"Use analogWrite() on the mapped pins (PWM-capable pins 3,5,6,9,10,11 on an Uno).")
+	_bump()
+	var out := {"applied": applied, "skipped": skipped, "vlogic": vlogic, "hex": hex_path, "revision": revision}
 	if simulate:
 		out["simulation"] = run_dc_simulation()
 	return _ok(out)

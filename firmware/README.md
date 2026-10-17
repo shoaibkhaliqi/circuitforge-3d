@@ -1,17 +1,20 @@
 # Firmware harness (M7 spike)
 
-This is the **open-loop (Stage B) proof** that CircuitForge 3D can execute real
-Arduino firmware without vendoring a GPL engine. It is a **spike**, not the
-product: nothing in the app calls it yet, and it does not touch the solver.
+This is the **Stage B proof** that CircuitForge 3D can execute real Arduino
+firmware without vendoring a GPL engine. It is a **spike**, not the product: the
+Godot test suite never requires it, and only the app's capability-flagged tools
+call it. It closes the loop in both directions — firmware reads the solved circuit
+(ADC inputs, I2C devices) and drives it back (`mcu_pin`s, PWM outputs, device state).
 
 ## What it does
 
 1. `arduino-cli` (external tool) compiles a sketch for `arduino:avr:uno` to Intel HEX.
 2. `harness/run.mjs` loads that HEX into **avr8js** (MIT) — a pure-JS ATmega328P —
-   wires up timer0/1/2, ports B/C/D, USART0, TWI and SPI, runs one instruction at a
-   time and prints digital pin transitions, captured `Serial` output and I2C/SPI
-   bus traces as JSON with emulated timestamps. The buses have **no device**: I2C
-   transactions are ACKed and recorded, SPI MISO returns 0x00.
+   wires up timer0/1/2, ports B/C/D, USART0, TWI, SPI and ADC, runs one instruction
+   at a time and prints digital pin transitions (with a per-pin PWM duty summary),
+   captured `Serial` output and I2C/SPI bus traces as JSON with emulated timestamps.
+   By default the buses have **no device** (I2C is ACKed and recorded, SPI MISO
+   returns 0x00); with `CF_DEVICES` a PCF8574/EEPROM is served on the bus.
 
 avr8js is **MIT**, so it can be shipped alongside the MIT app; `arduino-cli` and
 Node are treated as optional external tools, never bundled. See
@@ -33,6 +36,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/expander_read firmware/sketches/expander_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/analog_read firmware/sketches/analog_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/pwm_out firmware/sketches/pwm_out
 
 # 2. execute + inspect
 cd firmware/harness
@@ -47,6 +52,7 @@ node verify_serial.mjs ../build/serial_hello/serial_hello.ino.hex
 node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
 node verify_expander_read.mjs ../build/expander_read/expander_read.ino.hex
 node verify_analog.mjs ../build/analog_read/analog_read.ino.hex
+node verify_pwm.mjs ../build/pwm_out/pwm_out.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -85,6 +91,22 @@ CF_ADC='{"0":2.5}' node run.mjs ../build/analog_read/analog_read.ino.hex 1600
 
 The app does this automatically: `run_firmware(..., analog_map={"A0": "AIN1"})`
 solves the circuit and feeds each `mcu_analog_in` node's voltage to the channel.
+
+## Analog outputs (firmware → circuit)
+
+The run output also carries a `pwm` summary: for every digital pin that toggled
+rapidly enough (≥ 4 edges) it reports the average `duty` cycle, approximate
+`freq_hz` and the edge count.
+
+```sh
+# analogWrite(9,128) -> ~50.2% duty at ~490 Hz
+node run.mjs ../build/pwm_out/pwm_out.ino.hex 2000
+```
+
+The app consumes it: `apply_firmware_pwm(hex_path, pin_map={"9": "PWM1"})` sets the
+matching `mcu_pwm_out` component's `voltage` to `duty * vlogic` (the DC average), so
+firmware's `analogWrite()` drives the circuit. `verify_pwm.mjs` asserts the duty for
+`analogWrite(9,128)`.
 
 These steps are **not** part of `tests/run_tests.gd`: the Godot suite must stay
 runnable with only Godot installed. They are run manually / in a separate job.

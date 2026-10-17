@@ -105,6 +105,8 @@ static func run_hex(hex_path: String, ms: int = 2000, devices: Array = [], adc: 
 			"reasons": cap["unavailable_reasons"]}
 	if not FileAccess.file_exists(hex_path):
 		return {"ok": false, "error": "firmware file not found: " + hex_path}
+	if hex_path.begins_with("res://") or hex_path.begins_with("user://"):
+		hex_path = ProjectSettings.globalize_path(hex_path)
 	var dur := clampi(ms, MIN_MS, MAX_MS)
 	var env_dev := _with_env("CF_DEVICES", JSON.stringify(devices) if not devices.is_empty() else "")
 	var env_adc := _with_env("CF_ADC", JSON.stringify(adc) if not adc.is_empty() else "")
@@ -194,6 +196,19 @@ static func i2c_addresses(events: Array) -> Array:
 		out.append("0x%02X" % int(a))
 	out.sort()
 	return out
+
+
+## Duty cycle (0..1) the firmware drove on digital `pin`, or -1 if that pin was not
+## toggling fast enough to be PWM. `pwm` is the harness `pwm` summary.
+static func pwm_duty(pwm: Dictionary, pin: int) -> float:
+	if typeof(pwm) != TYPE_DICTIONARY:
+		return -1.0
+	var e = pwm.get(str(pin), pwm.get(pin, null))
+	if typeof(e) != TYPE_DICTIONARY:
+		return -1.0
+	if not e.has("duty"):
+		return -1.0
+	return clampf(float(e.get("duty", 0.0)), 0.0, 1.0)
 
 
 ## The first byte firmware read from `address` (or -1 if none). For a device that

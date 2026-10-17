@@ -88,6 +88,23 @@ func run(t) -> void:
 	if ar.ok:
 		t.near(ar.node_voltages["a1"], 2.0, "probe reads the divider midpoint", 1e-2)
 
+	# ---- mcu_pwm_out -> average Thevenin source --------------------------
+	t.section("Netlist - virtual analog output is an average source")
+	var pcirc = builder.build(bb, [
+		_place("PWM1", "mcu_pwm_out", ["a1"], {"voltage": 2.0, "rout": 25.0}),
+		_place("RL", "resistor", ["a1", "TM1"], {"r": 1000.0}),
+		_place("GND", "ground", ["TM1"]),
+	], [])
+	var pwe = _by_id(pcirc, "PWM1")
+	t.check(pwe != null and pwe.type == "vout", "mcu_pwm_out becomes a vout source")
+	if pwe != null:
+		t.near(float(pwe.params["voltage"]), 2.0, "output voltage is carried through")
+		t.check(String(pwe.nets[1]) == "0", "output references ground")
+	var pwr = CircuitSolver.new().solve_dc(pcirc.circuit)
+	t.check(pwr.ok, "PWM output with a load solves", pwr.get("error", ""))
+	if pwr.ok:
+		t.near(pwr.node_voltages["a1"], 2.0 * 1000.0 / 1025.0, "output sags to 2*1k/(1k+25)", 1e-3)
+
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")
 	var gc = t.make_circuit([

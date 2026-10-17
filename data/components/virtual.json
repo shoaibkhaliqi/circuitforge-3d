@@ -51,6 +51,33 @@
       "arduino_compatible": true,
       "notes": "Ideal high-impedance input, modelled as a 1 GOhm probe to ground (draws ~nA), so it never loads the circuit meaningfully and needs a ground reference elsewhere. Read it with run_firmware(analog_map) so firmware analogRead(ch) returns the solved node voltage. No input capacitance, leakage, sample-and-hold droop or conversion error is modelled.",
       "references": ["ATmega328P ADC input - ideal high-impedance model (see docs/plan/m7_firmware_backend.md)"]
+    },
+    {
+      "id": "mcu_pwm_out",
+      "name": "Virtual MCU Analog Output (PWM)",
+      "category": "Virtual",
+      "subcategory": "Analog Output",
+      "manufacturer": "",
+      "part_number": "",
+      "description": "One microcontroller output pin driven as an average analog voltage: an ideal Thevenin source. Set 'voltage' by hand, or from firmware analogWrite() via apply_firmware_pwm.",
+      "keywords": ["mcu", "pwm", "dac", "analog", "output", "virtual", "analogwrite"],
+      "pins": [
+        {"name": "SIG", "type": "analog"}
+      ],
+      "params": {
+        "voltage": {"default": 0.0, "unit": "V", "label": "Output voltage", "min": 0.0},
+        "vlogic": {"default": 5.0, "unit": "V", "label": "Full-scale voltage", "min": 0.0},
+        "rout": {"default": 25.0, "unit": "Ohm", "label": "Output resistance", "min": 0.1}
+      },
+      "protocols": ["PWM", "ADC"],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "partial",
+      "simulation_models": ["thevenin-average"],
+      "simulation_backend": "mna+firmware",
+      "arduino_compatible": true,
+      "notes": "The DC-solve model is the *average* of the PWM waveform (duty * vlogic), as an ideal Thevenin source in series with rout. No ripple, ramp, frequency response or dead-time is modelled; a switch-mode load (motor, LED) is only correct on average. apply_firmware_pwm measures the firmware's PWM duty on the mapped pin and sets 'voltage'.",
+      "references": ["ATmega328P Timer PWM - average-voltage (DC) idealisation (see docs/plan/m7_firmware_backend.md)"]
     }
   ]
 }
