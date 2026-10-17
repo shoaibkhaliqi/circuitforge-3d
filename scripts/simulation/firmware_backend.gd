@@ -61,7 +61,7 @@ static func capabilities() -> Dictionary:
 		"node": node,
 		"harness": harness,
 		"boards": BOARDS,
-		"stage": "open-loop (B): firmware drives digital pins; no analog/ADC feedback",
+		"stage": "open-loop (B): firmware drives digital pins and can read/write bus devices; no analog/ADC feedback",
 		"max_ms": MAX_MS,
 		"unavailable_reasons": reasons,
 	}
@@ -90,7 +90,10 @@ static func label(pin: int) -> String:
 
 ## Run a compiled HEX for `ms` of emulated time. Returns the harness JSON:
 ## { ok, mcu, f_cpu, ms, cycles, transitions: [{t_ms, port, bit, digital_pin, level}] }.
-static func run_hex(hex_path: String, ms: int = 2000) -> Dictionary:
+## `devices` is an optional list of bus devices the firmware can talk to, e.g.
+## [{"kind": "pcf8574", "address": 39, "state": 0, "inputs": 15}], passed to the
+## harness so the firmware can *read* them (device -> firmware feedback).
+static func run_hex(hex_path: String, ms: int = 2000, devices: Array = []) -> Dictionary:
 	var cap := capabilities()
 	if not bool(cap["available"]):
 		return {"ok": false, "error": "firmware backend unavailable",
@@ -98,8 +101,21 @@ static func run_hex(hex_path: String, ms: int = 2000) -> Dictionary:
 	if not FileAccess.file_exists(hex_path):
 		return {"ok": false, "error": "firmware file not found: " + hex_path}
 	var dur := clampi(ms, MIN_MS, MAX_MS)
+	var had := OS.has_environment("CF_DEVICES")
+	var prev := OS.get_environment("CF_DEVICES") if had else ""
+	if not devices.is_empty():
+		OS.set_environment("CF_DEVICES", JSON.stringify(devices))
+	elif had:
+		OS.unset_environment("CF_DEVICES")
 	var out := []
 	var code := OS.execute(String(cap["node"]), [String(cap["harness"]), hex_path, str(dur)], out, false)
+	if not devices.is_empty():
+		if had:
+			OS.set_environment("CF_DEVICES", prev)
+		else:
+			OS.unset_environment("CF_DEVICES")
+	elif had:
+		OS.set_environment("CF_DEVICES", prev)
 	if code != 0:
 		return {"ok": false, "error": "firmware harness exited with code %d" % code}
 	var text := "" if out.is_empty() else String(out[0])
@@ -163,6 +179,25 @@ static func i2c_addresses(events: Array) -> Array:
 		out.append("0x%02X" % int(a))
 	out.sort()
 	return out
+
+
+## The first byte firmware read from `address` (or -1 if none). For a device that
+## serves data on read (e.g. a PCF8574 whose port bits are externally held low),
+## this is what the firmware saw.
+static func last_i2c_read_byte(events: Array, address: int) -> int:
+	var byte := -1
+	for e in events:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		if int(e.get("address", -1)) != address:
+			continue
+		if bool(e.get("write", false)):
+			continue
+		var bytes: Array = e.get("bytes", [])
+		if bytes.is_empty():
+			continue
+		byte = int(bytes[0])
+	return byte
 
 
 ## The last data byte the firmware wrote to `address` (or -1 if none). For a

@@ -255,7 +255,7 @@ def get_firmware_capabilities() -> dict[str, Any]:
 
 
 @mcp.tool(annotations=_ro(), structured_output=True)
-def run_firmware(hex_path: str, ms: int = 2000) -> dict[str, Any]:
+def run_firmware(hex_path: str, ms: int = 2000, attach_devices: bool = False) -> dict[str, Any]:
     """Run a compiled Arduino HEX and return its digital pin activity and UART output.
 
     This is the open-loop (Stage B) workflow: no analog feedback yet. Compile a
@@ -264,14 +264,22 @@ def run_firmware(hex_path: str, ms: int = 2000) -> dict[str, Any]:
     pin transitions (time in ms, level 0/1), the pins the firmware touched, any
     bytes the sketch printed to Serial (USART0) as `serial` / `serial_lines`, and
     I2C/SPI bus traces (`i2c` transactions with address/data, `i2c_addresses`,
-    `spi_bytes`). The buses have no device modelled: the harness ACKs I2C so
-    transactions complete and reads return 0xFF/0x00.
+    `spi_bytes`).
+
+    With `attach_devices=True` the circuit's device components (currently the
+    `pcf8574`, using its `state`/`inputs`/`address` parameters) are attached to the
+    emulated bus, so firmware can *read* them (device -> firmware feedback, e.g.
+    `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With
+    no devices the harness only ACKs I2C and reads return 0xFF.
 
     Args:
         hex_path: Path to an Intel-HEX produced for an AVR board.
         ms: Emulated run length in milliseconds (1..10000).
+        attach_devices: Attach the circuit's bus devices so firmware can read them.
     """
-    return _wrap(call_engine("run_firmware", {"hex_path": hex_path, "ms": ms}))
+    return _wrap(call_engine("run_firmware", {
+        "hex_path": hex_path, "ms": ms, "attach_devices": attach_devices,
+    }))
 
 
 # ---------------------------------------------------------------------------

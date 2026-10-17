@@ -29,6 +29,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/i2c_write firmware/sketches/i2c_write
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/expander firmware/sketches/expander
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/expander_read firmware/sketches/expander_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -41,6 +43,7 @@ node run.mjs ../build/i2c_write/i2c_write.ino.hex 2200 > i2c.json
 node verify.mjs ../build/blink/blink.ino.hex
 node verify_serial.mjs ../build/serial_hello/serial_hello.ino.hex
 node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
+node verify_expander_read.mjs ../build/expander_read/expander_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -50,6 +53,22 @@ node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
 as an I2C bus trace. `sketches/expander` writes the port byte `0x55` to a PCF8574
 at `0x27`; the app's `apply_firmware_device` tool consumes that byte to set the
 device's `state` (P0..P7 = 1,0,1,0,1,0,1,0).
+
+## Devices on the bus (closed loop)
+
+`run.mjs` reads an optional `CF_DEVICES` environment variable — a JSON array of
+device specs — and serves the matching I2C addresses, so firmware can *read* a
+device (device → firmware feedback), not just trace writes:
+
+```sh
+# PCF8574 at 0x27 with P0..P3 externally held low -> reads return 0xF0
+CF_DEVICES='[{"kind":"pcf8574","address":39,"state":255,"inputs":15}]' \
+  node run.mjs ../build/expander_read/expander_read.ino.hex 2200
+```
+
+Supported `kind`s: `pcf8574` (`state`, `inputs`) and `eeprom` (`size`, `init`).
+The app does this automatically: `run_firmware(..., attach_devices=true)` builds
+the specs from the circuit's `pcf8574` components.
 
 These steps are **not** part of `tests/run_tests.gd`: the Godot suite must stay
 runnable with only Godot installed. They are run manually / in a separate job.

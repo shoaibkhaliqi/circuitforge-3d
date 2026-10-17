@@ -255,6 +255,15 @@ catalog that replaces the hardcoded definition list.
   `[1,0,1,0,1,0,1,0]`). Suite **645/645**; MCP **16/16** (new Test B6); tools
   **40**. Open loop: the port does not feed back into the firmware, and it is the
   only device modelled so far.
+- **Closed bus loop (device → firmware)**: the harness now serves devices on the
+  I2C bus (`CF_DEVICES`), so firmware can **read** them. `run_firmware(...,
+  attach_devices=true)` attaches the circuit's `pcf8574`
+  (`state`/`inputs`/`address`); with `inputs=0x0F` the port reads back `0xF0`.
+  New sketch `firmware/sketches/expander_read` + `verify_expander_read.mjs`
+  assert "port 240"; a PCF8574 write-back path (`state = writer byte`) already
+  exists via `apply_firmware_device`, so both directions are covered. Helpers
+  `FirmwareBackend.last_i2c_read_byte`; harness device models include a 24xx-style
+  `eeprom`. Suite **648/648**; MCP **16/16**. Still no analog/ADC feedback.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

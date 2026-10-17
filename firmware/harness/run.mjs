@@ -86,14 +86,68 @@ const usart = new AVRUSART(cpu, usart0Config, F_CPU);
 const serialBytes = [];
 usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 
-// I2C (TWI) traffic monitor. There is no device on the bus: the harness ACKs so a
-// sketch's Wire transaction can proceed, and records each transaction (address,
-// direction, data bytes). Reads return 0xFF. This is a *trace*, not a device model.
+// I2C (TWI) bus with optional devices. With no devices attached the harness just
+// ACKs so a sketch's Wire transaction can proceed, records each transaction
+// (address, direction, bytes) and returns 0xFF on read. When devices are supplied
+// through the CF_DEVICES env var the matching address is served by a device model
+// (so firmware can *read* a device — device -> firmware feedback).
+//
+//   CF_DEVICES=[{"kind":"pcf8574","address":39,"state":0,"inputs":15}]
+//   CF_DEVICES=[{"kind":"eeprom","address":80,"size":256,"init":[1,2,3]}]
+function buildDevices() {
+  const raw = process.env.CF_DEVICES;
+  const map = new Map();
+  if (!raw) return map;
+  let specs;
+  try {
+    specs = JSON.parse(raw);
+  } catch {
+    return map;
+  }
+  for (const s of Array.isArray(specs) ? specs : []) {
+    const addr = Number(s.address) & 0x7f;
+    if (s.kind === 'pcf8574') {
+      let state = Number(s.state ?? 0) & 0xff;
+      const inputs = Number(s.inputs ?? 0) & 0xff;
+      map.set(addr, {
+        kind: 'pcf8574',
+        writeByte(b) { state = b & 0xff; },
+        readByte() { return state & ~inputs & 0xff; },
+        summary: () => ({ kind: 'pcf8574', address: addr, state, read: state & ~inputs & 0xff }),
+      });
+    } else if (s.kind === 'eeprom') {
+      const size = Math.max(1, Number(s.size ?? 256));
+      const mem = new Uint8Array(size);
+      if (Array.isArray(s.init)) {
+        for (let i = 0; i < Math.min(size, s.init.length); i++) mem[i] = Number(s.init[i]) & 0xff;
+      }
+      let ptr = 0;
+      let hi = null;
+      let data = false;
+      map.set(addr, {
+        kind: 'eeprom',
+        onStart(write) { if (write) { hi = null; data = false; } },
+        writeByte(b) {
+          b &= 0xff;
+          if (data) { mem[ptr % size] = b; ptr = (ptr + 1) % size; }
+          else if (hi === null) { hi = b; }
+          else { ptr = ((hi << 8) | b) % size; hi = null; data = true; }
+        },
+        readByte() { const v = mem[ptr % size]; ptr = (ptr + 1) % size; return v; },
+        summary: () => ({ kind: 'eeprom', address: addr, size, pointer: ptr }),
+      });
+    }
+  }
+  return map;
+}
+
+const devices = buildDevices();
 const i2c = [];
 class TraceTWI {
   constructor(twi) {
     this.twi = twi;
     this.txn = null;
+    this.dev = null;
   }
   start(repeated) {
     this._flush();
@@ -102,22 +156,30 @@ class TraceTWI {
   }
   stop() {
     this._flush();
+    if (this.dev && this.dev.onStop) this.dev.onStop();
+    this.dev = null;
     this.twi.completeStop();
   }
   connectToSlave(address, write) {
+    const addr = address & 0x7f;
     if (this.txn) {
-      this.txn.address = address & 0x7f;
+      this.txn.address = addr;
       this.txn.write = !!write;
     }
+    this.dev = devices.get(addr) || null;
+    if (this.dev && this.dev.onStart) this.dev.onStart(!!write);
     this.twi.completeConnect(true);
   }
   writeByte(value) {
-    if (this.txn) this.txn.bytes.push(value & 0xff);
+    const b = value & 0xff;
+    if (this.txn) this.txn.bytes.push(b);
+    if (this.dev) this.dev.writeByte(b);
     this.twi.completeWrite(true);
   }
   readByte(ack) {
-    if (this.txn) this.txn.bytes.push(0xff);
-    this.twi.completeRead(0xff);
+    const b = this.dev ? this.dev.readByte() : 0xff;
+    if (this.txn) this.txn.bytes.push(b);
+    this.twi.completeRead(b);
   }
   _flush() {
     if (this.txn && this.txn.address !== null) i2c.push(this.txn);
@@ -183,6 +245,7 @@ process.stdout.write(
       serial: Buffer.from(serialBytes).toString('utf8'),
       serial_bytes: serialBytes.length,
       i2c,
+      devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
       spi_bytes: spi,
       transitions,
     },

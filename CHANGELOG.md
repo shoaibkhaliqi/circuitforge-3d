@@ -120,6 +120,14 @@ follow [Semantic Versioning](https://semver.org/).
     (`FirmwareBackend.last_i2c_write_byte`), optionally re-solving DC. Sketch
     `firmware/sketches/expander` writes `0x55` → P0..P7 = 1,0,1,0,1,0,1,0. MCP tools
     39 → **40**; suite 634 → **645**; MCP integration 15 → **16**.
+  - **Closed bus loop (device → firmware)**: the harness serves devices on the I2C
+    bus (via `CF_DEVICES`), so firmware can *read* them. `run_firmware(...,
+    attach_devices=true)` attaches the circuit's `pcf8574` (`state`/`inputs`/`address`);
+    with `inputs=0x0F` the port reads back `0xF0`. Sketch
+    `firmware/sketches/expander_read` + `verify_expander_read.mjs` assert "port 240";
+    `FirmwareBackend.last_i2c_read_byte` extracts the value. The harness also models
+    a 24xx-style `eeprom` device. Suite 645 → **648**. Still no analog/ADC feedback
+    (the electrical solver is not in the loop).
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

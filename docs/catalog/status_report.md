@@ -76,7 +76,9 @@ stimulus (analog outputs are not modelled). Analog modules: `acs712` (linear
 current sensor, `Vcc/2 + sensitivity·I`), `pressure_transducer_420ma` (4–20 mA
 loop source) and `load_cell_5kg` (four-arm Wheatstone bridge). The `pcf8574`
 I2C I/O expander drives P0..P7 as ideal quasi-bidirectional outputs from its
-`state` byte (or from firmware I2C writes via `apply_firmware_device`).
+`state` byte (or from firmware I2C writes via `apply_firmware_device`); firmware
+can also read it back (`run_firmware(..., attach_devices=true)`), where `inputs`
+marks bits externally held low.
 
 ## Honest caveats
 

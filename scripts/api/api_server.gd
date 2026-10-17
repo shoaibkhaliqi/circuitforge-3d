@@ -183,7 +183,8 @@ func _dispatch(method: String, p: Dictionary) -> Dictionary:
 		"get_firmware_capabilities":
 			return _service.get_firmware_capabilities()
 		"run_firmware":
-			return _service.run_firmware(String(p.get("hex_path", "")), int(p.get("ms", 2000)))
+			return _service.run_firmware(String(p.get("hex_path", "")), int(p.get("ms", 2000)),
+				bool(p.get("attach_devices", false)))
 		"apply_firmware_pins":
 			return _service.apply_firmware_pins(
 				String(p.get("hex_path", "")), p.get("pin_map", {}),

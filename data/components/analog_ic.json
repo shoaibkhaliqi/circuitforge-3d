@@ -241,10 +241,11 @@
       "params": {
         "state": {"default": 0, "label": "Port byte", "min": 0, "max": 255},
         "address": {"default": 39, "label": "I2C address (7-bit)"},
+        "inputs": {"default": 0, "label": "Inputs held low", "min": 0, "max": 255},
         "vcc": {"default": 5.0, "unit": "V", "label": "Logic voltage"},
         "rout": {"default": 1000.0, "unit": "Ohm", "label": "Output resistance"}
       },
-      "notes": "P0..P7 are ideal quasi-bidirectional outputs (Thevenin level, default 1 kOhm, approximating the part's weak pull-up). Use apply_firmware_pins/apply_firmware_device or set 'state' directly. Pin order follows DIP-16 (pin 1 = A0, pin 8 = VSS, pin 16 = VDD)."
+      "notes": "P0..P7 are ideal quasi-bidirectional outputs (Thevenin level, default 1 kOhm, approximating the part's weak pull-up). Set 'state' directly, or use apply_firmware_pins for a driven value; apply_firmware_device sets 'state' from the byte firmware writes. 'inputs' marks bits externally held low: firmware reading the port (run_firmware with attach_devices) sees state & ~inputs. Pin order follows DIP-16 (pin 1 = A0, pin 8 = VSS, pin 16 = VDD)."
     }
   ]
 }

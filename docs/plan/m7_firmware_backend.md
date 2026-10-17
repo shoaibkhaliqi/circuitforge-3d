@@ -167,16 +167,25 @@ the PCF8574 below.
   quasi-bidirectional `gpio` outputs P0..P7 against VSS (default `rout` 1 kΩ,
   approximating the part's weak pull-up; a Thevenin level, so `state` is directly
   settable and also firmware-writable).
-- **Firmware path**: `apply_firmware_device` runs a HEX, takes the last byte the
-  firmware wrote to the device's I2C address (`FirmwareBackend.last_i2c_write_byte`,
-  default address `0x27`) and sets `state` from it, optionally re-solving DC.
+- **Firmware path (both directions)**: `apply_firmware_device` runs a HEX, takes the
+  last byte the firmware wrote to the device's I2C address
+  (`FirmwareBackend.last_i2c_write_byte`, default address `0x27`) and sets `state`
+  from it, optionally re-solving DC. In the other direction, `run_firmware(...,
+  attach_devices=true)` attaches the circuit's `pcf8574` (`state`/`inputs`/`address`)
+  to the emulated bus, so firmware can **read** it: a port bit held externally low
+  (`inputs`) reads back as 0 (`(state & ~inputs)`). This is the closed bus loop —
+  device state drives firmware, firmware output drives the device.
 - **Verified**: `firmware/sketches/expander` writes `0x55` to `0x27`; the device
   ends at `state=0x55` with port levels `[1,0,1,0,1,0,1,0]` (address `0x27`).
-  Node-free mapping is covered by `tests/unit/test_netlist.gd`; the byte-extraction
-  helper by `tests/unit/test_firmware.gd`; the tool surface by MCP Test B6.
-- **Still open-loop**: P0..P7 do **not** feed back into the firmware (no input
-  reads), and only one device type is modelled. Other protocol parts stay
-  `planned` until they get the same treatment.
+  `firmware/sketches/expander_read` writes `0xFF` then reads the port; with
+  `inputs=0x0F` the firmware reads `0xF0` (`Serial` prints "port 240") — asserted by
+  `firmware/harness/verify_expander_read.mjs`. Node-free mapping is covered by
+  `tests/unit/test_netlist.gd`; the byte helpers by `tests/unit/test_firmware.gd`
+  (`last_i2c_write_byte` / `last_i2c_read_byte`); the tool surface by MCP Test B6.
+- **Still limited**: only one device type is modelled, and the electrical solver is
+  not in the loop (analog/ADC feedback is absent; `inputs` is a parameter, not a
+  solved node voltage). Other protocol parts stay `planned` until they get the same
+  treatment.
 
 ## 10. Recommendation
 
@@ -185,9 +194,10 @@ The originally suggested `simavr` (GPL) spike is superseded by the working
 vendored into the MIT binary. The sidecar `get_firmware_capabilities` /
 `run_firmware` / `apply_firmware_pins` / `apply_firmware_device` surface in §5 is
 now built on top of `firmware/harness/run.mjs`, and the PCF8574 (§9) is the first
-catalog status change backed by a real firmware-driven test. Remaining work:
-device→firmware feedback (so firmware can read inputs), more device models
-(LCD/OLED, I²C ADCs, DHT, ultrasonic), and a streaming/interactive mode if a
-blocking run proves too coarse. If the app-side integration ever cannot meet the
-gate (e.g. timing or packaging), fall back to a separately-installed `simavr` and
-keep the feature capability-flagged.
+catalog status change backed by a real firmware-driven test. The bus loop is now
+closed for the PCF8574 (§9): firmware reads device state and writes it back.
+Remaining work: device→firmware feedback for the *analog* domain (drive `inputs`
+from solved node voltages), more device models (LCD/OLED, I²C ADCs/EEPROMs, DHT,
+ultrasonic), and a streaming/interactive mode if a blocking run proves too coarse.
+If the app-side integration ever cannot meet the gate (e.g. timing or packaging),
+fall back to a separately-installed `simavr` and keep the feature capability-flagged.

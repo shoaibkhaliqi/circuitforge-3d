@@ -76,6 +76,14 @@ func run(t) -> void:
 	]
 	t.check(FirmwareBackend.last_i2c_write_byte(ev2, 0x27) == 0xAA,
 		"latest write wins", str(FirmwareBackend.last_i2c_write_byte(ev2, 0x27)))
+	var ev3 := [
+		{"address": 0x27, "write": true, "bytes": [0xFF]},
+		{"address": 0x27, "write": false, "bytes": [0xF0]},
+	]
+	t.check(FirmwareBackend.last_i2c_read_byte(ev3, 0x27) == 0xF0,
+		"read byte is what the device returned", str(FirmwareBackend.last_i2c_read_byte(ev3, 0x27)))
+	t.check(FirmwareBackend.last_i2c_read_byte(ev3, 0x20) == -1, "no read at that address -> -1")
+	t.check(FirmwareBackend.last_i2c_read_byte([], 0x27) == -1, "no events -> no read byte")
 
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()

@@ -328,13 +328,14 @@ func get_firmware_capabilities() -> Dictionary:
 	return _ok(FirmwareBackend.capabilities())
 
 
-func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
+func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false) -> Dictionary:
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
-	var r := FirmwareBackend.run_hex(hex_path, ms)
+	var devices := _firmware_devices() if attach_devices else []
+	var r := FirmwareBackend.run_hex(hex_path, ms, devices)
 	if not bool(r.get("ok", false)):
 		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
 			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
@@ -347,6 +348,9 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 	if i2c.size() > FirmwareBackend.MAX_BUS_EVENTS:
 		i2c = i2c.slice(0, FirmwareBackend.MAX_BUS_EVENTS)
 	var spi: Array = r.get("spi_bytes", [])
+	var note := "Open-loop Stage B: firmware digital pins, UART output and I2C/SPI bus traces; no analog feedback."
+	if attach_devices:
+		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware; analog/ADC feedback still absent."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -362,8 +366,28 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 		"i2c": i2c,
 		"i2c_addresses": FirmwareBackend.i2c_addresses(i2c),
 		"spi_bytes": spi,
-		"note": "Open-loop Stage B: firmware digital pins, UART output and I2C/SPI bus traces; no analog feedback and no device is modelled on the buses.",
+		"devices": r.get("devices", []),
+		"attached_devices": devices.size(),
+		"note": note,
 	})
+
+
+## Build harness device specs from the circuit's device components so firmware can
+## read (and write) them. Currently only the PCF8574 expander.
+func _firmware_devices() -> Array:
+	var out := []
+	var comps: Array = session.project.get("components", []) if session != null else []
+	for c in comps:
+		if String(c.get("type", "")) != "pcf8574":
+			continue
+		var p: Dictionary = c.get("params", {})
+		out.append({
+			"kind": "pcf8574",
+			"address": int(p.get("address", 39)) & 0x7F,
+			"state": int(p.get("state", 0)) & 0xFF,
+			"inputs": int(p.get("inputs", 0)) & 0xFF,
+		})
+	return out
 
 
 func apply_firmware_pins(hex_path: String, pin_map: Dictionary, ms: int = 2000, at_ms: float = -1.0, simulate: bool = false, expected_revision = null) -> Dictionary:
