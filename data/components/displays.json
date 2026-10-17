@@ -129,9 +129,11 @@
         {"name": "E", "type": "passive"}, {"name": "F", "type": "passive"}, {"name": "G", "type": "passive"}, {"name": "DP", "type": "passive"},
         {"name": "COM", "type": "passive"}
       ],
+      "params": {"common": {"default": "cathode", "unit": "", "label": "Common pin", "options": ["anode", "cathode"]}},
       "model": {"shape": "seven_segment"},
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
+      "notes": "Each segment is an LED (8 including the decimal point). Drive the segment pins with mcu_pins; multiplexing/brightness are not simulated.",
       "arduino_compatible": true
     },
     {

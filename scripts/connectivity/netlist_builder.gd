@@ -43,6 +43,7 @@ const HANDLED_TYPES := [
 	"ac_source", "breadboard_psu_5v",
 	"thermistor_ntc", "photoresistor_ldr", "rtd_pt100",
 	"dc_motor", "dc_gearmotor_tt", "fan_5v", "vibration_motor", "solenoid_12v",
+	"seven_segment", "limit_switch", "lm35", "tmp36", "voltage_sensor_module",
 ]
 
 
@@ -273,6 +274,36 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			var lmid := cid + "#m"
 			out.append(_el(cid, "inductor", [nets[0], lmid], {"l": lc, "ic": 0.0}))
 			out.append(_el(cid + "#r", "resistor", [lmid, nets[1]], {"r": rl}))
+		"seven_segment":
+			# Each segment (and the decimal point) is an LED to the common pin.
+			# Common anode -> anode at COM; common cathode -> cathode at COM.
+			var common := String(params.get("common", "cathode"))
+			var seg_names := ["A", "B", "C", "D", "E", "F", "G", "DP"]
+			for i in range(8):
+				var seg_net := String(nets[i])
+				var com_net := String(nets[8])
+				var led_nets := [com_net, seg_net] if common != "cathode" else [seg_net, com_net]
+				out.append(_el(cid + "#" + seg_names[i], "led", led_nets,
+					{"is": float(params.get("is", 1e-14)), "n": 1.0}))
+		"limit_switch":
+			# SPDT limit switch: COM-NO closes when actuated, COM-NC opens.
+			var act := bool(params.get("actuated", false))
+			out.append(_el(cid, "resistor", [nets[0], nets[1]], {"r": 0.001 if act else 1e9}))
+			out.append(_el(cid + "#2", "resistor", [nets[0], nets[2]], {"r": 1e9 if act else 0.001}))
+		"lm35":
+			# Linear analog output: 10 mV per degC, referenced to GND.
+			var t_lm: float = float(params.get("temperature", 25.0))
+			out.append(_el(cid, "vsource", [nets[1], nets[2]], {"v": 0.010 * t_lm}))
+		"tmp36":
+			# Linear analog output: 500 mV at 0 degC + 10 mV per degC.
+			var t_tmp: float = float(params.get("temperature", 25.0))
+			out.append(_el(cid, "vsource", [nets[1], nets[2]], {"v": 0.5 + 0.010 * t_tmp}))
+		"voltage_sensor_module":
+			# Resistive divider: VIN -> SIG -> GND (default 30k/7.5k = 5:1).
+			var r1v: float = max(1.0, float(params.get("r1", 30000.0)))
+			var r2v: float = max(1.0, float(params.get("r2", 7500.0)))
+			out.append(_el(cid, "resistor", [nets[3], nets[2]], {"r": r1v}))
+			out.append(_el(cid + "#2", "resistor", [nets[2], nets[1]], {"r": r2v}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out

@@ -215,6 +215,55 @@ func run(t) -> void:
 	if _by_id(r, "SOL1") != null:
 		t.check(_by_id(r, "SOL1").type == "inductor", "solenoid coil maps to an inductor")
 
+	# ---- 7-segment display, limit switch, analog-output sensors -----------
+	t.section("Netlist - 7-segment display and mechanical switch")
+	r = builder.build(bb, [_place("DS1", "seven_segment", ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "TM1"], {"common": "cathode"})], [])
+	var seg_count := 0
+	for e2 in r.circuit.elements:
+		if String(e2.id).begins_with("DS1#"):
+			seg_count += 1
+	t.check(seg_count == 8, "seven-segment display = 8 LED elements", "got=%d" % seg_count)
+	var seg_a = _by_id(r, "DS1#A")
+	t.check(seg_a != null and seg_a.type == "led", "segment A is an LED")
+	if seg_a != null:
+		t.check(seg_a.nets[0] == r.pin_nets["DS1"][0], "common cathode: anode at the segment pin")
+		t.check(seg_a.nets[1] == r.pin_nets["DS1"][8], "common cathode: cathode at COM")
+	r = builder.build(bb, [_place("DS1", "seven_segment", ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "TM1"], {"common": "anode"})], [])
+	seg_a = _by_id(r, "DS1#A")
+	if seg_a != null:
+		t.check(seg_a.nets[0] == r.pin_nets["DS1"][8], "common anode: anode at COM")
+
+	r = builder.build(bb, [_place("LS1", "limit_switch", ["a1", "a5", "a9"], {"actuated": false})], [])
+	t.check(_by_id(r, "LS1") != null and _by_id(r, "LS1#2") != null, "limit switch makes COM-NO and COM-NC")
+	if _by_id(r, "LS1") != null:
+		t.check(float(_by_id(r, "LS1").params["r"]) > 1e6, "released: COM-NO open")
+		t.check(float(_by_id(r, "LS1#2").params["r"]) < 1.0, "released: COM-NC closed")
+	r = builder.build(bb, [_place("LS1", "limit_switch", ["a1", "a5", "a9"], {"actuated": true})], [])
+	if _by_id(r, "LS1") != null:
+		t.check(float(_by_id(r, "LS1").params["r"]) < 1.0, "actuated: COM-NO closed")
+		t.check(float(_by_id(r, "LS1#2").params["r"]) > 1e6, "actuated: COM-NC open")
+
+	t.section("Netlist - analog-output sensors (LM35 / TMP36 / divider)")
+	r = builder.build(bb, [_place("T1", "lm35", ["TP1", "a1", "TM1"], {"temperature": 50.0})], [])
+	t.check(_by_id(r, "T1") != null and _by_id(r, "T1").type == "vsource", "LM35 output is a voltage source")
+	if _by_id(r, "T1") != null:
+		t.near(float(_by_id(r, "T1").params["v"]), 0.5, "LM35 at 50 degC = 0.5 V", 1e-6)
+	r = builder.build(bb, [_place("T1", "tmp36", ["TP1", "a1", "TM1"], {"temperature": 25.0})], [])
+	if _by_id(r, "T1") != null:
+		t.near(float(_by_id(r, "T1").params["v"]), 0.75, "TMP36 at 25 degC = 0.75 V", 1e-6)
+
+	var dcirc = builder.build(bb, [
+		_place("V1", "vsource", ["TP1", "TM1"], {"v": 10.0}),
+		_place("VS1", "voltage_sensor_module", ["TP5", "TM5", "a1", "a5"], {"r1": 30000.0, "r2": 7500.0}),
+		_place("GND", "ground", ["TM1"], {}),
+	], [
+		{"id": "W1", "a": _hole("a5"), "b": _hole("TP1")},
+	])
+	var dr = CircuitSolver.new().solve_dc(dcirc.circuit)
+	t.check(dr.ok, "voltage sensor circuit solves", dr.get("error", ""))
+	if dr.ok:
+		t.near(dr.node_voltages[dcirc.pin_nets["VS1"][2]], 2.0, "divider SIG = 10 V * 7.5k/37.5k = 2 V", 1e-3)
+
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
 	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])

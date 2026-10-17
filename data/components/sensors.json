@@ -106,9 +106,11 @@
       "description": "Analog temperature sensor, 10 mV/degC, TO-92. Pins: +VS, VOUT, GND.",
       "keywords": ["lm35", "temperature", "analog", "to92"],
       "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
+      "params": {"temperature": {"default": 25.0, "unit": "degC", "label": "Temperature"}},
       "model": {"shape": "to92"},
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
+      "notes": "Ideal linear output VOUT = 10 mV/degC * T; the temperature is a stimulus you set. Supply, accuracy and self-heating are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -119,9 +121,11 @@
       "description": "Analog temperature sensor, 10 mV/degC with 500 mV offset, TO-92.",
       "keywords": ["tmp36", "temperature", "analog", "to92"],
       "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
+      "params": {"temperature": {"default": 25.0, "unit": "degC", "label": "Temperature"}},
       "model": {"shape": "to92"},
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
+      "notes": "Ideal linear output VOUT = 500 mV + 10 mV/degC * T; the temperature is a stimulus you set. Supply and accuracy are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -296,9 +300,11 @@
       "description": "Mechanical end-stop switch. COM, NO and NC contacts.",
       "keywords": ["limit switch", "endstop", "mechanical", "3d printer"],
       "pins": [{"name": "COM", "type": "passive"}, {"name": "NO", "type": "passive"}, {"name": "NC", "type": "passive"}],
+      "params": {"actuated": {"default": false, "unit": "", "label": "Actuated (pressed)"}},
       "model": {"shape": "limit_switch"},
       "mounting": "device",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
+      "notes": "SPDT contact: COM-NO closes and COM-NC opens when actuated. Contact bounce is not simulated.",
       "arduino_compatible": true
     },
     {
@@ -551,10 +557,12 @@
       "description": "Resistive-divider voltage sensor module (up to ~25 V input).",
       "keywords": ["voltage sensor", "divider", "b25", "analog"],
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}, {"name": "VIN", "type": "analog"}],
+      "params": {"r1": {"default": 30000.0, "unit": "ohm", "label": "Top resistor (VIN-SIG)"}, "r2": {"default": 7500.0, "unit": "ohm", "label": "Bottom resistor (SIG-GND)"}},
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "visual",
-      "notes": "Modelled as a resistive divider; the reading is a scaled analog voltage."
+      "simulation_status": "partial",
+      "notes": "Resistive divider (default 30k/7.5k = 5:1): SIG is a scaled copy of VIN. Connect VIN to the voltage being measured.",
+      "arduino_compatible": true
     },
     {
       "id": "flame_sensor",

@@ -78,6 +78,12 @@ follow [Semantic Versioning](https://semver.org/).
     torque or speed dynamics, and the catalog notes say so.
   - New 3D package bodies: a sensing bead (thermistor/LDR/RTD) and motor shapes
     (brushed motor, vibration motor, solenoid, fan).
+  - Firmware-free display/switch/analog-output parts: `seven_segment` (8 LEDs to
+    the common pin, common-anode or common-cathode, driven by `mcu_pin`s),
+    `limit_switch` (SPDT COM-NO/COM-NC), `lm35`/`tmp36` (linear analog voltage
+    from a temperature stimulus) and `voltage_sensor_module` (resistive divider).
+    Motors, displays and digital/protocol sensors that need firmware stay
+    `planned`/`visual`.
 - **MCP pin/metadata tooling** (34 → **36** tools): `get_pin_states` reads every
   virtual MCU pin (level, high/low/high-Z, driven node, solved voltage) and
   `set_pin_levels` drives pins with an optional DC re-solve — the Stage-A

@@ -68,7 +68,7 @@ date as milestones land.
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
-| 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (resistive sensors + brushed DC motors simulated; displays/digital sensors planned) |
+| 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | planned |
 
@@ -208,7 +208,7 @@ catalog that replaces the hardcoded definition list.
   battery-with-internal-resistance numerical solve.
 - Regression: **532 / 532 tests pass**, MCP **13 / 13**, headless load exits 0.
 
-### Milestone 8 — honest analog sensors + brushed DC motors (in progress)
+### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
   so no solver change was needed): `thermistor_ntc` (beta equation
   `R = R25*exp(B*(1/T - 1/T25))`), `photoresistor_ldr` (log-linear
@@ -217,14 +217,21 @@ catalog that replaces the hardcoded definition list.
   winding resistance plus an **assumed back-EMF** the user sets (0 V = stalled);
   steady state only, no spin-up or torque. `solenoid_12v` is a coil (inductance
   in series with winding resistance).
+- **Display / switch / analog-output parts** that need no firmware:
+  `seven_segment` (8 LEDs to the common pin, common-anode or common-cathode),
+  `limit_switch` (SPDT COM-NO/COM-NC), `lm35`/`tmp36` (linear analog voltage
+  output from a temperature stimulus) and `voltage_sensor_module` (resistive
+  divider).
 - 3D: new `_body_bead` (sensor bead) and `_body_motor` (motor/vibration/solenoid/
   fan) package bodies, wired to the catalog shapes.
 - `tests/unit/test_netlist.gd` extended (sensor resistance at several stimulus
-  points, motor stalled vs running, a numerical 5 V/10 Ω/2 V-BEMF = 0.3 A solve);
-  `tests/unit/test_factory.gd` now builds the new shapes.
-- Regression: **557 / 557 tests pass**, MCP **13 / 13**, headless load exits 0.
-- Still visual/planned: stepper and servo motors and their drivers, displays,
-  and digital/protocol sensors (they need a firmware/Stage-B backend).
+  points, motor stalled vs running, seven-segment/anode-cathode, limit switch,
+  sensor voltages, a divider solve and a 5 V/10 Ω/2 V-BEMF = 0.3 A solve);
+  `tests/unit/test_factory.gd` builds the new shapes.
+- Regression: **572 / 572 tests pass**, MCP **14 / 14**, headless load exits 0.
+- Still planned/visual (needs a firmware/Stage-B backend): stepper and servo
+  motors and their drivers, LCD/OLED/I2C/SPI displays, and digital/protocol
+  sensors (DHT, ultrasonic, gas, IMU, ...).
 
 ### Milestone 9 — MCP pin/metadata tooling (in progress)
 - New MCP tools (34 → **36**): `get_pin_states` (read the state of every
@@ -238,7 +245,7 @@ catalog that replaces the hardcoded definition list.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 557/557).
+   (currently 572/572).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
