@@ -119,10 +119,10 @@
 	"instruments": {},
 	"metadata": {
 		"app_version": "0.1.0",
-		"created": "2026-10-17T00:00:00",
+		"created": "2026-10-17T18:36:33",
 		"description": "A common-cathode 7-segment display driven by two virtual MCU pins (Stage A), each segment through a 330 Ohm resistor.",
 		"measurement": "Run DC: pins P1 and P2 are logic-high, so segments B and C light and the digit shows '1'. Set a pin's level to 0 and re-run to blank that segment. No firmware is executed.",
-		"modified": "2026-10-17T00:00:00",
+		"modified": "2026-10-17T18:36:33",
 		"name": "7-Segment Display (virtual pins)"
 	},
 	"schema_version": 1,

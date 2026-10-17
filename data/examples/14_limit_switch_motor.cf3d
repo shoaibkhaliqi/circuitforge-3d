@@ -55,7 +55,7 @@
 		},
 		{
 			"holes": [
-				"a5",
+				"a15",
 				"TM5"
 			],
 			"id": "M1",
@@ -77,10 +77,10 @@
 	"instruments": {},
 	"metadata": {
 		"app_version": "0.1.0",
-		"created": "2026-10-17T00:00:00",
+		"created": "2026-10-17T18:36:33",
 		"description": "A limit switch (SPDT) switches 5 V to a small brushed DC motor; the motor is modelled as stalled (assumed back-EMF 0 V).",
 		"measurement": "Run DC with the switch actuated: COM-NO closes, so the motor sees 5 V and draws about 1 A (5 V across 5 Ohm). Set actuated to false and re-run: COM-NO opens and the current falls to almost zero.",
-		"modified": "2026-10-17T00:00:00",
+		"modified": "2026-10-17T18:36:33",
 		"name": "Limit Switch Drives a DC Motor"
 	},
 	"schema_version": 1,
@@ -100,6 +100,17 @@
 				"kind": "hole"
 			},
 			"id": "W1"
+		},
+		{
+			"a": {
+				"id": "a5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a15",
+				"kind": "hole"
+			},
+			"id": "W2"
 		}
 	]
 }

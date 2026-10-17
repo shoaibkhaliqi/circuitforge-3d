@@ -92,7 +92,9 @@ follow [Semantic Versioning](https://semver.org/).
   common-cathode 7-segment digit driven by virtual MCU pins), `13_ntc_thermistor.cf3d`
   (an NTC + fixed-resistor divider that tracks temperature) and
   `14_limit_switch_motor.cf3d` (a limit switch switching a stalled DC motor).
-  The example test now spot-checks their documented values.
+  The example test now spot-checks their documented values. `Session.add_component`
+  gained an optional explicit id (used by `tools/make_examples.gd` so the
+  generated examples keep stable, readable reference designators).
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

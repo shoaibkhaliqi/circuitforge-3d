@@ -127,6 +127,8 @@ func _gen_id(type: String) -> String:
 		"diode": prefix = "D"
 		"zener": prefix = "DZ"
 		"potentiometer": prefix = "RV"
+		"seven_segment": prefix = "DS"
+		"mcu_pin": prefix = "P"
 		"and", "or", "not", "nand", "nor", "xor", "buffer": prefix = "U"
 		_: prefix = type.substr(0, 1).to_upper()
 	var n := int(_id_counters.get(prefix, 0)) + 1
@@ -143,7 +145,7 @@ func _gen_id(type: String) -> String:
 	return id
 
 
-func add_component(type: String, holes: Array = [], params: Dictionary = {}) -> String:
+func add_component(type: String, holes: Array = [], params: Dictionary = {}, id: String = "") -> String:
 	if not ComponentDB.exists(type):
 		last_error = "Unknown component type '%s'." % type
 		status_message.emit(last_error)
@@ -156,8 +158,11 @@ func add_component(type: String, holes: Array = [], params: Dictionary = {}) -> 
 	var placed := holes.duplicate()
 	while placed.size() < pc:
 		placed.append("")
+	var use_id := id
+	if use_id == "" or _has_component(use_id):
+		use_id = _gen_id(type)
 	var comp := {
-		"id": _gen_id(type),
+		"id": use_id,
 		"type": type,
 		"holes": placed,
 		"params": use_params,

@@ -14,7 +14,7 @@ func _initialize() -> void:
 	for e in examples:
 		var s = Session.new()
 		for c in e.components:
-			s.add_component(c.type, c.holes, c.get("params", {}))
+			s.add_component(c.type, c.holes, c.get("params", {}), c.get("id", ""))
 		for w in e.get("wires", []):
 			s.add_wire(w[0], w[1])
 		s.project.metadata["name"] = e.name
@@ -183,6 +183,47 @@ func _definitions() -> Array:
 				{"type": "led", "holes": ["a20", "TM20"]},
 			],
 			"wires": [],
+			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
+		},
+		{
+			"file": "12_seven_segment", "name": "7-Segment Display (virtual pins)",
+			"description": "A common-cathode 7-segment display driven by two virtual MCU pins (Stage A), each segment through a 330 Ohm resistor.",
+			"measurement": "Run DC: pins P1 and P2 are logic-high, so segments B and C light and the digit shows '1'. Set a pin's level to 0 and re-run to blank that segment. No firmware is executed.",
+			"components": [
+				{"id": "GND1", "type": "ground", "holes": ["TM1"]},
+				{"id": "DS1", "type": "seven_segment", "holes": ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "TM1"], "params": {"common": "cathode"}},
+				{"id": "R1", "type": "resistor", "holes": ["e2", "f2"], "params": {"r": 330.0}},
+				{"id": "R2", "type": "resistor", "holes": ["e3", "f3"], "params": {"r": 330.0}},
+				{"id": "P1", "type": "mcu_pin", "holes": ["a15", "f15"], "params": {"level": 1.0, "rout": 25.0, "vlogic": 5.0}},
+				{"id": "P2", "type": "mcu_pin", "holes": ["a20", "f20"], "params": {"level": 1.0, "rout": 25.0, "vlogic": 5.0}},
+			],
+			"wires": [[_h("f2"), _h("a15")], [_h("f3"), _h("a20")], [_h("f15"), _h("TM25")], [_h("f20"), _h("TM25")]],
+			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
+		},
+		{
+			"file": "13_ntc_thermistor", "name": "NTC Thermistor Divider",
+			"description": "A 10k NTC thermistor and a fixed 10k resistor form a divider across 5 V; the sense node carries a voltage that tracks temperature.",
+			"measurement": "Run DC at 25 C: the NTC is 10k, so the sense node is 2.5 V. Set the thermistor temperature to 50 C and re-run: the resistance drops (about 3.6k) and the node rises to about 3.6 V.",
+			"components": [
+				{"id": "GND1", "type": "ground", "holes": ["TM1"]},
+				{"id": "V1", "type": "vsource", "holes": ["TP1", "TM1"], "params": {"v": 5.0}},
+				{"id": "RT1", "type": "thermistor_ntc", "holes": ["TP5", "a5"], "params": {"beta": 3950.0, "r25": 10000.0, "temperature": 25.0}},
+				{"id": "R1", "type": "resistor", "holes": ["a10", "TM10"], "params": {"r": 10000.0}},
+			],
+			"wires": [[_h("a5"), _h("a10")]],
+			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
+		},
+		{
+			"file": "14_limit_switch_motor", "name": "Limit Switch Drives a DC Motor",
+			"description": "A limit switch (SPDT) switches 5 V to a small brushed DC motor; the motor is modelled as stalled (assumed back-EMF 0 V).",
+			"measurement": "Run DC with the switch actuated: COM-NO closes, so the motor sees 5 V and draws about 1 A (5 V across 5 Ohm). Set actuated to false and re-run: COM-NO opens and the current falls to almost zero.",
+			"components": [
+				{"id": "GND1", "type": "ground", "holes": ["TM1"]},
+				{"id": "V1", "type": "vsource", "holes": ["TP1", "TM1"], "params": {"v": 5.0}},
+				{"id": "SW1", "type": "limit_switch", "holes": ["a1", "a5", "a10"], "params": {"actuated": true}},
+				{"id": "M1", "type": "dc_motor", "holes": ["a15", "TM5"], "params": {"back_emf": 0.0, "r": 5.0, "v_nom": 6.0}},
+			],
+			"wires": [[_h("TP1"), _h("a1")], [_h("a5"), _h("a15")]],
 			"sim": {"mode": "dc", "t_stop": 0.5, "dt": 0.001},
 		},
 	]
