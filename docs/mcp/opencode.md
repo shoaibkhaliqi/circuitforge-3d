@@ -68,7 +68,7 @@ restart OpenCode** after adding the server.
 ## Verify
 
 In OpenCode, list MCP tools (e.g. `/mcp` or the tools panel). You should see the
-`circuitforge` server with 36 tools such as `get_simulator_info`,
+`circuitforge` server with 39 tools such as `get_simulator_info`,
 `get_component_catalog`, `get_catalog_facets`, `get_board_pinout`, `get_pin_states`,
 `set_pin_levels`, `add_component`,
 `run_dc_simulation`.

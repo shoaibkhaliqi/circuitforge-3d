@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 607 / 607 passed
+RESULT: 627 / 627 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,6 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, status↔solver honesty | simulation mapping  |
+| Firmware — pin-key normalisation, sampling, capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -104,17 +105,18 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 14 / 14 passed
+RESULTS: 15 / 15 passed
 ```
 
 | Test | Checks | Result |
 |------|--------|--------|
-| A. Server initialization | name `circuitforge-3d`, 36 tools present, valid input schemas | pass |
+| A. Server initialization | name `circuitforge-3d`, 39 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
 | B2. Catalog discovery | 238 entries, status facets/filters, I2C filter, 0 errors | pass |
 | B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | B4. Virtual pin control | mcu_pin high/low/high-Z via set_pin_levels + get_pin_states | pass |
+| B5. Firmware backend | optional/honest capabilities; missing-HEX is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

@@ -180,6 +180,15 @@ func _dispatch(method: String, p: Dictionary) -> Dictionary:
 			return _service.get_pin_states()
 		"set_pin_levels":
 			return _service.set_pin_levels(p.get("levels", {}), bool(p.get("simulate", false)), p.get("expected_revision", null))
+		"get_firmware_capabilities":
+			return _service.get_firmware_capabilities()
+		"run_firmware":
+			return _service.run_firmware(String(p.get("hex_path", "")), int(p.get("ms", 2000)))
+		"apply_firmware_pins":
+			return _service.apply_firmware_pins(
+				String(p.get("hex_path", "")), p.get("pin_map", {}),
+				int(p.get("ms", 2000)), float(p.get("at_ms", -1.0)),
+				bool(p.get("simulate", false)), p.get("expected_revision", null))
 		"get_project_summary":
 			return _service.get_project_summary()
 		"list_components":

@@ -89,8 +89,10 @@ loop source) and `load_cell_5kg` (four-arm Wheatstone bridge).
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
-  A board's 3D model is **not** a CPU; firmware execution is a separate, gated
-  milestone.
+  A board's 3D model is **not** a CPU. An optional, open-loop firmware backend now
+  exists (AVR firmware on the MIT avr8js engine, driving `mcu_pin`s from firmware
+  output); protocol/digital parts stay `planned` until a firmware-driven part is
+  itself tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,
   OTG, ADB and UART debug are modelled, and UART debug wiring varies per device.
 - `xnor` is catalogued but not solved; sequential logic (`d_flip_flop`, counters,

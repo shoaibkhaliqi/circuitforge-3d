@@ -45,12 +45,24 @@ function loadHexProgram(path) {
 
 const [hexPath, msArg] = process.argv.slice(2);
 if (!hexPath) {
-  console.error('usage: node run.mjs <hexPath> [msLimit]');
+  process.stdout.write(
+    JSON.stringify({ ok: false, error: 'usage: node run.mjs <hexPath> [msLimit]' }) + '\n',
+  );
   process.exit(2);
 }
 const msLimit = Number(msArg ?? 3000);
 
-const cpu = new CPU(loadHexProgram(hexPath));
+let program;
+try {
+  program = loadHexProgram(hexPath);
+} catch (err) {
+  process.stdout.write(
+    JSON.stringify({ ok: false, error: `cannot read firmware: ${err.message}` }) + '\n',
+  );
+  process.exit(3);
+}
+
+const cpu = new CPU(program);
 new AVRTimer(cpu, timer0Config);
 new AVRTimer(cpu, timer1Config);
 new AVRTimer(cpu, timer2Config);
@@ -95,6 +107,7 @@ while (cpu.cycles < maxCycles) {
 process.stdout.write(
   JSON.stringify(
     {
+      ok: true,
       mcu: 'atmega328p',
       f_cpu: F_CPU,
       hex: hexPath,

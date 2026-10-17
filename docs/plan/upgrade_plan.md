@@ -226,8 +226,14 @@ catalog that replaces the hardcoded definition list.
   loads the HEX into **avr8js (MIT)** and streams pin transitions; a 1 Hz blink on
   D13 is deterministic (edge gaps 500.009/500.008/500.012/500.011 ms) and
   `verify.mjs` passes. Engine license is MIT, so nothing GPL is vendored.
-  Feasibility **confirmed**; the app still does not consume the harness, so no
-  catalog status changes yet.
+- **App-side integration (open loop)**: `FirmwareBackend`
+  (`scripts/simulation/firmware_backend.gd`) detects Node + the harness honestly
+  and runs a HEX; new API/MCP tools `get_firmware_capabilities`, `run_firmware`
+  and `apply_firmware_pins` let a caller run firmware and drive real `mcu_pin`
+  components from firmware output at a chosen instant (verified: D13 high at
+  100 ms drives the signal node to 4.878 V = 5 V·1000/1025). **No catalog status
+  changes** — protocol parts stay `planned`/`visual` until that is backed by tests.
+  Node remains an optional external tool; the Godot suite is Node-free (627/627).
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
@@ -261,7 +267,8 @@ catalog that replaces the hardcoded definition list.
   sensors (DHT, ultrasonic, gas, IMU, ...).
 
 ### Milestone 9 — MCP pin/metadata tooling (in progress)
-- New MCP tools (34 → **36**): `get_pin_states` (read the state of every
+- New MCP tools (34 → **36**, later **39** with the M7 firmware tools):
+  `get_pin_states` (read the state of every
   `mcu_pin`: level, high/low/high-Z, logic voltage, output resistance, driven
   node and solved voltage) and `set_pin_levels` (drive one or more pins, with an
   optional DC re-solve). This is the Stage-A "pin states" workflow — ideal pins,

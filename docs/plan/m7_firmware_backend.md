@@ -128,18 +128,25 @@ Node). The `simavr`/GPL path was not needed for the spike to succeed.
       `verify.mjs`); limits documented (§7).
 - [ ] Status changes backed by tests — no catalog status is changed yet; the
       protocol parts stay `planned`/`visual` until the app actually consumes the
-      harness. This is the remaining step before flipping any status.
+      harness with test coverage. This is the remaining step before flipping any
+      status.
 
 **Outcome:** technical feasibility is **confirmed** for the permissive path. The
-next increment is wiring `run.mjs`'s JSON into the app (a sidecar + the §5 API)
-and feeding transitions into the existing `gpio` element. Until that is done and
-tested, the catalog labels do not change.
+harness is now wired into the app (open loop): `FirmwareBackend` +
+`get_firmware_capabilities` / `run_firmware` / `apply_firmware_pins` run a HEX and
+drive real `mcu_pin` components from firmware output at a chosen instant. Verified
+end-to-end: with a 1 kΩ pin-to-ground load, D13 at 100 ms (HIGH) solves the signal
+node to 4.878 V (= 5 V · 1000/1025). Until a firmware-driven protocol part is
+itself tested, the catalog labels do not change.
 
 ## 9. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
 **avr8js (MIT)** result above for the same reason §4 prefers it: no GPL is
-vendored into the MIT binary. Build the sidecar `load_firmware` / `start_mcu` /
-`read_pins` surface in §5 on top of `firmware/harness/run.mjs`. If the app-side
-integration cannot meet the gate (e.g. timing or packaging), fall back to a
+vendored into the MIT binary. The sidecar `get_firmware_capabilities` /
+`run_firmware` / `apply_firmware_pins` surface in §5 is now built on top of
+`firmware/harness/run.mjs`. Remaining work before any catalog status change: run
+firmware at several instants across a protocol part and test the result, and add
+a streaming/interactive mode if a blocking run proves too coarse. If the app-side
+integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

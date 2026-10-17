@@ -242,6 +242,34 @@ def get_pin_states() -> dict[str, Any]:
     return _wrap(call_engine("get_pin_states"))
 
 
+@mcp.tool(annotations=_ro(), structured_output=True)
+def get_firmware_capabilities() -> dict[str, Any]:
+    """Report whether optional firmware execution is available.
+
+    The firmware backend is external and optional: it runs a compiled Arduino
+    Intel-HEX on avr8js (MIT) through Node. Returns availability, the engine and
+    its license, the boards covered (AVR/Arduino only) and, when unavailable, why
+    (e.g. Node not installed). Nothing GPL is bundled.
+    """
+    return _wrap(call_engine("get_firmware_capabilities"))
+
+
+@mcp.tool(annotations=_ro(), structured_output=True)
+def run_firmware(hex_path: str, ms: int = 2000) -> dict[str, Any]:
+    """Run a compiled Arduino HEX and return its digital pin activity.
+
+    This is the open-loop (Stage B) workflow: no analog feedback yet. Compile a
+    sketch first, e.g. `arduino-cli compile --fqbn arduino:avr:uno --output-dir
+    build/blink firmware/sketches/blink`, then pass the `.hex` path. Returns the
+    pin transitions (time in ms, level 0/1) and the pins the firmware touched.
+
+    Args:
+        hex_path: Path to an Intel-HEX produced for an AVR board.
+        ms: Emulated run length in milliseconds (1..10000).
+    """
+    return _wrap(call_engine("run_firmware", {"hex_path": hex_path, "ms": ms}))
+
+
 # ---------------------------------------------------------------------------
 # B. Circuit inspection
 # ---------------------------------------------------------------------------
@@ -379,6 +407,37 @@ def set_pin_levels(
     """
     return _wrap(call_engine("set_pin_levels", {
         "levels": levels, "simulate": simulate, "expected_revision": expected_revision,
+    }))
+
+
+@mcp.tool(annotations=_edit(), structured_output=True)
+def apply_firmware_pins(
+    hex_path: str,
+    pin_map: dict[str, str],
+    ms: int = 2000,
+    at_ms: float = -1.0,
+    simulate: bool = False,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    """Drive real `mcu_pin` components from firmware output at one instant.
+
+    Runs the firmware, samples each mapped pin's level at `at_ms` (default: the end
+    of the run) and applies it to the matching `mcu_pin`, optionally re-solving DC.
+    This bridges firmware to the Stage-A ideal pin model; it is open-loop (the
+    circuit does not feed back into the firmware).
+
+    Args:
+        hex_path: Path to a compiled Arduino Intel-HEX.
+        pin_map: Firmware pin -> mcu_pin component_id, e.g. {"13": "P1"} ("13",
+            "D13" and "A0" are accepted).
+        ms: Emulated run length in milliseconds (1..10000).
+        at_ms: Sample time in ms; -1 means the end of the run.
+        simulate: Run a DC simulation after applying the levels.
+        expected_revision: Optional optimistic-concurrency guard.
+    """
+    return _wrap(call_engine("apply_firmware_pins", {
+        "hex_path": hex_path, "pin_map": pin_map, "ms": ms, "at_ms": at_ms,
+        "simulate": simulate, "expected_revision": expected_revision,
     }))
 
 

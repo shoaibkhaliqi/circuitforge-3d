@@ -29,6 +29,8 @@ Component ids are stable strings (`V1`, `R1`, `GND1`, …). Pin indices start at
 | `get_catalog_facets` | — | Catalog facets (categories, subcategories, packages, mountings, manufacturers, statuses, protocols, interfaces), total count, status labels and validation errors. |
 | `get_board_pinout` | `type:str` | A development board's documented pin map (Arduino/ESP/Pico/Pi/STM32/Teensy/...): pins with name/type/header position, digital/analog/power/ground groups, counts, notes and provenance references. Descriptive only; does not imply simulation. |
 | `get_pin_states` | — | State of every virtual MCU pin (`mcu_pin`): level, high/low/high-Z state, logic voltage, output resistance, the node it drives and its solved voltage when available. Stage A — ideal pins, no firmware. |
+| `get_firmware_capabilities` | — | Whether optional firmware execution is available: engine (`avr8js`, MIT), boards covered (AVR/Arduino), Node path, and reasons when unavailable. Nothing GPL is bundled. |
+| `run_firmware` | `hex_path:str`, `ms:int=2000` | Runs a compiled Arduino HEX (open loop, Stage B) and returns its digital pin transitions (time in ms, level) and the pins it touched. |
 | `get_solver_info` | — | Solver method (MNA), modes, nonlinear settings, device models, reference node, last convergence info. |
 
 ## B. Inspection
@@ -52,6 +54,7 @@ Component ids are stable strings (`V1`, `R1`, `GND1`, …). Pin indices start at
 | `add_component` | `component_type`, `name=""`, `holes:list[str]=[]`, `orientation=0.0`, `parameters={}`, `operation_id=""` | Returns the new `component_id`. Omitted holes can be wired later. |
 | `update_component_parameters` | `component_id`, `parameters`, `expected_revision:null` | Validates the **whole** set first; rejects invalid values atomically. |
 | `set_pin_levels` | `levels:dict[str,float]`, `simulate=false`, `expected_revision:null` | Drive virtual MCU pins (`mcu_pin`): `1` high, `0` low, `-1` high-Z; optionally re-runs the DC solve. Non-pin ids are reported as skipped. |
+| `apply_firmware_pins` | `hex_path:str`, `pin_map:dict[str,str]`, `ms=2000`, `at_ms=-1`, `simulate=false`, `expected_revision:null` | Run firmware and drive mapped `mcu_pin`s from its output at one instant (`at_ms`, default end of run); open loop (no analog feedback). |
 | `move_component` | `component_id`, `holes:list[str]=[]`, `orientation:null`, `expected_revision:null` | Repositions without silently breaking connectivity. |
 | `remove_component` | `component_id`, `confirm=false`, `expected_revision:null`, `operation_id=""` | **Destructive.** Call with `confirm=false` to preview affected connections, then `confirm=true`. |
 | `connect_terminals` | `a`, `b`, `expected_revision:null` | Returns the connection id and affected nodes. |

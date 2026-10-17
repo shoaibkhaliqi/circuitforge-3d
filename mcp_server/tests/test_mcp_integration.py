@@ -98,7 +98,8 @@ async def main() -> int:
                             "save_project", "load_project", "list_example_projects",
                             "load_example_project", "get_diagnostics", "get_solver_info",
                             "get_catalog_facets", "get_board_pinout",
-                            "get_pin_states", "set_pin_levels"}
+                            "get_pin_states", "set_pin_levels",
+                            "get_firmware_capabilities", "run_firmware", "apply_firmware_pins"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -180,6 +181,23 @@ async def main() -> int:
                        f"count={states.get('count')} state={entry.get('state') if entry else None}")
             except Exception as exc:
                 record("B4. Virtual pin control (mcu_pin Level A)", False, repr(exc))
+
+            # ---------------------------------------------------- Test B5
+            try:
+                cap = await call_ok(s, "get_firmware_capabilities")
+                avail = cap.get("available")
+                honest = (isinstance(avail, bool)
+                          and cap.get("engine") == "avr8js"
+                          and cap.get("engine_license") == "MIT"
+                          and isinstance(cap.get("boards"), list)
+                          and (avail or bool(cap.get("unavailable_reasons"))))
+                err = await call_err(s, "run_firmware", {"hex_path": "does/not/exist.hex"})
+                code = err["error"]["code"]
+                err_ok = code == "FIRMWARE_ERROR" if avail else code == "FIRMWARE_UNAVAILABLE"
+                record("B5. Firmware backend (optional, honest)", honest and err_ok,
+                       f"available={avail} engine={cap.get('engine')} err={code}")
+            except Exception as exc:
+                record("B5. Firmware backend (optional, honest)", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

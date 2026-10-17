@@ -24,6 +24,7 @@ const TEST_FILES := [
 	"res://tests/unit/test_catalog.gd",
 	"res://tests/unit/test_boards.gd",
 	"res://tests/unit/test_netlist.gd",
+	"res://tests/unit/test_firmware.gd",
 	"res://tests/integration/test_end_to_end.gd",
 	"res://tests/integration/test_examples.gd",
 ]

@@ -90,6 +90,19 @@ follow [Semantic Versioning](https://semver.org/).
     ideal logic level from a `detected` stimulus; `acs712` is a linear Hall
     current sensor, `pressure_transducer_420ma` a 4-20 mA loop source, and
     `load_cell_5kg` a four-arm Wheatstone bridge.
+- **Optional firmware execution (M7, open loop)** — the app can now run a compiled
+  Arduino HEX and drive real pins from it:
+  - `scripts/simulation/firmware_backend.gd` detects Node + the harness honestly
+    and runs a HEX on avr8js (MIT); it is unavailable-by-default and never fakes
+    success.
+  - New API/MCP tools: `get_firmware_capabilities` (read), `run_firmware` (read,
+    returns pin transitions), `apply_firmware_pins` (drives `mcu_pin` components
+    from firmware output at a chosen instant, optional DC re-solve). MCP tools
+    36 → **39**.
+  - New test file `tests/unit/test_firmware.gd` (pin-key normalisation, sampling,
+    capability honesty); suite 607 → **627**. MCP integration 14 → **15**.
+  - Firmware is open-loop Stage B: digital pins only, no analog/ADC feedback, AVR
+    only, and Node stays an optional external tool (Godot suite needs no Node).
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

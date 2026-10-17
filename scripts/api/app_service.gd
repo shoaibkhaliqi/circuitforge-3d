@@ -22,6 +22,7 @@ const ComponentDB = preload("res://scripts/components/component_db.gd")
 const BoardPins = preload("res://scripts/components/board_pins.gd")
 const Units = preload("res://scripts/simulation/units.gd")
 const CircuitSolver = preload("res://scripts/simulation/solver.gd")
+const FirmwareBackend = preload("res://scripts/simulation/firmware_backend.gd")
 
 const APP_NAME := "CircuitForge 3D"
 const APP_VERSION := "0.1.0"
@@ -102,10 +103,10 @@ func get_simulator_info() -> Dictionary:
 		"simulation_state": simulation_state,
 		"revision": revision,
 		"limitations": [
-			"Combinational logic gates only (no sequential logic or MCU).",
+			"Combinational logic gates only (no sequential logic or MCU model).",
 			"Transient integration is fixed backward-Euler.",
 			"Ideal sources; no source resistance or noise models.",
-			"No arbitrary code execution and no arbitrary filesystem access.",
+			"Optional firmware runs in an external, sandboxed AVR emulator (avr8js via Node); no native code execution. Availability is reported by get_firmware_capabilities.",
 		],
 	})
 
@@ -114,12 +115,13 @@ func get_capabilities() -> Dictionary:
 	var caps := {
 		"read": ["get_simulator_info", "get_capabilities", "get_component_catalog",
 			"get_catalog_facets", "get_board_pinout", "get_pin_states",
+			"get_firmware_capabilities", "run_firmware",
 			"get_project_summary", "list_components", "get_component", "get_connections",
 			"get_node_voltage", "get_branch_current", "get_simulation_results",
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
 			"get_waveform_data", "get_circuit_text", "get_edit_preview"],
 		"edit_reversible": ["create_project", "add_component", "update_component_parameters",
-			"set_pin_levels", "move_component", "connect_terminals", "disconnect_connection"],
+			"set_pin_levels", "apply_firmware_pins", "move_component", "connect_terminals", "disconnect_connection"],
 		"edit_destructive": ["remove_component", "clear_circuit"],
 		"simulate": ["run_dc_simulation", "run_transient_simulation", "stop_simulation"],
 		"persistence": ["save_project", "load_project", "list_example_projects",
@@ -317,6 +319,83 @@ func set_pin_levels(levels: Dictionary, simulate: bool = false, expected_revisio
 			"Add a 'mcu_pin' component and use its component_id.")
 	_bump()
 	var out := {"applied": applied, "skipped": skipped, "revision": revision}
+	if simulate:
+		out["simulation"] = run_dc_simulation()
+	return _ok(out)
+
+
+func get_firmware_capabilities() -> Dictionary:
+	return _ok(FirmwareBackend.capabilities())
+
+
+func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
+	var cap := FirmwareBackend.capabilities()
+	if not bool(cap.get("available", false)):
+		return _err("FIRMWARE_UNAVAILABLE",
+			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
+			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
+	var r := FirmwareBackend.run_hex(hex_path, ms)
+	if not bool(r.get("ok", false)):
+		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
+			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
+	var transitions: Array = r.get("transitions", [])
+	var pins := []
+	for p in FirmwareBackend.pins_touched(transitions):
+		pins.append({"digital_pin": p, "label": FirmwareBackend.label(p)})
+	return _ok({
+		"engine": FirmwareBackend.ENGINE,
+		"engine_license": FirmwareBackend.ENGINE_LICENSE,
+		"hex": hex_path,
+		"ms": int(r.get("ms", ms)),
+		"cycles": int(r.get("cycles", 0)),
+		"transition_count": transitions.size(),
+		"pins": pins,
+		"transitions": transitions,
+		"note": "Open-loop Stage B: firmware digital pin activity only; no analog feedback.",
+	})
+
+
+func apply_firmware_pins(hex_path: String, pin_map: Dictionary, ms: int = 2000, at_ms: float = -1.0, simulate: bool = false, expected_revision = null) -> Dictionary:
+	var cr := _check_revision(expected_revision)
+	if not cr.success:
+		return cr
+	if pin_map.is_empty():
+		return _err("INVALID_PARAMETER", "No pin_map was provided.",
+			"Map firmware pins to mcu_pin ids, e.g. {\"13\": \"P1\"}.")
+	var cap := FirmwareBackend.capabilities()
+	if not bool(cap.get("available", false)):
+		return _err("FIRMWARE_UNAVAILABLE",
+			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
+			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
+	var r := FirmwareBackend.run_hex(hex_path, ms)
+	if not bool(r.get("ok", false)):
+		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
+			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
+	var t := float(r.get("ms", ms)) if at_ms < 0.0 else at_ms
+	var levels := FirmwareBackend.levels_at(r.get("transitions", []), t)
+	var applied := []
+	var skipped := []
+	for key in pin_map.keys():
+		var pin := FirmwareBackend.pin_number(key)
+		var cid := String(pin_map[key])
+		var c = session.find_component(cid)
+		if c == null:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "unknown component"})
+			continue
+		if String(c.type) != "mcu_pin":
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "not an mcu_pin"})
+			continue
+		if pin < 0 or not levels.has(pin):
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "pin not driven by firmware"})
+			continue
+		var lv := float(levels[pin])
+		session.set_params(cid, {"level": lv})
+		applied.append({"pin": String(key), "component_id": cid, "level": lv, "state": _pin_state_name(lv)})
+	if applied.is_empty():
+		return _err("NO_PINS_APPLIED", "Firmware ran but no mapped pin could be applied.",
+			"Check the pin numbers and that the sketch drives them.")
+	_bump()
+	var out := {"applied": applied, "skipped": skipped, "at_ms": t, "hex": hex_path, "revision": revision}
 	if simulate:
 		out["simulation"] = run_dc_simulation()
 	return _ok(out)
