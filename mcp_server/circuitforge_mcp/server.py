@@ -255,7 +255,12 @@ def get_firmware_capabilities() -> dict[str, Any]:
 
 
 @mcp.tool(annotations=_ro(), structured_output=True)
-def run_firmware(hex_path: str, ms: int = 2000, attach_devices: bool = False) -> dict[str, Any]:
+def run_firmware(
+    hex_path: str,
+    ms: int = 2000,
+    attach_devices: bool = False,
+    analog_map: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Run a compiled Arduino HEX and return its digital pin activity and UART output.
 
     This is the open-loop (Stage B) workflow: no analog feedback yet. Compile a
@@ -272,13 +277,21 @@ def run_firmware(hex_path: str, ms: int = 2000, attach_devices: bool = False) ->
     `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With
     no devices the harness only ACKs I2C and reads return 0xFF.
 
+    With `analog_map` the circuit is solved and each mapped `mcu_analog_in`
+    component's node voltage is fed to the firmware's ADC, so `analogRead()` reads
+    the real circuit (circuit -> firmware analog feedback). The map is firmware
+    analog pin -> component id, e.g. `{"A0": "AIN1"}`; the response adds `adc` and
+    `analog_inputs`.
+
     Args:
         hex_path: Path to an Intel-HEX produced for an AVR board.
         ms: Emulated run length in milliseconds (1..10000).
         attach_devices: Attach the circuit's bus devices so firmware can read them.
+        analog_map: Firmware analog pin -> `mcu_analog_in` component id.
     """
     return _wrap(call_engine("run_firmware", {
         "hex_path": hex_path, "ms": ms, "attach_devices": attach_devices,
+        "analog_map": analog_map or {},
     }))
 
 

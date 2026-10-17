@@ -1,14 +1,17 @@
 extends RefCounted
-## Optional, external firmware backend (M7 Stage B, open loop).
+## Optional, external firmware backend (M7 Stage B).
 ##
 ## Runs a *compiled* Arduino Intel-HEX on avr8js (MIT) through Node and returns
-## the digital pin transitions. It never touches the solver, and it is entirely
-## optional: if Node or the harness is missing, `capabilities()` says so and every
-## call fails clearly instead of pretending firmware works.
+## the digital pin transitions, UART output and I2C/SPI bus activity. Firmware can
+## also *read* bus devices and the solved ADC node voltages. It never raises an
+## optional failure into the solver, and it is entirely optional: if Node or the
+## harness is missing, `capabilities()` says so and every call fails clearly
+## instead of pretending firmware works.
 ##
 ## Design constraints (see docs/plan/m7_firmware_backend.md):
 ## - The engine is MIT; nothing GPL is vendored. Node is an external tool.
-## - AVR / Arduino only for now. Digital pins only; no analog or ADC feedback.
+## - AVR / Arduino only for now. Digital pins, UART, I2C/SPI; ADC inputs can be fed
+##   from the solved circuit, but firmware output does not drive the analog circuit.
 ## - The Godot test suite must stay runnable without Node, so the node-backed path
 ##   is only exercised on demand.
 
@@ -61,7 +64,7 @@ static func capabilities() -> Dictionary:
 		"node": node,
 		"harness": harness,
 		"boards": BOARDS,
-		"stage": "open-loop (B): firmware drives digital pins and can read/write bus devices; no analog/ADC feedback",
+		"stage": "Stage B: firmware drives digital pins and bus devices, and reads solved ADC inputs; no analog output feedback",
 		"max_ms": MAX_MS,
 		"unavailable_reasons": reasons,
 	}
@@ -93,7 +96,9 @@ static func label(pin: int) -> String:
 ## `devices` is an optional list of bus devices the firmware can talk to, e.g.
 ## [{"kind": "pcf8574", "address": 39, "state": 0, "inputs": 15}], passed to the
 ## harness so the firmware can *read* them (device -> firmware feedback).
-static func run_hex(hex_path: String, ms: int = 2000, devices: Array = []) -> Dictionary:
+## `adc` maps ADC channel -> volts (e.g. {0: 2.5}) so analogRead() sees a voltage
+## (circuit -> firmware analog feedback).
+static func run_hex(hex_path: String, ms: int = 2000, devices: Array = [], adc: Dictionary = {}) -> Dictionary:
 	var cap := capabilities()
 	if not bool(cap["available"]):
 		return {"ok": false, "error": "firmware backend unavailable",
@@ -101,21 +106,12 @@ static func run_hex(hex_path: String, ms: int = 2000, devices: Array = []) -> Di
 	if not FileAccess.file_exists(hex_path):
 		return {"ok": false, "error": "firmware file not found: " + hex_path}
 	var dur := clampi(ms, MIN_MS, MAX_MS)
-	var had := OS.has_environment("CF_DEVICES")
-	var prev := OS.get_environment("CF_DEVICES") if had else ""
-	if not devices.is_empty():
-		OS.set_environment("CF_DEVICES", JSON.stringify(devices))
-	elif had:
-		OS.unset_environment("CF_DEVICES")
+	var env_dev := _with_env("CF_DEVICES", JSON.stringify(devices) if not devices.is_empty() else "")
+	var env_adc := _with_env("CF_ADC", JSON.stringify(adc) if not adc.is_empty() else "")
 	var out := []
 	var code := OS.execute(String(cap["node"]), [String(cap["harness"]), hex_path, str(dur)], out, false)
-	if not devices.is_empty():
-		if had:
-			OS.set_environment("CF_DEVICES", prev)
-		else:
-			OS.unset_environment("CF_DEVICES")
-	elif had:
-		OS.set_environment("CF_DEVICES", prev)
+	_restore_env("CF_DEVICES", env_dev)
+	_restore_env("CF_ADC", env_adc)
 	if code != 0:
 		return {"ok": false, "error": "firmware harness exited with code %d" % code}
 	var text := "" if out.is_empty() else String(out[0])
@@ -125,6 +121,25 @@ static func run_hex(hex_path: String, ms: int = 2000, devices: Array = []) -> Di
 	if not bool(parsed.get("ok", false)):
 		return {"ok": false, "error": String(parsed.get("error", "firmware harness error"))}
 	return parsed
+
+
+## Set an environment variable for a child process; returns the previous state so
+## it can be restored. Passing "" unsets it for the child.
+static func _with_env(key: String, value: String) -> Dictionary:
+	var had := OS.has_environment(key)
+	var prev := OS.get_environment(key) if had else ""
+	if value == "":
+		OS.unset_environment(key)
+	else:
+		OS.set_environment(key, value)
+	return {"had": had, "prev": prev}
+
+
+static func _restore_env(key: String, state: Dictionary) -> void:
+	if bool(state.get("had", false)):
+		OS.set_environment(key, String(state.get("prev", "")))
+	else:
+		OS.unset_environment(key)
 
 
 ## Pin -> level map at emulated time `t_ms`, from a transition list. Pins that

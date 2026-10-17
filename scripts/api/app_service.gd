@@ -328,14 +328,41 @@ func get_firmware_capabilities() -> Dictionary:
 	return _ok(FirmwareBackend.capabilities())
 
 
-func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false) -> Dictionary:
+func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false, analog_map: Dictionary = {}) -> Dictionary:
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
 	var devices := _firmware_devices() if attach_devices else []
-	var r := FirmwareBackend.run_hex(hex_path, ms, devices)
+	var adc := {}
+	var analog_applied := []
+	if not analog_map.is_empty():
+		var built: Dictionary = session.build_circuit()
+		if built.ground_net != "0":
+			return _err("NO_REFERENCE", "Analog inputs need a reference (ground) node.",
+				"Add a Ground component.")
+		var solver = CircuitSolver.new()
+		var res: Dictionary = solver.solve_dc(built.circuit)
+		if not bool(res.get("ok", false)):
+			return _err("SIMULATION_FAILURE", "Could not solve to read the analog inputs: " + String(res.get("error", "")),
+				"Check the circuit for floating nets or conflicting sources.")
+		var volts_by_node: Dictionary = res.get("node_voltages", {})
+		for key in analog_map.keys():
+			var ch := _adc_channel(key)
+			var cid := String(analog_map[key])
+			var c = session.find_component(cid)
+			if c == null or String(c.type) != "mcu_analog_in":
+				analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "not an mcu_analog_in"})
+				continue
+			var nets: Array = (built.pin_nets as Dictionary).get(cid, [])
+			if nets.is_empty():
+				analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "unplaced"})
+				continue
+			var volts := clampf(float(volts_by_node.get(String(nets[0]), 0.0)), 0.0, 5.0)
+			adc[ch] = volts
+			analog_applied.append({"channel": String(key), "component_id": cid, "voltage": volts})
+	var r := FirmwareBackend.run_hex(hex_path, ms, devices, adc)
 	if not bool(r.get("ok", false)):
 		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
 			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
@@ -349,8 +376,12 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		i2c = i2c.slice(0, FirmwareBackend.MAX_BUS_EVENTS)
 	var spi: Array = r.get("spi_bytes", [])
 	var note := "Open-loop Stage B: firmware digital pins, UART output and I2C/SPI bus traces; no analog feedback."
-	if attach_devices:
+	if attach_devices and not analog_map.is_empty():
+		note = "Closed loop: attached bus devices can be read/written and firmware ADC channels read the solved node voltages; no analog OUTPUT to the circuit."
+	elif attach_devices:
 		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware; analog/ADC feedback still absent."
+	elif not analog_map.is_empty():
+		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -368,8 +399,20 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		"spi_bytes": spi,
 		"devices": r.get("devices", []),
 		"attached_devices": devices.size(),
+		"adc": r.get("adc", {}),
+		"analog_inputs": analog_applied,
 		"note": note,
 	})
+
+
+## Firmware analog-pin key ("0".."7" or "A0".."A7") -> ADC channel number, or -1.
+func _adc_channel(key) -> int:
+	var s := String(key).strip_edges().to_upper()
+	if s.begins_with("A"):
+		s = s.substr(1)
+	if s.is_valid_int():
+		return int(s)
+	return -1
 
 
 ## Build harness device specs from the circuit's device components so firmware can

@@ -47,7 +47,7 @@ const HANDLED_TYPES := [
 	"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor",
 	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
 	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
-	"pcf8574",
+	"pcf8574", "mcu_analog_in",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -242,6 +242,10 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 				var lvl: float = 1.0 if ((bits >> n) & 1) == 1 else 0.0
 				out.append(_el("%s#P%d" % [cid, n], "gpio", [String(nets[pin_idx]), vss],
 					{"level": lvl, "vlogic": vcc, "rout": rport}))
+		"mcu_analog_in":
+			# Stage A ADC input: an ideal high-impedance probe (1 GOhm to ground), so
+			# the node keeps its solved voltage and firmware analogRead() sees it.
+			out.append(_el(cid, "resistor", [String(nets[0]), "0"], {"r": 1.0e9}))
 		"battery_aa", "battery_aaa", "battery_9v", "battery_18650", "coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu":
 			var v_def: float = float(SOURCE_DEFAULTS.get(type, 5.0))
 			var v_val: float = float(params.get("v", params.get("voltage", v_def)))

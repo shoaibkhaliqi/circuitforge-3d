@@ -14,7 +14,7 @@ follow [Semantic Versioning](https://semver.org/).
     `data/components/*.json`, exposes facets and tokenised search with filters
     (category, status, protocol, interface, mounting, arduino-compatible,
     simulatable-only, pagination).
-  - **239 definitions across 16 categories** (`data/components/`), 0 validation
+  - **240 definitions across 16 categories** (`data/components/`), 0 validation
     errors: passives, sources, semiconductors, logic, analog ICs, displays,
     sensors, communication, power, motors, connectors, instruments, development
     boards, Android hardware and mobile devices.
@@ -128,6 +128,15 @@ follow [Semantic Versioning](https://semver.org/).
     `FirmwareBackend.last_i2c_read_byte` extracts the value. The harness also models
     a 24xx-style `eeprom` device. Suite 645 → **648**. Still no analog/ADC feedback
     (the electrical solver is not in the loop).
+  - **Closed analog loop (circuit → firmware)**: new virtual part
+    **`mcu_analog_in`** (an ideal 1 GΩ high-impedance ADC probe); the harness
+    instantiates `AVRADC` and sets channel voltages from `CF_ADC`.
+    `run_firmware(..., analog_map={"A0": "AIN1"})` solves the circuit and feeds each
+    mapped node's voltage to `analogRead()`. Sketch `firmware/sketches/analog_read`
+    + `verify_analog.mjs` assert 2.5 V → code 512; a divider midpoint solves to
+    2.0 V → code 409. MCP tools unchanged (40); MCP integration 16 → **17** (Test
+    B7); suite 648 → **653**; catalog 239 → **240** defs (Virtual 1 → 2), simulatable
+    73 → **74**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

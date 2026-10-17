@@ -215,6 +215,22 @@ async def main() -> int:
             except Exception as exc:
                 record("B6. Firmware device (PCF8574)", False, repr(exc))
 
+            # ---------------------------------------------------- Test B7
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-Analog"})
+                await call_ok(s, "add_component", {"component_type": "ground", "holes": ["TM1"]})
+                ain = (await call_ok(s, "add_component",
+                                     {"component_type": "mcu_analog_in",
+                                      "holes": ["a1"]}))["component_id"]
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "analog_map": {"A0": ain}})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B7. Firmware analog inputs", ok, f"code={code}")
+            except Exception as exc:
+                record("B7. Firmware analog inputs", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

@@ -10,16 +10,16 @@ This report is deliberately blunt: it separates *what looks like a part* from
 
 | metric | value |
 |--------|-------|
-| Definitions | 239 |
+| Definitions | 240 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 73 |
+| Simulatable (`full` + `partial`) | 74 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 48 | real but approximate electrical model |
+| `partial` | 49 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
 | `external` | 36 | host/backend behaviour (USB, ADB, firmware) |
 | `planned` | 107 | catalogued and placeable, not simulated yet |
@@ -44,7 +44,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | Board | 20 |
 | Android Hardware | 12 |
 | Mobile Device | 15 |
-| Virtual | 1 |
+| Virtual | 2 |
 
 ## Fully simulated core (`full`)
 
@@ -61,8 +61,9 @@ Documented approximations: capacitor variants (`electrolytic_capacitor`,
 `toggle_switch`, `reed_switch`, `polyfuse`; ideal-source batteries and cells
 (`battery_aa`/`aaa`/`9v`/`18650`, `coin_cell_cr2032`, `lipo_1s`,
 `battery_aa_holder`), `usb_power_5v`, `bench_psu`, `breadboard_psu_5v`,
-`ac_source`; the infra-red `led_ir`; the Stage-A virtual MCU pin `mcu_pin`
-(an ideal Thevenin driver); resistive sensors (`thermistor_ntc`,
+`ac_source`; the infra-red `led_ir`; the Stage-A virtual pins `mcu_pin` (an ideal
+Thevenin driver) and `mcu_analog_in` (an ideal 1 GΩ high-impedance ADC probe);
+resistive sensors (`thermistor_ntc`,
 `photoresistor_ldr`, `rtd_pt100`) whose resistance is set by a stimulus
 parameter; and brushed motors (`dc_motor`, `dc_gearmotor_tt`, `fan_5v`,
 `vibration_motor`) modelled as winding resistance plus an assumed back-EMF,
@@ -97,8 +98,10 @@ marks bits externally held low.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional, open-loop firmware backend now
   exists (AVR firmware on the MIT avr8js engine, driving `mcu_pin`s from firmware
-  output and exposing UART/`Serial` plus I2C/SPI bus traces); other protocol/digital
-  parts stay `planned` until a firmware-driven part is itself tested and mapped.
+  output and exposing UART/`Serial` plus I2C/SPI bus traces; `pcf8574` devices can
+  be read/written; and `mcu_analog_in` nodes feed firmware `analogRead()`); other
+  protocol/digital parts stay `planned` until a firmware-driven part is itself
+  tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,
   OTG, ADB and UART debug are modelled, and UART debug wiring varies per device.
 - `xnor` is catalogued but not solved; sequential logic (`d_flip_flop`, counters,

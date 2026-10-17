@@ -69,6 +69,25 @@ func run(t) -> void:
 		t.near(e.params["rout"], 25.0, "default output resistance = 25 Ohm")
 		t.near(e.params["level"], 1.0, "default level = 1 (high)")
 
+	# ---- mcu_analog_in -> high-Z probe -----------------------------------
+	t.section("Netlist - virtual analog input is a high-impedance probe")
+	var acirc = builder.build(bb, [
+		_place("V1", "vsource", ["TP1", "TM1"], {"v": 4.0}),
+		_place("R1", "resistor", ["TP1", "a1"], {"r": 1000.0}),
+		_place("R2", "resistor", ["a1", "TM1"], {"r": 1000.0}),
+		_place("AIN1", "mcu_analog_in", ["a1"], {}),
+		_place("GND", "ground", ["TM1"]),
+	], [])
+	var ae = _by_id(acirc, "AIN1")
+	t.check(ae != null and ae.type == "resistor", "mcu_analog_in becomes a high-Z probe")
+	if ae != null:
+		t.near(float(ae.params["r"]), 1.0e9, "probe resistance is 1 GOhm", 1.0)
+		t.check(String(ae.nets[1]) == "0", "probe references ground")
+	var ar = CircuitSolver.new().solve_dc(acirc.circuit)
+	t.check(ar.ok, "divider with an analog input solves", ar.get("error", ""))
+	if ar.ok:
+		t.near(ar.node_voltages["a1"], 2.0, "probe reads the divider midpoint", 1e-2)
+
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")
 	var gc = t.make_circuit([

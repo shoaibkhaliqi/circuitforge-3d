@@ -31,6 +31,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/expander firmware/sketches/expander
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/expander_read firmware/sketches/expander_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/analog_read firmware/sketches/analog_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -44,6 +46,7 @@ node verify.mjs ../build/blink/blink.ino.hex
 node verify_serial.mjs ../build/serial_hello/serial_hello.ino.hex
 node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
 node verify_expander_read.mjs ../build/expander_read/expander_read.ino.hex
+node verify_analog.mjs ../build/analog_read/analog_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -69,6 +72,19 @@ CF_DEVICES='[{"kind":"pcf8574","address":39,"state":255,"inputs":15}]' \
 Supported `kind`s: `pcf8574` (`state`, `inputs`) and `eeprom` (`size`, `init`).
 The app does this automatically: `run_firmware(..., attach_devices=true)` builds
 the specs from the circuit's `pcf8574` components.
+
+## Analog inputs (circuit → firmware)
+
+`run.mjs` also reads `CF_ADC`, a JSON map of ADC channel → volts, and feeds it to
+the AVR's ADC so `analogRead()` reads a real voltage:
+
+```sh
+# analogRead(A0) reads 2.5 V -> code 512
+CF_ADC='{"0":2.5}' node run.mjs ../build/analog_read/analog_read.ino.hex 1600
+```
+
+The app does this automatically: `run_firmware(..., analog_map={"A0": "AIN1"})`
+solves the circuit and feeds each `mcu_analog_in` node's voltage to the channel.
 
 These steps are **not** part of `tests/run_tests.gd`: the Godot suite must stay
 runnable with only Godot installed. They are run manually / in a separate job.

@@ -187,17 +187,39 @@ the PCF8574 below.
   solved node voltage). Other protocol parts stay `planned` until they get the same
   treatment.
 
-## 10. Recommendation
+## 10. Analog loop: `mcu_analog_in` → `analogRead()` (executed)
+
+The AVR's own ADC is now in the loop. New virtual part **`mcu_analog_in`**
+(`data/components/virtual.json`, `partial`) is an ideal high-impedance probe:
+the netlist emits a 1 GΩ resistor to ground (draws ~nA, so it never loads the
+circuit meaningfully and needs a ground elsewhere), and the node keeps its solved
+voltage.
+
+- **Harness**: instantiates `AVRADC(cpu, adcConfig)`; `CF_ADC` (a JSON map of
+  channel → volts) sets `adc.channelValues`. `analogRead(Ax)` then returns the
+  converted code; the run output adds `adc`.
+- **App**: `run_firmware(..., analog_map={"A0": "AIN1"})` builds the circuit,
+  solves DC, and feeds each mapped `mcu_analog_in` component's node voltage
+  (clamped to 0..5 V) to the matching ADC channel; the response adds `adc` and
+  `analog_inputs`. This is circuit → firmware analog feedback.
+- **Verified**: `firmware/sketches/analog_read` + `verify_analog.mjs` → 2.5 V reads
+  as code 512; end-to-end, a 4 V source across 1 kΩ + 1 kΩ solves the midpoint to
+  2.0 V and `analogRead(A0)` returns 409. Node-free probe mapping is covered by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B7.
+
+## 11. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
 **avr8js (MIT)** result above for the same reason §4 prefers it: no GPL is
 vendored into the MIT binary. The sidecar `get_firmware_capabilities` /
 `run_firmware` / `apply_firmware_pins` / `apply_firmware_device` surface in §5 is
 now built on top of `firmware/harness/run.mjs`, and the PCF8574 (§9) is the first
-catalog status change backed by a real firmware-driven test. The bus loop is now
-closed for the PCF8574 (§9): firmware reads device state and writes it back.
-Remaining work: device→firmware feedback for the *analog* domain (drive `inputs`
-from solved node voltages), more device models (LCD/OLED, I²C ADCs/EEPROMs, DHT,
-ultrasonic), and a streaming/interactive mode if a blocking run proves too coarse.
-If the app-side integration ever cannot meet the gate (e.g. timing or packaging),
-fall back to a separately-installed `simavr` and keep the feature capability-flagged.
+catalog status change backed by a real firmware-driven test. The bus loop is closed
+for the PCF8574 (§9): firmware reads device state and writes it back. The analog
+loop is also closed (§10): `mcu_analog_in` feeds the AVR `analogRead()` from the
+solved circuit. Remaining work: link the analog source to specific *devices* (e.g.
+an I²C ADC's channels from solved nodes), more device models (LCD/OLED, EEPROM
+through the app, DHT, ultrasonic), and a streaming/interactive mode if a blocking
+run proves too coarse. If the app-side integration ever cannot meet the gate (e.g.
+timing or packaging), fall back to a separately-installed `simavr` and keep the
+feature capability-flagged.

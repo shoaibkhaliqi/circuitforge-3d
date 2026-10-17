@@ -27,8 +27,30 @@
       "simulation_models": ["thevenin-driver"],
       "simulation_backend": "mna",
       "arduino_compatible": true,
-      "notes": "Stage A simplification: the pin is an ideal voltage source in series with a fixed output resistance. Level -1 is high-impedance (weak pull). No slew rate, drive-strength curve, protection or firmware are modelled. Stage B/C (real code execution) is feasibility-gated and not implemented.",
+      "notes": "Stage A simplification: the pin is an ideal voltage source in series with a fixed output resistance. Level -1 is high-impedance (weak pull). No slew rate, drive-strength curve, protection or firmware are modelled here. An optional Stage-B firmware backend can drive this pin from compiled Arduino code (apply_firmware_pins / apply_firmware_device).",
       "references": ["Generic GPIO output stage - ideal Thevenin model (see docs/catalog/schema.md)"]
+    },
+    {
+      "id": "mcu_analog_in",
+      "name": "Virtual MCU Analog Input (ADC)",
+      "category": "Virtual",
+      "subcategory": "Analog Input",
+      "manufacturer": "",
+      "part_number": "",
+      "description": "One microcontroller ADC channel you read from firmware: an ideal high-impedance probe on a node. Firmware analogRead() returns the solved node voltage (0..AVcc).",
+      "keywords": ["mcu", "adc", "analog", "input", "virtual", "probe", "analogread"],
+      "pins": [
+        {"name": "SIG", "type": "analog"}
+      ],
+      "protocols": ["ADC"],
+      "model": {"shape": "breakout_module"},
+      "mounting": "module",
+      "simulation_status": "partial",
+      "simulation_models": ["high-z-probe"],
+      "simulation_backend": "mna+firmware",
+      "arduino_compatible": true,
+      "notes": "Ideal high-impedance input, modelled as a 1 GOhm probe to ground (draws ~nA), so it never loads the circuit meaningfully and needs a ground reference elsewhere. Read it with run_firmware(analog_map) so firmware analogRead(ch) returns the solved node voltage. No input capacitance, leakage, sample-and-hold droop or conversion error is modelled.",
+      "references": ["ATmega328P ADC input - ideal high-impedance model (see docs/plan/m7_firmware_backend.md)"]
     }
   ]
 }

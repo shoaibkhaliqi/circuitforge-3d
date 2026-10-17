@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); first device (PCF8574) modelled `partial` |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -264,6 +264,13 @@ catalog that replaces the hardcoded definition list.
   exists via `apply_firmware_device`, so both directions are covered. Helpers
   `FirmwareBackend.last_i2c_read_byte`; harness device models include a 24xx-style
   `eeprom`. Suite **648/648**; MCP **16/16**. Still no analog/ADC feedback.
+- **Closed analog loop (circuit → firmware)**: new virtual part **`mcu_analog_in`**
+  (ideal 1 GΩ high-impedance ADC probe, `partial`, `Virtual` 1 → 2 parts); the
+  harness instantiates `AVRADC` and sets channel voltages from `CF_ADC`.
+  `run_firmware(..., analog_map={"A0": "AIN1"})` solves the circuit and feeds each
+  mapped node's voltage to `analogRead()`. Verified: 2.5 V → code 512
+  (`verify_analog.mjs`); a 4 V/1k+1k divider midpoint (2.0 V) → code 409. Suite
+  **653/653**; MCP **17/17** (new Test B7); catalog **240** defs, simulatable **74**.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

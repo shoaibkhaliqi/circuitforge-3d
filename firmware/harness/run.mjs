@@ -18,6 +18,7 @@ import {
   AVRUSART,
   AVRTWI,
   AVRSPI,
+  AVRADC,
   AVRIOPort,
   timer0Config,
   timer1Config,
@@ -25,6 +26,7 @@ import {
   usart0Config,
   twiConfig,
   spiConfig,
+  adcConfig,
   portBConfig,
   portCConfig,
   portDConfig,
@@ -201,6 +203,32 @@ spiDevice.onByte = (value) => {
   spiDevice.completeTransfer(0x00);
 };
 
+// ADC: analog inputs. `CF_ADC` is a JSON object mapping ADC channel -> volts, e.g.
+// {"0":2.5} makes analogRead(A0) read a 2.5 V input (device/circuit -> firmware
+// analog feedback). Channels not listed read 0 V. Reference is AVcc (default 5 V).
+const adc = new AVRADC(cpu, adcConfig);
+function loadAdcChannels() {
+  const raw = process.env.CF_ADC;
+  const out = {};
+  if (!raw) return out;
+  let spec;
+  try {
+    spec = JSON.parse(raw);
+  } catch {
+    return out;
+  }
+  for (const [ch, v] of Object.entries(spec ?? {})) {
+    const channel = Number(ch);
+    const volts = Number(v);
+    if (Number.isFinite(channel) && Number.isFinite(volts)) {
+      adc.channelValues[channel] = volts;
+      out[channel] = volts;
+    }
+  }
+  return out;
+}
+const adcChannels = loadAdcChannels();
+
 const UNO_PIN = {
   B0: 8, B1: 9, B2: 10, B3: 11, B4: 12, B5: 13,
   C0: 14, C1: 15, C2: 16, C3: 17, C4: 18, C5: 19,
@@ -246,6 +274,7 @@ process.stdout.write(
       serial_bytes: serialBytes.length,
       i2c,
       devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
+      adc: adcChannels,
       spi_bytes: spi,
       transitions,
     },
