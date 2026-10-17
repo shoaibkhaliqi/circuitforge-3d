@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | in progress (3 new examples, solver gmin fix + scale test, suite 593/593; windowed screenshots to go) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 593/593; Linux runtime verification remains blocked on WSL) |
 
 ## 3a. Progress log
 
@@ -254,6 +254,9 @@ catalog that replaces the hardcoded definition list.
   `test_examples.gd` spot-checks.
 - **Scale test** (`tests/solver/test_scale.gd`): a 200-node resistor ladder
   solves in ~14 ms, guarding against accidental solver complexity regressions.
+- **Visual evidence**: the app takes `-- --screenshot=<path>` (load, settle,
+  save PNG, quit); `docs/plan/m10_seven_segment.png` and
+  `docs/plan/m10_ntc_thermistor.png` show the new examples solving in the UI.
 - Regression: **593 / 593 tests pass**, MCP **14 / 14**, headless load exits 0,
   catalog report has 0 errors.
 - Remaining: a component-count/performance pass, and a windowed screenshot pass

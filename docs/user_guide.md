@@ -151,6 +151,12 @@ godot --path <project> -- res://data/examples/04_voltage_divider.cf3d
 | 09_led_switch                 | Switch-controlled LED                  | LED on when switch closed                |
 | 10_zener_regulator            | Zener clamp                            | output clamped near breakdown            |
 | 11_logic_and                  | AND gate driving an LED                | LED on (both inputs high); out ≈5 V      |
+| 12_seven_segment              | 7-segment digit via virtual pins       | segments B and C lit; ≈12 mA each        |
+| 13_ntc_thermistor             | NTC + 10k divider                      | 2.5 V at 25 °C; ~3.6 V at 50 °C          |
+| 14_limit_switch_motor         | Limit switch switching a DC motor      | ≈1 A when actuated; ~0 when released     |
+
+Add `--screenshot=<path>` to the command line to save a PNG of the window once
+the circuit has settled (useful for automated visual evidence).
 
 ## 9. Keyboard & mouse
 

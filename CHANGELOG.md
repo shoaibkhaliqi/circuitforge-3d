@@ -98,6 +98,9 @@ follow [Semantic Versioning](https://semver.org/).
 - **Solver scale test** (`tests/solver/test_scale.gd`): a 200-node resistor
   ladder solves in ~14 ms (well under the 5 s guard), protecting against
   accidental complexity regressions.
+- **Windows screenshot option**: `-- --screenshot=<path>` loads a circuit, lets
+  the window settle, saves a PNG and quits — used to produce
+  `docs/plan/m10_*.png` visual evidence.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

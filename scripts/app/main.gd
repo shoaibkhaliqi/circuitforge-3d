@@ -22,6 +22,7 @@ var wire_root: Node3D
 var preview_root: Node3D
 var viewport3d: SubViewport
 var _hover_hole := ""
+var _screenshot_path := ""
 
 const WIRE_PALETTE := [
 	Color(0.93, 0.32, 0.30), Color(0.30, 0.55, 0.95), Color(0.95, 0.74, 0.25),
@@ -115,18 +116,40 @@ func _update_title() -> void:
 
 func _open_from_command_line() -> void:
 	var args := OS.get_cmdline_user_args()
-	if args.is_empty():
-		return
-	var path := String(args[0])
-	if not session.load_project(path):
-		return
-	session.mark_untitled()
-	var mode := String(session.project.get("simulation", {}).get("mode", "dc"))
-	_on_status("Loaded %s" % path)
-	if mode == "transient":
-		_on_run_transient()
-	else:
-		_on_run_dc()
+	var path := ""
+	var i := 0
+	while i < args.size():
+		var a := String(args[i])
+		if a.begins_with("--screenshot"):
+			if a.contains("="):
+				_screenshot_path = a.substr(a.find("=") + 1)
+			elif i + 1 < args.size():
+				i += 1
+				_screenshot_path = String(args[i])
+		elif not a.begins_with("--"):
+			path = a
+		i += 1
+	if path != "":
+		if not session.load_project(path):
+			return
+		session.mark_untitled()
+		var mode := String(session.project.get("simulation", {}).get("mode", "dc"))
+		_on_status("Loaded %s" % path)
+		if mode == "transient":
+			_on_run_transient()
+		else:
+			_on_run_dc()
+	if _screenshot_path != "":
+		_capture_screenshot()
+
+
+func _capture_screenshot() -> void:
+	for i in 18:
+		await get_tree().process_frame
+	var img := get_viewport().get_texture().get_image()
+	var err := img.save_png(_screenshot_path)
+	print("screenshot written to %s (err=%d)" % [_screenshot_path, err])
+	get_tree().quit()
 
 
 # ---------------------------------------------------------------------------

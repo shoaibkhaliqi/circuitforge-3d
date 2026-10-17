@@ -63,6 +63,13 @@ godot --path <project> -- res://data/examples/05_rc_charging.cf3d
 
 The project loads and immediately runs its default analysis.
 
+Add `--screenshot=<path>` to save a PNG of the window once it has settled, which
+is handy for automated visual evidence:
+
+```
+godot --path <project> -- --screenshot=shot.png res://data/examples/12_seven_segment.cf3d
+```
+
 ## Running from source
 
 Requires **Godot 4.7** (standard, not .NET).
