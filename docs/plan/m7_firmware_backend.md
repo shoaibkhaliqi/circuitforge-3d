@@ -139,6 +139,15 @@ end-to-end: with a 1 kΩ pin-to-ground load, D13 at 100 ms (HIGH) solves the sig
 node to 4.878 V (= 5 V · 1000/1025). Until a firmware-driven protocol part is
 itself tested, the catalog labels do not change.
 
+### First protocol surface: UART
+
+The harness now also instantiates USART0 and captures every transmitted byte, so a
+sketch's `Serial.print` output is readable through the engine. Verified with
+`firmware/sketches/serial_hello`: `run_firmware` returns `serial` = "CircuitForge
+tick 0…4" (105 bytes over 2.2 s) and `serial_lines`. This is the groundwork for
+protocol parts (a bus/line where firmware output is the observable) without yet
+modeling a device on the other end.
+
 ## 9. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working

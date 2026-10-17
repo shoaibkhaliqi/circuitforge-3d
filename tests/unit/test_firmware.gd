@@ -44,6 +44,16 @@ func run(t) -> void:
 	var touched := FirmwareBackend.pins_touched(trs)
 	t.check(touched == [12, 13], "touched == [12, 13]", str(touched))
 
+	t.section("Firmware - serial decode helpers")
+	var lines := FirmwareBackend.serial_lines("a\r\nb\n\nc\n")
+	t.check(lines == ["a", "b", "c"], "serial_lines drops CR and empties", str(lines))
+	t.check(FirmwareBackend.serial_lines("").is_empty(), "empty serial -> no lines")
+	var long := "x".repeat(FirmwareBackend.MAX_SERIAL_CHARS + 50)
+	var cut := FirmwareBackend.truncate_serial(long)
+	t.check(cut.length() < long.length(), "long serial is truncated")
+	t.check(cut.ends_with("[serial truncated]"), "truncation is marked")
+	t.check(FirmwareBackend.truncate_serial("hi") == "hi", "short serial is untouched")
+
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()
 	t.check(cap.get("engine") == "avr8js", "engine is avr8js")

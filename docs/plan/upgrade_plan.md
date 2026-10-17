@@ -233,7 +233,12 @@ catalog that replaces the hardcoded definition list.
   components from firmware output at a chosen instant (verified: D13 high at
   100 ms drives the signal node to 4.878 V = 5 V·1000/1025). **No catalog status
   changes** — protocol parts stay `planned`/`visual` until that is backed by tests.
-  Node remains an optional external tool; the Godot suite is Node-free (627/627).
+  Node remains an optional external tool; the Godot suite is Node-free (632/632).
+- **First protocol surface (UART)**: the harness instantiates USART0 and captures
+  transmitted bytes, so `Serial.print` output is readable through `run_firmware`
+  (`serial` / `serial_lines`). Verified with `firmware/sketches/serial_hello`
+  ("CircuitForge tick 0…4", 105 bytes). Groundwork for protocol parts; no device
+  is modeled on the other end yet.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

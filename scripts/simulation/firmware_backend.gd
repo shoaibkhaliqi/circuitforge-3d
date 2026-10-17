@@ -18,6 +18,7 @@ const ENGINE_LICENSE := "MIT"
 const BOARDS := ["arduino:avr:uno", "arduino:avr:nano"]
 const MIN_MS := 1
 const MAX_MS := 10000
+const MAX_SERIAL_CHARS := 20000
 
 static var _probed: bool = false
 static var _node: String = ""
@@ -128,6 +129,22 @@ static func levels_at(transitions: Array, t_ms: float) -> Dictionary:
 			break
 		levels[pin] = int(tr.get("level", 0))
 	return levels
+
+
+## Split captured UART output into non-empty lines (handles CRLF or LF).
+static func serial_lines(text: String) -> Array:
+	var out := []
+	for line in text.replace("\r\n", "\n").split("\n"):
+		if not String(line).is_empty():
+			out.append(line)
+	return out
+
+
+## Cap returned serial text so a chatty sketch cannot flood an API/MCP response.
+static func truncate_serial(text: String) -> String:
+	if text.length() <= MAX_SERIAL_CHARS:
+		return text
+	return text.substr(0, MAX_SERIAL_CHARS) + "\n... [serial truncated]"
 
 
 static func pins_touched(transitions: Array) -> Array:

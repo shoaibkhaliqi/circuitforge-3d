@@ -103,6 +103,10 @@ follow [Semantic Versioning](https://semver.org/).
     capability honesty); suite 607 → **627**. MCP integration 14 → **15**.
   - Firmware is open-loop Stage B: digital pins only, no analog/ADC feedback, AVR
     only, and Node stays an optional external tool (Godot suite needs no Node).
+  - **First protocol surface (UART)**: the harness instantiates USART0 and captures
+    transmitted bytes, so `Serial.print` output is returned by `run_firmware` as
+    `serial` / `serial_lines` (`firmware/sketches/serial_hello` verifier asserts
+    "CircuitForge tick 0…4"). Suite 627 → **632**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 627 / 627 passed
+RESULT: 632 / 632 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,7 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial decode, capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |

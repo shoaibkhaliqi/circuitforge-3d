@@ -342,6 +342,7 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 	var pins := []
 	for p in FirmwareBackend.pins_touched(transitions):
 		pins.append({"digital_pin": p, "label": FirmwareBackend.label(p)})
+	var serial := FirmwareBackend.truncate_serial(String(r.get("serial", "")))
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -351,7 +352,10 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 		"transition_count": transitions.size(),
 		"pins": pins,
 		"transitions": transitions,
-		"note": "Open-loop Stage B: firmware digital pin activity only; no analog feedback.",
+		"serial": serial,
+		"serial_bytes": int(r.get("serial_bytes", serial.length())),
+		"serial_lines": FirmwareBackend.serial_lines(serial),
+		"note": "Open-loop Stage B: firmware digital pin activity and UART output; no analog feedback.",
 	})
 
 

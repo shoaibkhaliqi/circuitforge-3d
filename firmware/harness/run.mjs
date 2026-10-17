@@ -15,10 +15,12 @@ import {
   CPU,
   avrInstruction,
   AVRTimer,
+  AVRUSART,
   AVRIOPort,
   timer0Config,
   timer1Config,
   timer2Config,
+  usart0Config,
   portBConfig,
   portCConfig,
   portDConfig,
@@ -73,6 +75,13 @@ const ports = {
   D: new AVRIOPort(cpu, portDConfig),
 };
 
+// USART0 (the Uno's USB-serial): capture every byte the sketch transmits so a
+// caller can read Serial.print output. This is the first real *protocol* surface
+// (UART) the harness exposes, independent of the digital-pin transitions.
+const usart = new AVRUSART(cpu, usart0Config, F_CPU);
+const serialBytes = [];
+usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
+
 const UNO_PIN = {
   B0: 8, B1: 9, B2: 10, B3: 11, B4: 12, B5: 13,
   C0: 14, C1: 15, C2: 16, C3: 17, C4: 18, C5: 19,
@@ -113,6 +122,8 @@ process.stdout.write(
       hex: hexPath,
       ms: msLimit,
       cycles: cpu.cycles,
+      serial: Buffer.from(serialBytes).toString('utf8'),
+      serial_bytes: serialBytes.length,
       transitions,
     },
     null,
