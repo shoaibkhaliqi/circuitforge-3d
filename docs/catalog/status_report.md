@@ -10,7 +10,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 
 | metric | value |
 |--------|-------|
-| Definitions | 241 |
+| Definitions | 242 |
 | Categories | 16 |
 | Simulatable (`full` + `partial`) | 75 |
 
@@ -21,7 +21,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 50 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 36 | host/backend behaviour (USB, ADB, firmware) |
+| `external` | 37 | host/backend behaviour (USB, ADB, firmware) |
 | `planned` | 107 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
@@ -96,7 +96,9 @@ marks bits externally held low.
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly. The
   `pcf8574` I2C expander is the first *bus* part backed by firmware: firmware drives
-  its port (last I2C write byte) and can read it back (device → firmware).
+  its port (last I2C write byte) and can read it back (device → firmware). The
+  `eeprom_i2c` 24LC256 is a pure-backend part (`external`): it has no breadboard
+  electrical model and is served on the I2C bus only while firmware runs.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`

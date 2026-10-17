@@ -416,20 +416,27 @@ func _adc_channel(key) -> int:
 
 
 ## Build harness device specs from the circuit's device components so firmware can
-## read (and write) them. Currently only the PCF8574 expander.
+## read (and write) them: the PCF8574 expander and the 24LC256 I2C EEPROM.
 func _firmware_devices() -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
 	for c in comps:
-		if String(c.get("type", "")) != "pcf8574":
-			continue
+		var t := String(c.get("type", ""))
 		var p: Dictionary = c.get("params", {})
-		out.append({
-			"kind": "pcf8574",
-			"address": int(p.get("address", 39)) & 0x7F,
-			"state": int(p.get("state", 0)) & 0xFF,
-			"inputs": int(p.get("inputs", 0)) & 0xFF,
-		})
+		if t == "pcf8574":
+			out.append({
+				"kind": "pcf8574",
+				"address": int(p.get("address", 39)) & 0x7F,
+				"state": int(p.get("state", 0)) & 0xFF,
+				"inputs": int(p.get("inputs", 0)) & 0xFF,
+			})
+		elif t == "eeprom_i2c":
+			out.append({
+				"kind": "eeprom",
+				"address": int(p.get("address", 80)) & 0x7F,
+				"size": clampi(int(p.get("size", 256)), 1, 32768),
+				"init": [],
+			})
 	return out
 
 

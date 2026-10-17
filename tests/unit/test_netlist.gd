@@ -105,6 +105,11 @@ func run(t) -> void:
 	if pwr.ok:
 		t.near(pwr.node_voltages["a1"], 2.0 * 1000.0 / 1025.0, "output sags to 2*1k/(1k+25)", 1e-3)
 
+	# ---- eeprom_i2c is a firmware/backend part, not a solver model -------
+	t.section("Netlist - I2C EEPROM is backend-only, not a solver model")
+	t.check(ComponentDB.status_of("eeprom_i2c") == "external", "eeprom_i2c status is 'external'")
+	t.check(not NetlistBuilder.handles("eeprom_i2c"), "eeprom_i2c is not mapped by the solver")
+
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")
 	var gc = t.make_circuit([

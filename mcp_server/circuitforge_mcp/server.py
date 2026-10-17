@@ -271,11 +271,12 @@ def run_firmware(
     I2C/SPI bus traces (`i2c` transactions with address/data, `i2c_addresses`,
     `spi_bytes`).
 
-    With `attach_devices=True` the circuit's device components (currently the
-    `pcf8574`, using its `state`/`inputs`/`address` parameters) are attached to the
-    emulated bus, so firmware can *read* them (device -> firmware feedback, e.g.
-    `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With
-    no devices the harness only ACKs I2C and reads return 0xFF.
+    With `attach_devices=True` the circuit's device components (the `pcf8574`, using
+    its `state`/`inputs`/`address` parameters, and the `eeprom_i2c`, using
+    `address`/`size`) are attached to the emulated bus, so firmware can read/write
+    them (device -> firmware feedback, e.g. `Wire.requestFrom`); the response adds
+    `devices` and `attached_devices`. With no devices the harness only ACKs I2C and
+    reads return 0xFF.
 
     With `analog_map` the circuit is solved and each mapped `mcu_analog_in`
     component's node voltage is fed to the firmware's ADC, so `analogRead()` reads

@@ -184,10 +184,30 @@ the PCF8574 below.
   `firmware/harness/verify_expander_read.mjs`. Node-free mapping is covered by
   `tests/unit/test_netlist.gd`; the byte helpers by `tests/unit/test_firmware.gd`
   (`last_i2c_write_byte` / `last_i2c_read_byte`); the tool surface by MCP Test B6.
-- **Still limited**: only one device type is modelled, and the electrical solver is
-  not in the loop (analog/ADC feedback is absent; `inputs` is a parameter, not a
-  solved node voltage). Other protocol parts stay `planned` until they get the same
-  treatment.
+- **Still limited**: the electrical solver is not *driven* by the expander's bus
+  traffic (its pins map to `state`/`inputs` parameters, not solved node voltages);
+  the analog feedback that closes the loop is covered in §10–§11. Other protocol
+  parts stay `planned` until they get the same treatment.
+
+## 9b. Second device: 24LC256 I2C EEPROM (executed)
+
+`eeprom_i2c` (`data/components/analog_ic.json`) is the first **`external`** part
+added for the firmware backend — it has *no* breadboard electrical model (so it is
+not in `HANDLED_TYPES`), and is served on the I2C bus only while firmware runs:
+
+- **Model**: the harness `eeprom` device implements the standard two-byte address
+  then data write with an auto-incrementing pointer, and sequential reads; it
+  returns the resulting memory image as `devices[].mem`.
+- **Path**: `run_firmware(..., attach_devices=true)` attaches the circuit's
+  `eeprom_i2c` (`address` default `0x50`, `size` default 256).
+- **Verified**: `firmware/sketches/eeprom_roundtrip` stores `0xA5` at 0x0000 and
+  reads it back (`Serial` "eeprom 165"); `eeprom_read` reads the stored byte;
+  `firmware/harness/verify_eeprom.mjs` asserts both. `tests/unit/test_netlist.gd`
+  asserts `eeprom_i2c` is `external` and *not* solver-mapped; the tool surface by
+  MCP Test B9.
+- **Limits (honest)**: timing, write-cycle delay, page boundaries, the WP pin, ACK
+  polling, endurance and data retention across *separate runs* are not modelled —
+  the memory lives only for the duration of one run.
 
 ## 10. Analog loop: `mcu_analog_in` → `analogRead()` (executed)
 

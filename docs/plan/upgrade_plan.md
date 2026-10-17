@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()` |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -278,6 +278,13 @@ catalog that replaces the hardcoded definition list.
   to `duty·vlogic`, optionally re-solving. Verified: `analogWrite(9,128)` measures
   ~50.2% duty at ~490 Hz → 2.509 V, sagging to 2.448 V across 1 kΩ (`verify_pwm.mjs`).
   Suite **663/663**; MCP **18/18** (new Test B8); catalog **241** defs, simulatable **75**.
+- **I2C EEPROM device — 24LC256**: new `eeprom_i2c` part (`external`, no breadboard
+  model). `run_firmware(..., attach_devices=true)` attaches it; the harness `eeprom`
+  device does two-byte-address writes plus sequential reads and returns the memory
+  image (`devices[].mem`). Sketches `eeprom_roundtrip` (store `0xA5`, read back) and
+  `eeprom_read` + `verify_eeprom.mjs` assert "eeprom 165". Honest limit: memory does
+  not persist across separate runs. Suite **665/665**; MCP **19/19** (new Test B9);
+  catalog **242** defs (`external` 36 → 37).
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

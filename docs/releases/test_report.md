@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 663 / 663 passed
+RESULT: 665 / 665 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -33,7 +33,7 @@ STATUS: ALL TESTS PASSED
 |------------------------------------------------------------|---------------------|
 | LinAlg — linear solve                                      | numeric core        |
 | Schema — normalise, validate, status vocabulary            | catalog schema      |
-| Catalog — load, validate all 241, search, facets, status   | catalog             |
+| Catalog — load, validate all 242, search, facets, status   | catalog             |
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
@@ -105,7 +105,7 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 18 / 18 passed
+RESULTS: 19 / 19 passed
 ```
 
 | Test | Checks | Result |
@@ -113,13 +113,14 @@ RESULTS: 18 / 18 passed
 | A. Server initialization | name `circuitforge-3d`, 41 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
-| B2. Catalog discovery | 241 entries, status facets/filters, I2C filter, 0 errors | pass |
+| B2. Catalog discovery | 242 entries, status facets/filters, I2C filter, 0 errors | pass |
 | B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | B4. Virtual pin control | mcu_pin high/low/high-Z via set_pin_levels + get_pin_states | pass |
 | B5. Firmware backend | optional/honest capabilities; missing-HEX is a clean error | pass |
 | B6. Firmware device | create `pcf8574`; missing-HEX `apply_firmware_device` is a clean error | pass |
 | B7. Firmware analog inputs | `mcu_analog_in` + missing-HEX `run_firmware(analog_map)` is a clean error | pass |
 | B8. Firmware PWM output | `mcu_pwm_out` + missing-HEX `apply_firmware_pwm` is a clean error | pass |
+| B9. Firmware EEPROM device | `eeprom_i2c` attached; missing-HEX `run_firmware` is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

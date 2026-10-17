@@ -246,6 +246,32 @@
         "rout": {"default": 1000.0, "unit": "Ohm", "label": "Output resistance"}
       },
       "notes": "P0..P7 are ideal quasi-bidirectional outputs (Thevenin level, default 1 kOhm, approximating the part's weak pull-up). Set 'state' directly, or use apply_firmware_pins for a driven value; apply_firmware_device sets 'state' from the byte firmware writes. 'inputs' marks bits externally held low: firmware reading the port (run_firmware with attach_devices) sees state & ~inputs. Pin order follows DIP-16 (pin 1 = A0, pin 8 = VSS, pin 16 = VDD)."
+    },
+    {
+      "id": "eeprom_i2c",
+      "name": "24LC256 I2C Serial EEPROM",
+      "category": "Analog IC",
+      "subcategory": "Memory",
+      "description": "256 kbit (32 KiB) I2C serial EEPROM (DIP-8). Firmware stores and reads back bytes on the bus; the memory image persists between runs.",
+      "keywords": ["i2c", "eeprom", "memory", "24lc256", "at24c", "nonvolatile", "nvram", "storage"],
+      "part_number": "24LC256",
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
+        {"name": "VSS", "type": "ground"}, {"name": "SDA", "type": "bidirectional"},
+        {"name": "SCL", "type": "input"}, {"name": "WP", "type": "input"}, {"name": "VCC", "type": "power"}
+      ],
+      "model": {"shape": "dip8"},
+      "mounting": "tht",
+      "simulation_status": "external",
+      "simulation_models": ["i2c-memory"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 80, "label": "I2C address (7-bit)"},
+        "size": {"default": 256, "label": "Memory size (bytes)", "min": 1, "max": 32768}
+      },
+      "notes": "No electrical model on the breadboard: the part answers on the I2C bus in the firmware harness (run_firmware with attach_devices). Firmware uses the standard two-byte address then data, auto-incrementing pointer, and reads back what it wrote. Timing, write-cycle delay, page boundaries, WP pin, ACK polling, endurance and data retention across separate runs are not modelled (the memory lives only for the duration of one run). Pin order follows DIP-8 (pin 1 = A0, pin 4 = VSS, pin 8 = VCC). 'size' must be a power of two for real parts."
     }
   ]
 }

@@ -136,7 +136,7 @@ function buildDevices() {
           else { ptr = ((hi << 8) | b) % size; hi = null; data = true; }
         },
         readByte() { const v = mem[ptr % size]; ptr = (ptr + 1) % size; return v; },
-        summary: () => ({ kind: 'eeprom', address: addr, size, pointer: ptr }),
+        summary: () => ({ kind: 'eeprom', address: addr, size, pointer: ptr, mem: Array.from(mem) }),
       });
     }
   }

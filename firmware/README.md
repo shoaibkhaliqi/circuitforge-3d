@@ -38,6 +38,10 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/analog_read firmware/sketches/analog_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/pwm_out firmware/sketches/pwm_out
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/eeprom_roundtrip firmware/sketches/eeprom_roundtrip
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/eeprom_read firmware/sketches/eeprom_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -53,6 +57,7 @@ node verify_i2c.mjs ../build/i2c_write/i2c_write.ino.hex
 node verify_expander_read.mjs ../build/expander_read/expander_read.ino.hex
 node verify_analog.mjs ../build/analog_read/analog_read.ino.hex
 node verify_pwm.mjs ../build/pwm_out/pwm_out.ino.hex
+node verify_eeprom.mjs ../build/eeprom_roundtrip/eeprom_roundtrip.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -73,11 +78,16 @@ device (device → firmware feedback), not just trace writes:
 # PCF8574 at 0x27 with P0..P3 externally held low -> reads return 0xF0
 CF_DEVICES='[{"kind":"pcf8574","address":39,"state":255,"inputs":15}]' \
   node run.mjs ../build/expander_read/expander_read.ino.hex 2200
+
+# 24LC256 EEPROM at 0x50: store a byte then read it back (prints "eeprom 165")
+CF_DEVICES='[{"kind":"eeprom","address":80,"size":256,"init":[]}]' \
+  node run.mjs ../build/eeprom_roundtrip/eeprom_roundtrip.ino.hex 600
 ```
 
-Supported `kind`s: `pcf8574` (`state`, `inputs`) and `eeprom` (`size`, `init`).
-The app does this automatically: `run_firmware(..., attach_devices=true)` builds
-the specs from the circuit's `pcf8574` components.
+Supported `kind`s: `pcf8574` (`state`, `inputs`) and `eeprom` (`address`, `size`,
+`init`); the EEPROM summary also returns the memory image (`mem`). The app does this
+automatically: `run_firmware(..., attach_devices=true)` builds the specs from the
+circuit's `pcf8574` and `eeprom_i2c` components.
 
 ## Analog inputs (circuit → firmware)
 
