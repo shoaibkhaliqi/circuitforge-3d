@@ -1,0 +1,92 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"TP5",
+				"a5"
+			],
+			"id": "RT1",
+			"params": {
+				"beta": 3950.0,
+				"r25": 10000.0,
+				"temperature": 25.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "thermistor_ntc"
+		},
+		{
+			"holes": [
+				"a5",
+				"TM10"
+			],
+			"id": "R1",
+			"params": {
+				"r": 10000.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "resistor"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-17T00:00:00",
+		"description": "A 10k NTC thermistor and a fixed 10k resistor form a divider across 5 V; the sense node carries a voltage that tracks temperature.",
+		"measurement": "Run DC at 25 C: the NTC is 10k, so the sense node is 2.5 V. Set the thermistor temperature to 50 C and re-run: the resistance drops (about 3.6k) and the node rises to about 3.6 V.",
+		"modified": "2026-10-17T00:00:00",
+		"name": "NTC Thermistor Divider"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": []
+}

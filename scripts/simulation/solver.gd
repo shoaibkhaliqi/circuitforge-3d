@@ -243,7 +243,7 @@ func _add_gmin(mna, node_index: Dictionary) -> void:
 	for net in node_index:
 		var idx: int = node_index[net]
 		if idx > 0:
-			mna.add_g(idx, idx, GMIN)
+			mna.add_shunt(idx, GMIN)
 
 
 # ---------------------------------------------------------------------------

@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | planned |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | in progress (3 new examples, solver gmin fix, suite 590/590; perf + windowed screenshots to go) |
 
 ## 3a. Progress log
 
@@ -243,9 +243,23 @@ catalog that replaces the hardcoded definition list.
   provenance. Firmware upload/execution stays gated (plan M7).
 - Integration suite now runs Tests A–J + B2 + B3 + B4 = **14 / 14**.
 
+### Milestone 10 — examples, robustness, docs (in progress)
+- **Solver robustness**: fixed the `gmin` leakage no-op (`_add_gmin` used
+  `add_g(i, i, gmin)`, which cancels for `p == n`). A new `MNA.add_shunt` puts a
+  real 1e-9 S shunt on every node, so a node with no resistive path solves to
+  ~0 V instead of returning "singular matrix". This is what lets a partly-wired
+  7-segment display (unlit segments floating) simulate.
+- **Bundled examples** 11 → **14**: a 7-segment digit, an NTC thermistor divider
+  and a limit-switch-driven DC motor, each with documented values that
+  `test_examples.gd` spot-checks.
+- Regression: **590 / 590 tests pass**, MCP **14 / 14**, headless load exits 0,
+  catalog report has 0 errors.
+- Remaining: a component-count/performance pass, and a windowed screenshot pass
+  into `docs/plan/`.
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 572/572).
+   (currently 590/590).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

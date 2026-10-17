@@ -88,11 +88,21 @@ follow [Semantic Versioning](https://semver.org/).
   virtual MCU pin (level, high/low/high-Z, driven node, solved voltage) and
   `set_pin_levels` drives pins with an optional DC re-solve — the Stage-A
   pin-state workflow, ideal pins with no firmware. Integration suite 14/14.
+- **New bundled examples** (11 → **14**): `12_seven_segment.cf3d` (a
+  common-cathode 7-segment digit driven by virtual MCU pins), `13_ntc_thermistor.cf3d`
+  (an NTC + fixed-resistor divider that tracks temperature) and
+  `14_limit_switch_motor.cf3d` (a limit switch switching a stalled DC motor).
+  The example test now spot-checks their documented values.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`
   before the node was inside the SceneTree. The pin axis is now projected
   directly, so leads are symmetric and the "not inside tree" errors are gone.
+- The solver's `gmin` leakage was a no-op: `_add_gmin` called
+  `add_g(i, i, gmin)`, which `add_g` cancels out for `p == n`, so a node with no
+  resistive path (e.g. an unwired 7-segment segment) went singular. A dedicated
+  `MNA.add_shunt` now adds a real 1e-9 S to ground on every node, so dangling
+  nodes solve to ~0 V instead of failing.
 
 ### Changed
 - Screenshot/consistency: Linux build status documented honestly as ELF-validated

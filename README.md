@@ -33,7 +33,7 @@ the oscilloscope comes from the solver.
   node-voltage and branch-current readouts.
 - **Persistence**: versioned, validated JSON (`.cf3d`) projects with safe
   migration, undo/redo, **Save As** and an unsaved-changes guard.
-- **11 bundled example circuits** (LED, divider, RC/RL, rectifier, zener, logic…)
+- **14 bundled example circuits** (LED, divider, RC/RL, rectifier, zener, logic, 7-segment, thermistor, motor…)
   loadable from the toolbar or the command line.
 - **248 automated tests** covering the solver, connectivity, persistence,
   units, camera, logic, placement and full end-to-end workflows.

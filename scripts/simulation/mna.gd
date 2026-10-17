@@ -47,6 +47,13 @@ func add_g(p: int, n: int, g: float) -> void:
 		a[im][ip] -= g
 
 
+## Add a conductance to ground at node p (leakage / gmin). Node 0 is skipped.
+func add_shunt(p: int, g: float) -> void:
+	if size == 0 or p <= 0:
+		return
+	a[p - 1][p - 1] += g
+
+
 ## Inject current i into node p and draw it from node n (current source).
 func add_i(p: int, n: int, i: float) -> void:
 	if p > 0:

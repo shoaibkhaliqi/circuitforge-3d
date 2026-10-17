@@ -89,6 +89,21 @@ func run(t) -> void:
 	var r2 = s.solve_dc(c)
 	t.check(r2.ok, "re-solve after edit succeeds")
 	t.near(r2.element_currents["R1"], 0.0025, "current after R=2k is 2.5 mA", 1e-4)
+
+	# ---- Test 8: floating node robustness (gmin leakage) ------------------
+	t.section("DC Test 8 - unwired node is handled (gmin leakage)")
+	c = t.make_circuit([
+		t.make_element("V1", "vsource", ["1", "0"], {"v": 5.0}),
+		t.make_element("R1", "resistor", ["1", "2"], {"r": 1000.0}),
+		t.make_element("R2", "resistor", ["2", "0"], {"r": 1000.0}),
+		t.make_element("D1", "led", ["3", "0"], {"is": 1e-14, "n": 1.0}),
+	])
+	r = s.solve_dc(c)
+	t.check(r.ok, "circuit with a dangling node still solves", r.get("error", ""))
+	if r.ok:
+		t.near(r.node_voltages["3"], 0.0, "dangling node sits near 0 V", 1e-3)
+		t.near(r.element_currents["D1"], 0.0, "no current through the dangling diode", 1e-6)
+		t.near(r.node_voltages["2"], 2.5, "rest of the circuit is unaffected", 1e-4)
 	t.done()
 
 

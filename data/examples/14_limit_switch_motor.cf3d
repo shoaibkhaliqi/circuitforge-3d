@@ -1,0 +1,105 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"a1",
+				"a5",
+				"a10"
+			],
+			"id": "SW1",
+			"params": {
+				"actuated": true
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "limit_switch"
+		},
+		{
+			"holes": [
+				"a5",
+				"TM5"
+			],
+			"id": "M1",
+			"params": {
+				"back_emf": 0.0,
+				"r": 5.0,
+				"v_nom": 6.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "dc_motor"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-17T00:00:00",
+		"description": "A limit switch (SPDT) switches 5 V to a small brushed DC motor; the motor is modelled as stalled (assumed back-EMF 0 V).",
+		"measurement": "Run DC with the switch actuated: COM-NO closes, so the motor sees 5 V and draws about 1 A (5 V across 5 Ohm). Set actuated to false and re-run: COM-NO opens and the current falls to almost zero.",
+		"modified": "2026-10-17T00:00:00",
+		"name": "Limit Switch Drives a DC Motor"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "TP1",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "a1",
+				"kind": "hole"
+			},
+			"id": "W1"
+		}
+	]
+}

@@ -25,7 +25,7 @@ func run(t) -> void:
 		fn = dir.get_next()
 	dir.list_dir_end()
 	files.sort()
-	t.check(files.size() >= 8, "at least 8 bundled examples present", "found %d" % files.size())
+	t.check(files.size() >= 14, "at least 14 bundled examples present", "found %d" % files.size())
 
 	var solver = CircuitSolver.new()
 	var builder = NetlistBuilder.new()
@@ -92,5 +92,36 @@ func run(t) -> void:
 				if String(k) == "D1":
 					led_i = absf(float(r11.element_currents[k]))
 			t.check(led_i > 0.001, "AND(1,1) lights the LED", "I=" + str(led_i))
+
+	var lr12 = Persistence.load_from_file("%s/12_seven_segment.cf3d" % EX_DIR)
+	if lr12.ok:
+		var bb12 = Breadboard.new(30)
+		var b12 = builder.build(bb12, lr12.project.components, lr12.project.wires)
+		var r12 = solver.solve_dc(b12.circuit)
+		if t.check(r12.ok, "7-segment example solves"):
+			var i_b := absf(float(r12.element_currents.get("DS1#B", 0.0)))
+			var i_c := absf(float(r12.element_currents.get("DS1#C", 0.0)))
+			var i_a := absf(float(r12.element_currents.get("DS1#A", 0.0)))
+			t.check(i_b > 0.002, "segment B lit (>2 mA)", "I=" + str(i_b))
+			t.check(i_c > 0.002, "segment C lit (>2 mA)", "I=" + str(i_c))
+			t.check(i_a < 1e-6, "unwired segment A dark", "I=" + str(i_a))
+
+	var lr13 = Persistence.load_from_file("%s/13_ntc_thermistor.cf3d" % EX_DIR)
+	if lr13.ok:
+		var bb13 = Breadboard.new(30)
+		var b13 = builder.build(bb13, lr13.project.components, lr13.project.wires)
+		var r13 = solver.solve_dc(b13.circuit)
+		if t.check(r13.ok, "thermistor example solves"):
+			var vsense := float(r13.node_voltages.get(b13.pin_nets["RT1"][1], 0.0))
+			t.check(absf(vsense - 2.5) < 0.01, "NTC at 25 C => 2.5 V sense node", "V=" + str(vsense))
+
+	var lr14 = Persistence.load_from_file("%s/14_limit_switch_motor.cf3d" % EX_DIR)
+	if lr14.ok:
+		var bb14 = Breadboard.new(30)
+		var b14 = builder.build(bb14, lr14.project.components, lr14.project.wires)
+		var r14 = solver.solve_dc(b14.circuit)
+		if t.check(r14.ok, "limit-switch/motor example solves"):
+			var i_m := absf(float(r14.element_currents.get("M1", 0.0)))
+			t.check(i_m > 0.9 and i_m < 1.1, "motor draws about 1 A", "I=" + str(i_m))
 
 	t.done()
