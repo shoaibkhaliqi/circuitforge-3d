@@ -91,7 +91,7 @@ loop source) and `load_cell_5kg` (four-arm Wheatstone bridge).
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional, open-loop firmware backend now
   exists (AVR firmware on the MIT avr8js engine, driving `mcu_pin`s from firmware
-  output and exposing UART/`Serial` output); protocol/digital parts stay `planned`
+  output and exposing UART/`Serial` plus I2C/SPI bus traces); protocol/digital parts stay `planned`
   until a firmware-driven part is itself tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,
   OTG, ADB and UART debug are modelled, and UART debug wiring varies per device.

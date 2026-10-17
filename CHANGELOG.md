@@ -107,6 +107,11 @@ follow [Semantic Versioning](https://semver.org/).
     transmitted bytes, so `Serial.print` output is returned by `run_firmware` as
     `serial` / `serial_lines` (`firmware/sketches/serial_hello` verifier asserts
     "CircuitForge tick 0…4"). Suite 627 → **632**.
+  - **I2C/SPI bus traces**: the harness records I2C transactions (address,
+    direction, bytes) and SPI MOSI bytes; `run_firmware` returns `i2c`,
+    `i2c_addresses` and `spi_bytes`. No device is modelled — I2C is ACKed and reads
+    return 0xFF (`firmware/sketches/i2c_write` verifier asserts the `0x27` write).
+    Suite 632 → **634**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

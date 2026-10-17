@@ -19,6 +19,7 @@ const BOARDS := ["arduino:avr:uno", "arduino:avr:nano"]
 const MIN_MS := 1
 const MAX_MS := 10000
 const MAX_SERIAL_CHARS := 20000
+const MAX_BUS_EVENTS := 2000
 
 static var _probed: bool = false
 static var _node: String = ""
@@ -145,6 +146,23 @@ static func truncate_serial(text: String) -> String:
 	if text.length() <= MAX_SERIAL_CHARS:
 		return text
 	return text.substr(0, MAX_SERIAL_CHARS) + "\n... [serial truncated]"
+
+
+## Sorted unique I2C slave addresses ("0x27") seen in a TWI trace.
+static func i2c_addresses(events: Array) -> Array:
+	var seen := {}
+	for e in events:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var a = e.get("address", null)
+		if a == null:
+			continue
+		seen[int(a)] = true
+	var out := []
+	for a in seen.keys():
+		out.append("0x%02X" % int(a))
+	out.sort()
+	return out
 
 
 static func pins_touched(transitions: Array) -> Array:

@@ -239,6 +239,11 @@ catalog that replaces the hardcoded definition list.
   (`serial` / `serial_lines`). Verified with `firmware/sketches/serial_hello`
   ("CircuitForge tick 0…4", 105 bytes). Groundwork for protocol parts; no device
   is modeled on the other end yet.
+- **I2C/SPI bus traces**: the harness records I2C transactions (address, direction,
+  bytes) and SPI MOSI bytes; `run_firmware` returns `i2c` / `i2c_addresses` /
+  `spi_bytes`. No device is modelled (I2C is ACKed, reads return 0xFF). Verified
+  with `firmware/sketches/i2c_write` (write to `0x27`, bytes `0x00,0x41`). Suite
+  634/634; catalog statuses still unchanged.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

@@ -54,6 +54,16 @@ func run(t) -> void:
 	t.check(cut.ends_with("[serial truncated]"), "truncation is marked")
 	t.check(FirmwareBackend.truncate_serial("hi") == "hi", "short serial is untouched")
 
+	t.section("Firmware - I2C trace summary")
+	var ev := [
+		{"address": 39, "write": true, "bytes": [0, 65]},
+		{"address": 39, "write": true, "bytes": [0, 65]},
+		{"address": 0x3C, "write": false, "bytes": []},
+	]
+	var addrs := FirmwareBackend.i2c_addresses(ev)
+	t.check(addrs == ["0x27", "0x3C"], "unique sorted addresses", str(addrs))
+	t.check(FirmwareBackend.i2c_addresses([]).is_empty(), "no events -> no addresses")
+
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()
 	t.check(cap.get("engine") == "avr8js", "engine is avr8js")

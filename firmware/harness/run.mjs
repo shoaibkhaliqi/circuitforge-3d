@@ -16,11 +16,15 @@ import {
   avrInstruction,
   AVRTimer,
   AVRUSART,
+  AVRTWI,
+  AVRSPI,
   AVRIOPort,
   timer0Config,
   timer1Config,
   timer2Config,
   usart0Config,
+  twiConfig,
+  spiConfig,
   portBConfig,
   portCConfig,
   portDConfig,
@@ -82,6 +86,59 @@ const usart = new AVRUSART(cpu, usart0Config, F_CPU);
 const serialBytes = [];
 usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 
+// I2C (TWI) traffic monitor. There is no device on the bus: the harness ACKs so a
+// sketch's Wire transaction can proceed, and records each transaction (address,
+// direction, data bytes). Reads return 0xFF. This is a *trace*, not a device model.
+const i2c = [];
+class TraceTWI {
+  constructor(twi) {
+    this.twi = twi;
+    this.txn = null;
+  }
+  start(repeated) {
+    this._flush();
+    this.txn = { repeated: !!repeated, address: null, write: null, bytes: [] };
+    this.twi.completeStart();
+  }
+  stop() {
+    this._flush();
+    this.twi.completeStop();
+  }
+  connectToSlave(address, write) {
+    if (this.txn) {
+      this.txn.address = address & 0x7f;
+      this.txn.write = !!write;
+    }
+    this.twi.completeConnect(true);
+  }
+  writeByte(value) {
+    if (this.txn) this.txn.bytes.push(value & 0xff);
+    this.twi.completeWrite(true);
+  }
+  readByte(ack) {
+    if (this.txn) this.txn.bytes.push(0xff);
+    this.twi.completeRead(0xff);
+  }
+  _flush() {
+    if (this.txn && this.txn.address !== null) i2c.push(this.txn);
+    this.txn = null;
+  }
+  flush() {
+    this._flush();
+  }
+}
+const twi = new AVRTWI(cpu, twiConfig, F_CPU);
+const twiTracer = new TraceTWI(twi);
+twi.eventHandler = twiTracer;
+
+// SPI traffic monitor: record MOSI bytes; MISO returns 0x00 (no device attached).
+const spi = [];
+const spiDevice = new AVRSPI(cpu, spiConfig, F_CPU);
+spiDevice.onByte = (value) => {
+  spi.push(value & 0xff);
+  spiDevice.completeTransfer(0x00);
+};
+
 const UNO_PIN = {
   B0: 8, B1: 9, B2: 10, B3: 11, B4: 12, B5: 13,
   C0: 14, C1: 15, C2: 16, C3: 17, C4: 18, C5: 19,
@@ -112,6 +169,7 @@ while (cpu.cycles < maxCycles) {
   avrInstruction(cpu);
   cpu.tick();
 }
+twiTracer.flush();
 
 process.stdout.write(
   JSON.stringify(
@@ -124,6 +182,8 @@ process.stdout.write(
       cycles: cpu.cycles,
       serial: Buffer.from(serialBytes).toString('utf8'),
       serial_bytes: serialBytes.length,
+      i2c,
+      spi_bytes: spi,
       transitions,
     },
     null,

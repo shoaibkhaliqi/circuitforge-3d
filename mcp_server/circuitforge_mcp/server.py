@@ -261,8 +261,11 @@ def run_firmware(hex_path: str, ms: int = 2000) -> dict[str, Any]:
     This is the open-loop (Stage B) workflow: no analog feedback yet. Compile a
     sketch first, e.g. `arduino-cli compile --fqbn arduino:avr:uno --output-dir
     build/blink firmware/sketches/blink`, then pass the `.hex` path. Returns the
-    pin transitions (time in ms, level 0/1), the pins the firmware touched, and
-    any bytes the sketch printed to Serial (USART0) as `serial` / `serial_lines`.
+    pin transitions (time in ms, level 0/1), the pins the firmware touched, any
+    bytes the sketch printed to Serial (USART0) as `serial` / `serial_lines`, and
+    I2C/SPI bus traces (`i2c` transactions with address/data, `i2c_addresses`,
+    `spi_bytes`). The buses have no device modelled: the harness ACKs I2C so
+    transactions complete and reads return 0xFF/0x00.
 
     Args:
         hex_path: Path to an Intel-HEX produced for an AVR board.

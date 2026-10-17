@@ -343,6 +343,10 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 	for p in FirmwareBackend.pins_touched(transitions):
 		pins.append({"digital_pin": p, "label": FirmwareBackend.label(p)})
 	var serial := FirmwareBackend.truncate_serial(String(r.get("serial", "")))
+	var i2c: Array = r.get("i2c", [])
+	if i2c.size() > FirmwareBackend.MAX_BUS_EVENTS:
+		i2c = i2c.slice(0, FirmwareBackend.MAX_BUS_EVENTS)
+	var spi: Array = r.get("spi_bytes", [])
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -355,7 +359,10 @@ func run_firmware(hex_path: String, ms: int = 2000) -> Dictionary:
 		"serial": serial,
 		"serial_bytes": int(r.get("serial_bytes", serial.length())),
 		"serial_lines": FirmwareBackend.serial_lines(serial),
-		"note": "Open-loop Stage B: firmware digital pin activity and UART output; no analog feedback.",
+		"i2c": i2c,
+		"i2c_addresses": FirmwareBackend.i2c_addresses(i2c),
+		"spi_bytes": spi,
+		"note": "Open-loop Stage B: firmware digital pins, UART output and I2C/SPI bus traces; no analog feedback and no device is modelled on the buses.",
 	})
 
 

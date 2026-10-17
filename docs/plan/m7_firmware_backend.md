@@ -139,14 +139,24 @@ end-to-end: with a 1 kΩ pin-to-ground load, D13 at 100 ms (HIGH) solves the sig
 node to 4.878 V (= 5 V · 1000/1025). Until a firmware-driven protocol part is
 itself tested, the catalog labels do not change.
 
-### First protocol surface: UART
+### Protocol surfaces: UART, I2C, SPI
 
-The harness now also instantiates USART0 and captures every transmitted byte, so a
-sketch's `Serial.print` output is readable through the engine. Verified with
-`firmware/sketches/serial_hello`: `run_firmware` returns `serial` = "CircuitForge
-tick 0…4" (105 bytes over 2.2 s) and `serial_lines`. This is the groundwork for
-protocol parts (a bus/line where firmware output is the observable) without yet
-modeling a device on the other end.
+The harness instantiates USART0, TWI and SPI, so firmware's protocol traffic is
+observable through the engine:
+
+- **UART**: every transmitted byte is captured; `run_firmware` returns `serial` /
+  `serial_lines`. Verified with `firmware/sketches/serial_hello` ("CircuitForge
+  tick 0…4", 105 bytes over 2.2 s).
+- **I2C (TWI)**: a trace handler records each transaction (address, direction,
+  bytes). There is **no device** on the bus — the harness ACKs so a sketch's Wire
+  transaction completes and reads return 0xFF. Verified with
+  `firmware/sketches/i2c_write`: transactions to `0x27` with data `[0x00, 0x41]`,
+  surfaced as `i2c` / `i2c_addresses` (`["0x27"]`).
+- **SPI**: MOSI bytes are recorded (`spi_bytes`); MISO returns 0x00 (no device).
+
+This is the groundwork for protocol parts: a bus where firmware output is the
+observable. It deliberately stops short of modelling a device on the other end
+(that is the step that would justify changing a protocol part's catalog status).
 
 ## 9. Recommendation
 
