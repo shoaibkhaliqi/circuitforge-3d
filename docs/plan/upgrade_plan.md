@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 593/593; Linux runtime verification remains blocked on WSL) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
 
 ## 3a. Progress log
 
@@ -222,6 +222,12 @@ catalog that replaces the hardcoded definition list.
   `limit_switch` (SPDT COM-NO/COM-NC), `lm35`/`tmp36` (linear analog voltage
   output from a temperature stimulus) and `voltage_sensor_module` (resistive
   divider).
+- **Digital/analog sensor modules** (firmware-free): ten digital-output sensors
+  (`pir_hcsr501`, `ir_obstacle`, `hall_a3144`, `flame_sensor`, `sound_sensor`,
+  `ldr_module`, `soil_moisture`, `rain_sensor`, `mq2_gas`, `mq135_air`) drive an
+  ideal logic level from a `detected` stimulus; `acs712` (linear current sensor),
+  `pressure_transducer_420ma` (4-20 mA loop) and `load_cell_5kg` (Wheatstone
+  bridge).
 - 3D: new `_body_bead` (sensor bead) and `_body_motor` (motor/vibration/solenoid/
   fan) package bodies, wired to the catalog shapes.
 - `tests/unit/test_netlist.gd` extended (sensor resistance at several stimulus
@@ -257,14 +263,14 @@ catalog that replaces the hardcoded definition list.
 - **Visual evidence**: the app takes `-- --screenshot=<path>` (load, settle,
   save PNG, quit); `docs/plan/m10_seven_segment.png` and
   `docs/plan/m10_ntc_thermistor.png` show the new examples solving in the UI.
-- Regression: **593 / 593 tests pass**, MCP **14 / 14**, headless load exits 0,
+- Regression: **607 / 607 tests pass**, MCP **14 / 14**, headless load exits 0,
   catalog report has 0 errors.
 - Remaining: a component-count/performance pass, and a windowed screenshot pass
   into `docs/plan/`.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 593/593).
+   (currently 607/607).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

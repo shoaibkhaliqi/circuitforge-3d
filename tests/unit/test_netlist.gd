@@ -264,6 +264,47 @@ func run(t) -> void:
 	if dr.ok:
 		t.near(dr.node_voltages[dcirc.pin_nets["VS1"][2]], 2.0, "divider SIG = 10 V * 7.5k/37.5k = 2 V", 1e-3)
 
+	# ---- digital-output sensors + analog sensor modules --------------------
+	t.section("Netlist - digital-output sensors and analog modules")
+	r = builder.build(bb, [_place("PIR1", "pir_hcsr501", ["TP1", "a1", "TM1"], {"detected": true})], [])
+	var pir = _by_id(r, "PIR1")
+	t.check(pir != null and pir.type == "gpio", "PIR motion drives an ideal logic output")
+	if pir != null:
+		t.check(float(pir.params["level"]) == 1.0, "detected PIR output is high")
+	r = builder.build(bb, [_place("PIR1", "pir_hcsr501", ["TP1", "a1", "TM1"], {"detected": false})], [])
+	if _by_id(r, "PIR1") != null:
+		t.check(float(_by_id(r, "PIR1").params["level"]) == 0.0, "idle PIR output is low")
+
+	r = builder.build(bb, [_place("ACS1", "acs712", ["TP1", "TM1", "a1"], {"current": 0.0, "sensitivity": 0.185, "vcc": 5.0})], [])
+	var acs = _by_id(r, "ACS1")
+	t.check(acs != null and acs.type == "vsource", "ACS712 output is a voltage source")
+	if acs != null:
+		t.near(float(acs.params["v"]), 2.5, "zero current sits at Vcc/2", 1e-9)
+	r = builder.build(bb, [_place("ACS1", "acs712", ["TP1", "TM1", "a1"], {"current": 5.0, "sensitivity": 0.185, "vcc": 5.0})], [])
+	if _by_id(r, "ACS1") != null:
+		t.near(float(_by_id(r, "ACS1").params["v"]), 2.5 + 0.925, "5 A reads 3.425 V", 1e-9)
+
+	r = builder.build(bb, [_place("PT1", "pressure_transducer_420ma", ["TP1", "a1"], {"pressure": 0.0, "range_min": 0.0, "range_max": 10.0})], [])
+	var pt = _by_id(r, "PT1")
+	t.check(pt != null and pt.type == "isource", "pressure transducer is a current source")
+	if pt != null:
+		t.near(float(pt.params["i"]), 0.004, "0 bar -> 4 mA", 1e-9)
+	r = builder.build(bb, [_place("PT1", "pressure_transducer_420ma", ["TP1", "a1"], {"pressure": 5.0, "range_min": 0.0, "range_max": 10.0})], [])
+	if _by_id(r, "PT1") != null:
+		t.near(float(_by_id(r, "PT1").params["i"]), 0.012, "half range -> 12 mA", 1e-9)
+	r = builder.build(bb, [_place("PT1", "pressure_transducer_420ma", ["TP1", "a1"], {"pressure": 20.0, "range_min": 0.0, "range_max": 10.0})], [])
+	if _by_id(r, "PT1") != null:
+		t.near(float(_by_id(r, "PT1").params["i"]), 0.020, "over range clamps to 20 mA", 1e-9)
+
+	r = builder.build(bb, [_place("LC1", "load_cell_5kg", ["TP1", "TM1", "a1", "a5"], {"load": 0.0, "capacity": 5.0, "r0": 1000.0, "sensitivity": 0.002})], [])
+	t.check(_by_id(r, "LC1") != null and _by_id(r, "LC1#4") != null, "load cell builds a four-arm bridge")
+	if _by_id(r, "LC1") != null:
+		t.near(float(_by_id(r, "LC1").params["r"]), 1000.0, "unloaded arms are equal", 1e-9)
+	r = builder.build(bb, [_place("LC1", "load_cell_5kg", ["TP1", "TM1", "a1", "a5"], {"load": 5.0, "capacity": 5.0, "r0": 1000.0, "sensitivity": 0.002})], [])
+	if _by_id(r, "LC1") != null:
+		t.near(float(_by_id(r, "LC1").params["r"]), 1002.0, "loaded arm rises by r0*sensitivity", 1e-9)
+		t.near(float(_by_id(r, "LC1#2").params["r"]), 998.0, "opposite arm falls by r0*sensitivity", 1e-9)
+
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
 	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])

@@ -44,7 +44,17 @@ const HANDLED_TYPES := [
 	"thermistor_ntc", "photoresistor_ldr", "rtd_pt100",
 	"dc_motor", "dc_gearmotor_tt", "fan_5v", "vibration_motor", "solenoid_12v",
 	"seven_segment", "limit_switch", "lm35", "tmp36", "voltage_sensor_module",
+	"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor",
+	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
+	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
 ]
+
+## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
+const DIGITAL_OUT_PINS := {
+	"pir_hcsr501": [1, 2], "ir_obstacle": [2, 1], "hall_a3144": [1, 2],
+	"flame_sensor": [2, 1], "sound_sensor": [3, 1], "ldr_module": [3, 1],
+	"soil_moisture": [3, 1], "rain_sensor": [3, 1], "mq2_gas": [3, 1], "mq135_air": [3, 1],
+}
 
 
 static func handles(type: String) -> bool:
@@ -304,6 +314,40 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			var r2v: float = max(1.0, float(params.get("r2", 7500.0)))
 			out.append(_el(cid, "resistor", [nets[3], nets[2]], {"r": r1v}))
 			out.append(_el(cid + "#2", "resistor", [nets[2], nets[1]], {"r": r2v}))
+		"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor", "ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air":
+			# Digital-output sensor: OUT is an ideal push-pull logic output whose
+			# level is set by the "detected"/"triggered" stimulus (no firmware).
+			var om: Array = DIGITAL_OUT_PINS.get(type, [1, 2])
+			var dout: bool = bool(params.get("detected", params.get("triggered", false)))
+			out.append(_el(cid, "gpio", [String(nets[om[0]]), String(nets[om[1]])], {
+				"level": 1.0 if dout else 0.0,
+				"vlogic": float(params.get("vlogic", 5.0)),
+				"rout": 25.0,
+			}))
+		"acs712":
+			# Linear Hall current sensor: Vout = Vcc/2 + sensitivity * I.
+			var i_ac: float = float(params.get("current", 0.0))
+			var sens: float = float(params.get("sensitivity", 0.185))
+			var vcc_ac: float = float(params.get("vcc", 5.0))
+			out.append(_el(cid, "vsource", [nets[2], nets[1]], {"v": vcc_ac * 0.5 + sens * i_ac}))
+		"pressure_transducer_420ma":
+			# 4-20 mA current loop: I = 4 mA + 16 mA * span fraction.
+			var p_loop: float = float(params.get("pressure", 0.0))
+			var p_min: float = float(params.get("range_min", 0.0))
+			var p_max: float = float(params.get("range_max", 10.0))
+			var frac: float = clampf((p_loop - p_min) / max(1e-9, p_max - p_min), 0.0, 1.0)
+			out.append(_el(cid, "isource", [nets[0], nets[1]], {"i": 0.004 + 0.016 * frac}))
+		"load_cell_5kg":
+			# Wheatstone bridge of four strain gauges (E+/E- excitation, A+/A-
+			# output); resistance changes linearly with load up to capacity.
+			var lf: float = clampf(float(params.get("load", 0.0)) / max(1e-6, float(params.get("capacity", 5.0))), 0.0, 1.0)
+			var r0: float = max(1.0, float(params.get("r0", 1000.0)))
+			var k_lc: float = float(params.get("sensitivity", 0.002))
+			var d_lc: float = r0 * k_lc * lf
+			out.append(_el(cid, "resistor", [nets[0], nets[2]], {"r": r0 + d_lc}))
+			out.append(_el(cid + "#2", "resistor", [nets[2], nets[1]], {"r": r0 - d_lc}))
+			out.append(_el(cid + "#3", "resistor", [nets[0], nets[3]], {"r": r0 - d_lc}))
+			out.append(_el(cid + "#4", "resistor", [nets[3], nets[1]], {"r": r0 + d_lc}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out

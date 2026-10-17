@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 593 / 593 passed
+RESULT: 607 / 607 passed
 STATUS: ALL TESTS PASSED
 ```
 

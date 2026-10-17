@@ -84,6 +84,12 @@ follow [Semantic Versioning](https://semver.org/).
     from a temperature stimulus) and `voltage_sensor_module` (resistive divider).
     Motors, displays and digital/protocol sensors that need firmware stay
     `planned`/`visual`.
+  - Firmware-free digital/analog sensor modules: `pir_hcsr501`, `ir_obstacle`,
+    `hall_a3144`, `flame_sensor`, `sound_sensor`, `ldr_module`, `soil_moisture`,
+    `rain_sensor`, `mq2_gas` and `mq135_air` drive their digital output as an
+    ideal logic level from a `detected` stimulus; `acs712` is a linear Hall
+    current sensor, `pressure_transducer_420ma` a 4-20 mA loop source, and
+    `load_cell_5kg` a four-arm Wheatstone bridge.
 - **MCP pin/metadata tooling** (34 → **36** tools): `get_pin_states` reads every
   virtual MCU pin (level, high/low/high-Z, driven node, solved voltage) and
   `set_pin_levels` drives pins with an optional DC re-solve — the Stage-A

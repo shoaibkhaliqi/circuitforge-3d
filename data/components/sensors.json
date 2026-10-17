@@ -141,7 +141,9 @@
       ],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -157,9 +159,10 @@
       ],
       "model": {"shape": "soil_probe_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true,
-      "notes": "Resistive probes corrode over time; capacitive probes are preferred for long-term use."
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Resistive probes corrode over time; capacitive probes are preferred for long-term use.",
+      "arduino_compatible": true
     },
     {
       "id": "rain_sensor",
@@ -174,7 +177,9 @@
       ],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -247,7 +252,9 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
       "model": {"shape": "pir_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -260,7 +267,9 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "output"}],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -273,7 +282,9 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
       "model": {"shape": "to92"},
       "mounting": "tht",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -370,7 +381,9 @@
       ],
       "model": {"shape": "load_cell"},
       "mounting": "device",
-      "simulation_status": "planned",
+      "params": {"load": {"default": 0.0, "unit": "kg", "label": "Applied load"}, "capacity": {"default": 5.0, "unit": "kg", "label": "Rated capacity"}, "r0": {"default": 1000.0, "unit": "ohm", "label": "Bridge arm resistance"}, "sensitivity": {"default": 0.002, "unit": "", "label": "Full-scale resistance change (2 mV/V)"}},
+      "simulation_status": "partial",
+      "notes": "Wheatstone bridge of four strain gauges; arm resistance shifts linearly with load. The A+/A- output is a few mV and needs an amplifier (e.g. HX711).",
       "arduino_compatible": true
     },
     {
@@ -386,9 +399,10 @@
       ],
       "model": {"shape": "mq_sensor"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true,
-      "notes": "Requires burn-in and calibration; cross-sensitive to multiple gases."
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Requires burn-in and calibration; cross-sensitive to multiple gases.",
+      "arduino_compatible": true
     },
     {
       "id": "mq135_air",
@@ -403,9 +417,10 @@
       ],
       "model": {"shape": "mq_sensor"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true,
-      "notes": "Provides an estimated air-quality signal, not a calibrated CO2 measurement."
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Provides an estimated air-quality signal, not a calibrated CO2 measurement.",
+      "arduino_compatible": true
     },
     {
       "id": "ccs811",
@@ -529,11 +544,11 @@
       "description": "Industrial two-wire 4-20 mA pressure transmitter.",
       "keywords": ["pressure", "4-20ma", "transmitter", "industrial", "loop"],
       "pins": [{"name": "LOOP+", "type": "power"}, {"name": "LOOP-", "type": "power"}],
-      "params": {"range_min": {"default": 0.0, "unit": "bar", "label": "Range minimum"}, "range_max": {"default": 10.0, "unit": "bar", "label": "Range maximum"}},
+      "params": {"pressure": {"default": 0.0, "unit": "bar", "label": "Measured pressure"}, "range_min": {"default": 0.0, "unit": "bar", "label": "Range minimum"}, "range_max": {"default": 10.0, "unit": "bar", "label": "Range maximum"}},
       "model": {"shape": "industrial_sensor"},
       "mounting": "device",
-      "simulation_status": "planned",
-      "notes": "Reading the loop requires a sense resistor / current-loop receiver."
+      "simulation_status": "partial",
+      "notes": "Ideal 4-20 mA loop: I = 4 mA + 16 mA * (pressure - range_min)/(range_max - range_min). A receiver/sense resistor is still needed to read it."
     },
     {
       "id": "acs712",
@@ -543,10 +558,11 @@
       "description": "Hall-effect AC/DC current sensor module (5A / 20A / 30A variants).",
       "keywords": ["acs712", "current", "hall", "ac", "dc", "analog"],
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "analog"}],
-      "params": {"sensitivity": {"default": 0.185, "unit": "V/A", "label": "Sensitivity"}},
+      "params": {"current": {"default": 0.0, "unit": "A", "label": "Measured current"}, "sensitivity": {"default": 0.185, "unit": "V/A", "label": "Sensitivity"}, "vcc": {"default": 5.0, "unit": "V", "label": "Supply"}},
       "model": {"shape": "acs712_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
+      "notes": "Ideal linear output Vout = Vcc/2 + sensitivity * current; the current is a stimulus you set. Supply range, offset drift and bandwidth are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -574,7 +590,9 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "DO", "type": "output"}, {"name": "AO", "type": "analog"}],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     },
     {
@@ -587,7 +605,9 @@
       "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}],
       "model": {"shape": "sensor_module"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "simulation_status": "partial",
+      "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
     }
   ]
