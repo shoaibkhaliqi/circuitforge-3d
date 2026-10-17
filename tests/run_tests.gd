@@ -13,6 +13,7 @@ const TEST_FILES := [
 	"res://tests/solver/test_nonlinear.gd",
 	"res://tests/solver/test_logic.gd",
 	"res://tests/solver/test_invalid.gd",
+	"res://tests/solver/test_scale.gd",
 	"res://tests/connectivity/test_breadboard.gd",
 	"res://tests/persistence/test_persistence.gd",
 	"res://tests/unit/test_units.gd",

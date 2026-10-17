@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | in progress (3 new examples, solver gmin fix, suite 590/590; perf + windowed screenshots to go) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | in progress (3 new examples, solver gmin fix + scale test, suite 593/593; windowed screenshots to go) |
 
 ## 3a. Progress log
 
@@ -252,14 +252,16 @@ catalog that replaces the hardcoded definition list.
 - **Bundled examples** 11 → **14**: a 7-segment digit, an NTC thermistor divider
   and a limit-switch-driven DC motor, each with documented values that
   `test_examples.gd` spot-checks.
-- Regression: **590 / 590 tests pass**, MCP **14 / 14**, headless load exits 0,
+- **Scale test** (`tests/solver/test_scale.gd`): a 200-node resistor ladder
+  solves in ~14 ms, guarding against accidental solver complexity regressions.
+- Regression: **593 / 593 tests pass**, MCP **14 / 14**, headless load exits 0,
   catalog report has 0 errors.
 - Remaining: a component-count/performance pass, and a windowed screenshot pass
   into `docs/plan/`.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 590/590).
+   (currently 593/593).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

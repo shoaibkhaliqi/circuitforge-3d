@@ -95,6 +95,9 @@ follow [Semantic Versioning](https://semver.org/).
   The example test now spot-checks their documented values. `Session.add_component`
   gained an optional explicit id (used by `tools/make_examples.gd` so the
   generated examples keep stable, readable reference designators).
+- **Solver scale test** (`tests/solver/test_scale.gd`): a 200-node resistor
+  ladder solves in ~14 ms (well under the 5 s guard), protecting against
+  accidental complexity regressions.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`
