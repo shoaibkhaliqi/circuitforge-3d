@@ -97,7 +97,8 @@ async def main() -> int:
                             "get_simulation_status", "stop_simulation", "get_waveform_data",
                             "save_project", "load_project", "list_example_projects",
                             "load_example_project", "get_diagnostics", "get_solver_info",
-                            "get_catalog_facets", "get_board_pinout"}
+                            "get_catalog_facets", "get_board_pinout",
+                            "get_pin_states", "set_pin_levels"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -159,6 +160,26 @@ async def main() -> int:
                        f"pins={pin.get('pin_count')} counts={counts}")
             except Exception as exc:
                 record("B3. Board pinout metadata", False, repr(exc))
+
+            # ---------------------------------------------------- Test B4
+            try:
+                await call_ok(s, "set_pin_levels", {"levels": {}})
+                record("B4. Virtual pin control", False, "empty levels unexpectedly succeeded")
+            except Exception:
+                pass
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-PinDemo"})
+                pin_id = (await call_ok(s, "add_component", {"component_type": "mcu_pin"}))["component_id"]
+                await call_ok(s, "set_pin_levels", {"levels": {pin_id: 1.0}})
+                states = await call_ok(s, "get_pin_states")
+                entry = next((p for p in states.get("pins", []) if p.get("component_id") == pin_id), None)
+                ok = (states.get("count", 0) >= 1 and entry is not None
+                      and entry.get("state") == "high" and entry.get("level") == 1.0
+                      and bool(entry.get("signal_node")))
+                record("B4. Virtual pin control (mcu_pin Level A)", ok,
+                       f"count={states.get('count')} state={entry.get('state') if entry else None}")
+            except Exception as exc:
+                record("B4. Virtual pin control (mcu_pin Level A)", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

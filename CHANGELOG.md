@@ -78,6 +78,10 @@ follow [Semantic Versioning](https://semver.org/).
     torque or speed dynamics, and the catalog notes say so.
   - New 3D package bodies: a sensing bead (thermistor/LDR/RTD) and motor shapes
     (brushed motor, vibration motor, solenoid, fan).
+- **MCP pin/metadata tooling** (34 → **36** tools): `get_pin_states` reads every
+  virtual MCU pin (level, high/low/high-Z, driven node, solved voltage) and
+  `set_pin_levels` drives pins with an optional DC re-solve — the Stage-A
+  pin-state workflow, ideal pins with no firmware. Integration suite 14/14.
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

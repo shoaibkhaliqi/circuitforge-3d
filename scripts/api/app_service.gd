@@ -113,13 +113,13 @@ func get_simulator_info() -> Dictionary:
 func get_capabilities() -> Dictionary:
 	var caps := {
 		"read": ["get_simulator_info", "get_capabilities", "get_component_catalog",
-			"get_catalog_facets", "get_board_pinout",
+			"get_catalog_facets", "get_board_pinout", "get_pin_states",
 			"get_project_summary", "list_components", "get_component", "get_connections",
 			"get_node_voltage", "get_branch_current", "get_simulation_results",
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
 			"get_waveform_data", "get_circuit_text", "get_edit_preview"],
 		"edit_reversible": ["create_project", "add_component", "update_component_parameters",
-			"move_component", "connect_terminals", "disconnect_connection"],
+			"set_pin_levels", "move_component", "connect_terminals", "disconnect_connection"],
 		"edit_destructive": ["remove_component", "clear_circuit"],
 		"simulate": ["run_dc_simulation", "run_transient_simulation", "stop_simulation"],
 		"persistence": ["save_project", "load_project", "list_example_projects",
@@ -252,6 +252,74 @@ func get_board_pinout(type: String) -> Dictionary:
 			"Use get_component_catalog with mounting=\"board\" to list boards.")
 	var s := BoardPins.summary(type)
 	return _ok(s)
+
+
+func get_pin_states() -> Dictionary:
+	var built: Dictionary = session.build_circuit()
+	var pin_nets: Dictionary = built.get("pin_nets", {})
+	var nodes: Dictionary = {}
+	if bool(_last_result.get("ok", false)):
+		nodes = _last_result.get("node_voltages", {})
+	var pins := []
+	for c in session.project.components:
+		if String(c.get("type", "")) != "mcu_pin":
+			continue
+		var p: Dictionary = c.get("params", {})
+		var level := float(p.get("level", 1.0))
+		var nets: Array = pin_nets.get(String(c.id), [])
+		var sig_node := String(nets[0]) if nets.size() > 0 else ""
+		var entry := {
+			"component_id": String(c.id),
+			"level": level,
+			"state": _pin_state_name(level),
+			"vlogic": float(p.get("vlogic", 5.0)),
+			"rout": float(p.get("rout", 25.0)),
+			"signal_node": sig_node,
+		}
+		if not sig_node.is_empty() and nodes.has(sig_node):
+			entry["voltage"] = float(nodes[sig_node])
+		pins.append(entry)
+	return _ok({"count": pins.size(), "pins": pins,
+		"reference": String(_last_result.get("reference", "0"))})
+
+
+func _pin_state_name(level: float) -> String:
+	if level >= 0.5:
+		return "high"
+	if level <= -0.5:
+		return "high_z"
+	return "low"
+
+
+func set_pin_levels(levels: Dictionary, simulate: bool = false, expected_revision = null) -> Dictionary:
+	var cr := _check_revision(expected_revision)
+	if not cr.success:
+		return cr
+	if levels.is_empty():
+		return _err("INVALID_PARAMETER", "No pin levels were provided.",
+			"Provide a map of component_id -> level (-1, 0 or 1).")
+	var applied := []
+	var skipped := []
+	for id in levels.keys():
+		var cid := String(id)
+		var c = session.find_component(cid)
+		if c == null:
+			skipped.append({"component_id": cid, "reason": "unknown component"})
+			continue
+		if String(c.type) != "mcu_pin":
+			skipped.append({"component_id": cid, "reason": "not an mcu_pin (type '%s')" % String(c.type)})
+			continue
+		var lv := clampf(float(levels[id]), -1.0, 1.0)
+		session.set_params(cid, {"level": lv})
+		applied.append({"component_id": cid, "level": lv, "state": _pin_state_name(lv)})
+	if applied.is_empty():
+		return _err("INVALID_PARAMETER", "None of the given ids are 'mcu_pin' components.",
+			"Add a 'mcu_pin' component and use its component_id.")
+	_bump()
+	var out := {"applied": applied, "skipped": skipped, "revision": revision}
+	if simulate:
+		out["simulation"] = run_dc_simulation()
+	return _ok(out)
 
 
 func get_catalog_facets() -> Dictionary:

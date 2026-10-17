@@ -230,6 +230,18 @@ def get_board_pinout(type: str) -> dict[str, Any]:
     return _wrap(call_engine("get_board_pinout", {"type": type}))
 
 
+@mcp.tool(annotations=_ro(), structured_output=True)
+def get_pin_states() -> dict[str, Any]:
+    """Return the state of every virtual MCU pin (mcu_pin) in the circuit.
+
+    Each entry gives the pin's level (-1 = high-Z input, 0 = low, 1 = high), its
+    logic voltage and output resistance, the node it drives, and its solved
+    voltage when a DC simulation is available. Stage A pins are ideal drivers;
+    they do not run firmware.
+    """
+    return _wrap(call_engine("get_pin_states"))
+
+
 # ---------------------------------------------------------------------------
 # B. Circuit inspection
 # ---------------------------------------------------------------------------
@@ -345,6 +357,28 @@ def update_component_parameters(
     return _wrap(call_engine("update_component_parameters", {
         "component_id": component_id, "parameters": parameters,
         "expected_revision": expected_revision,
+    }))
+
+
+@mcp.tool(annotations=_edit(), structured_output=True)
+def set_pin_levels(
+    levels: dict[str, float],
+    simulate: bool = False,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    """Drive one or more virtual MCU pins, optionally re-running the DC solve.
+
+    Pin-level simulation without firmware: set a `mcu_pin` component's level and
+    read the effect on the circuit.
+
+    Args:
+        levels: Map of mcu_pin component_id -> level (1 = high, 0 = low,
+            -1 = high-impedance input).
+        simulate: Run a DC simulation afterwards and return the result.
+        expected_revision: Optional optimistic-concurrency guard.
+    """
+    return _wrap(call_engine("set_pin_levels", {
+        "levels": levels, "simulate": simulate, "expected_revision": expected_revision,
     }))
 
 

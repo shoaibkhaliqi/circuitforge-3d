@@ -69,7 +69,7 @@ date as milestones land.
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | planned |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | in progress (resistive sensors + brushed DC motors simulated; displays/digital sensors planned) |
-| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (catalog facets/filters exposed) |
+| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | planned |
 
 ## 3a. Progress log
@@ -226,13 +226,23 @@ catalog that replaces the hardcoded definition list.
 - Still visual/planned: stepper and servo motors and their drivers, displays,
   and digital/protocol sensors (they need a firmware/Stage-B backend).
 
+### Milestone 9 — MCP pin/metadata tooling (in progress)
+- New MCP tools (34 → **36**): `get_pin_states` (read the state of every
+  `mcu_pin`: level, high/low/high-Z, logic voltage, output resistance, driven
+  node and solved voltage) and `set_pin_levels` (drive one or more pins, with an
+  optional DC re-solve). This is the Stage-A "pin states" workflow — ideal pins,
+  no firmware execution.
+- `get_board_pinout` (M5) already exposes documented board pin maps with
+  provenance. Firmware upload/execution stays gated (plan M7).
+- Integration suite now runs Tests A–J + B2 + B3 + B4 = **14 / 14**.
+
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
    (currently 557/557).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
-   13/13.
+   14/14.
 
 ## 4. Component implementation status vocabulary
 
