@@ -90,6 +90,12 @@ follow [Semantic Versioning](https://semver.org/).
     ideal logic level from a `detected` stimulus; `acs712` is a linear Hall
     current sensor, `pressure_transducer_420ma` a 4-20 mA loop source, and
     `load_cell_5kg` a four-arm Wheatstone bridge.
+- **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
+  compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
+  on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`
+  asserts a deterministic ~1 Hz blink on D13 (edge gaps ≈500 ms). Engine is MIT,
+  so nothing GPL is vendored; app-side integration is still gated (no catalog
+  status changes).
 - **Firmware-backend feasibility write-up** (`docs/plan/m7_firmware_backend.md`):
   a researched, honest assessment of real code-execution engines (simavr GPL-3,
   simulavr GPL-2, avr8js MIT, Renode MIT, Espressif QEMU, Microchip AVR

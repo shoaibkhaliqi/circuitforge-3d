@@ -96,11 +96,50 @@ project's offline, no-secret, local-only design.
   duplicate mature engines.
 - ESP32/STM32/MSP430 are explicitly out of the first spike.
 
-## 8. Recommendation
+## 8. Spike result (executed)
 
-Run a **time-boxed Windows spike**: `arduino-cli` compile + **simavr** (via a tiny
-C harness or its CLI/VCD output) for ATmega328P, streamed over a sidecar process,
-feeding the existing `gpio` element. If the spike passes the gate criteria, add
-the API surface in §5 behind an "external firmware backend" capability flag. If it
-does not, the feature stays gated and the catalog keeps its honest
-`planned`/`external` labels.
+A time-boxed Windows spike was run with the **permissive** path from §4/§5, using
+tools already present on the host (`arduino-cli 1.5.1` + `arduino:avr 1.8.8`,
+Node). The `simavr`/GPL path was not needed for the spike to succeed.
+
+- `firmware/sketches/blink/blink.ino` — a 1 Hz blink on D13.
+- `arduino-cli compile --fqbn arduino:avr:uno` → `blink.ino.hex` (924 bytes, 2% flash).
+- `firmware/harness/run.mjs` loads the HEX into **avr8js 0.21** (MIT), wires up
+  timer0/1/2 + ports B/C/D, runs instruction-by-instruction and prints pin
+  transitions with emulated timestamps.
+- Observed, deterministic D13 (PB5) activity over 2.5 s:
+
+  ```
+  t=0.014ms B5=1   t=500.023ms B5=0   t=1000.031ms B5=1
+  t=1500.043ms B5=0  t=2000.054ms B5=1
+  ```
+
+- `firmware/harness/verify.mjs` asserts a clean ~500 ms square wave and passes
+  (edge gaps 500.009 / 500.008 / 500.012 / 500.011 ms).
+
+### Gate criteria (§6) — spike outcome
+
+- [x] Builds and runs on **Windows** for an ATmega328P program (HEX; arduino-cli
+      can also emit ELF).
+- [x] **License** compatible with an MIT app: engine is **avr8js (MIT)**; Node and
+      `arduino-cli` stay external tools, nothing GPL vendored.
+- [x] **Board coverage** stated honestly: AVR/ATmega328P only in the spike.
+- [x] **Deterministic, reproducible timing** for blink (reproducible via
+      `verify.mjs`); limits documented (§7).
+- [ ] Status changes backed by tests — no catalog status is changed yet; the
+      protocol parts stay `planned`/`visual` until the app actually consumes the
+      harness. This is the remaining step before flipping any status.
+
+**Outcome:** technical feasibility is **confirmed** for the permissive path. The
+next increment is wiring `run.mjs`'s JSON into the app (a sidecar + the §5 API)
+and feeding transitions into the existing `gpio` element. Until that is done and
+tested, the catalog labels do not change.
+
+## 9. Recommendation
+
+The originally suggested `simavr` (GPL) spike is superseded by the working
+**avr8js (MIT)** result above for the same reason §4 prefers it: no GPL is
+vendored into the MIT binary. Build the sidecar `load_firmware` / `start_mcu` /
+`read_pins` surface in §5 on top of `firmware/harness/run.mjs`. If the app-side
+integration cannot meet the gate (e.g. timing or packaging), fall back to a
+separately-installed `simavr` and keep the feature capability-flagged.

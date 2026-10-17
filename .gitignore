@@ -12,4 +12,7 @@ venv/
 *.egg-info/
 .pytest_cache/
 
+# Node (firmware harness / sidecar spike)
+node_modules/
+
 

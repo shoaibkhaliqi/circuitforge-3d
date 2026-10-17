@@ -1,0 +1,11 @@
+{
+  "name": "circuitforge-firmware-harness",
+  "version": "0.0.1",
+  "private": true,
+  "description": "M7 spike: runs an arduino-cli HEX on avr8js (MIT) and streams pin transitions as JSON.",
+  "type": "module",
+  "bin": { "cf-firmware": "run.mjs" },
+  "dependencies": {
+    "avr8js": "^0.21.0"
+  }
+}

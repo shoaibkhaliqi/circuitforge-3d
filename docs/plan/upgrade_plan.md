@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | assessed (options/licensing/gate written up in `docs/plan/m7_firmware_backend.md`; integration still gated) |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration still gated |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -208,7 +208,7 @@ catalog that replaces the hardcoded definition list.
   battery-with-internal-resistance numerical solve.
 - Regression: **532 / 532 tests pass**, MCP **13 / 13**, headless load exits 0.
 
-### Milestone 7 — code-execution backend (feasibility assessment written)
+### Milestone 7 — code-execution backend (feasibility spike passed)
 - Assessed the real engines rather than guessing: **simavr** (GPL-3, Linux/macOS,
   AVR, loads ELF/iHEX), **simulavr** (GPL-2, Linux), **avr8js** (MIT, JS),
   **Renode** (MIT, Cortex-M/RISC-V), Espressif QEMU (GPL-2, ESP32) and the
@@ -221,6 +221,13 @@ catalog that replaces the hardcoded definition list.
 - Full write-up, API sketch and **gate criteria** in
   `docs/plan/m7_firmware_backend.md`. **Nothing is implemented**; protocol parts
   stay `planned`/`visual` until a Windows spike passes the gate.
+- **Spike executed (Windows, permissive path)**: `arduino-cli` compiles
+  `firmware/sketches/blink` for `arduino:avr:uno`; `firmware/harness/run.mjs`
+  loads the HEX into **avr8js (MIT)** and streams pin transitions; a 1 Hz blink on
+  D13 is deterministic (edge gaps 500.009/500.008/500.012/500.011 ms) and
+  `verify.mjs` passes. Engine license is MIT, so nothing GPL is vendored.
+  Feasibility **confirmed**; the app still does not consume the harness, so no
+  catalog status changes yet.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
