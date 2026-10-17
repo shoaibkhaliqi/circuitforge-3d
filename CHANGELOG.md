@@ -14,7 +14,7 @@ follow [Semantic Versioning](https://semver.org/).
     `data/components/*.json`, exposes facets and tokenised search with filters
     (category, status, protocol, interface, mounting, arduino-compatible,
     simulatable-only, pagination).
-  - **237 definitions across 15 categories** (`data/components/`), 0 validation
+  - **238 definitions across 16 categories** (`data/components/`), 0 validation
     errors: passives, sources, semiconductors, logic, analog ICs, displays,
     sensors, communication, power, motors, connectors, instruments, development
     boards, Android hardware and mobile devices.
@@ -90,6 +90,12 @@ follow [Semantic Versioning](https://semver.org/).
     ideal logic level from a `detected` stimulus; `acs712` is a linear Hall
     current sensor, `pressure_transducer_420ma` a 4-20 mA loop source, and
     `load_cell_5kg` a four-arm Wheatstone bridge.
+- **Firmware-backend feasibility write-up** (`docs/plan/m7_firmware_backend.md`):
+  a researched, honest assessment of real code-execution engines (simavr GPL-3,
+  simulavr GPL-2, avr8js MIT, Renode MIT, Espressif QEMU, Microchip AVR
+  Simulator), the MIT-vs-GPL licensing implication, the sidecar integration shape
+  (Stage B/C) and the gate criteria. Assessment only — nothing is implemented, so
+  protocol parts keep their `planned`/`visual` labels.
 - **MCP pin/metadata tooling** (34 → **36** tools): `get_pin_states` reads every
   virtual MCU pin (level, high/low/high-Z, driven node, solved voltage) and
   `set_pin_levels` drives pins with an optional DC re-solve — the Stage-A
