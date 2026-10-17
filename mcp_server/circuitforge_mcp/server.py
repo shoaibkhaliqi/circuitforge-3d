@@ -272,9 +272,10 @@ def run_firmware(
     `spi_bytes`).
 
     With `attach_devices=True` the circuit's device components (the `pcf8574`, using
-    its `state`/`inputs`/`address` parameters, and the `eeprom_i2c`, using
-    `address`/`size`) are attached to the emulated bus, so firmware can read/write
-    them (device -> firmware feedback, e.g. `Wire.requestFrom`); the response adds
+    its `state`/`inputs`/`address` parameters; the `eeprom_i2c`, using
+    `address`/`size`; and the `pcf8591`, whose analog channels come from the solved
+    node voltages) are attached to the emulated bus, so firmware can read/write them
+    (device -> firmware feedback, e.g. `Wire.requestFrom`); the response adds
     `devices` and `attached_devices`. With no devices the harness only ACKs I2C and
     reads return 0xFF.
 
@@ -478,12 +479,13 @@ def apply_firmware_device(
     """Feed firmware I2C traffic into a peripheral device model.
 
     Runs the firmware, takes the last byte it wrote to the device's I2C address and
-    sets the device `state` from it (for a PCF8574: P0..P7 follow the byte's bits),
-    optionally re-solving DC. This is open-loop (no device feedback into firmware).
+    applies it to the device: for a `pcf8574` it sets `state` (P0..P7 follow the
+    bits); for a `pcf8591` it sets the DAC `aout` (`byte/255 * vref`). Optionally
+    re-solves DC.
 
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
-        component_id: Target device component id (currently a `pcf8574`).
+        component_id: Target device component id (`pcf8574` or `pcf8591`).
         ms: Emulated run length in milliseconds (1..10000).
         simulate: Run a DC simulation after applying the device state.
         expected_revision: Optional optimistic-concurrency guard.

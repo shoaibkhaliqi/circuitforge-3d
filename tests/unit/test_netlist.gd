@@ -369,6 +369,36 @@ func run(t) -> void:
 	if _by_id(r, "U1#P7") != null:
 		t.check(float(_by_id(r, "U1#P7").params["level"]) == 1.0, "state 0xFF -> all port pins high")
 
+	# ---- I2C ADC/DAC: analog probes + analog output -----------------------
+	t.section("Netlist - PCF8591 maps ADC inputs and a DAC output")
+	var adc_holes := ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "TM1",
+		"a9", "a10", "a11", "a12", "a13", "a14", "a15", "TP1"]
+	var adc_build = builder.build(bb, [
+		_place("V1", "vsource", ["TP1", "TM1"], {"v": 4.0}),
+		_place("R1", "resistor", ["TP1", "a1"], {"r": 1000.0}),
+		_place("R2", "resistor", ["a1", "TM1"], {"r": 1000.0}),
+		_place("AD1", "pcf8591", adc_holes, {"address": 72, "vref": 5.0, "aout": 2.0, "rout": 25.0}),
+		_place("GND", "ground", ["TM1"]),
+	], [])
+	var probes := 0
+	for n in 4:
+		var pr = _by_id(adc_build, "AD1#AIN%d" % n)
+		if pr != null and pr.type == "resistor":
+			probes += 1
+	t.check(probes == 4, "PCF8591 emits four high-impedance ADC probes", "probes=%d" % probes)
+	var ain0 = _by_id(adc_build, "AD1#AIN0")
+	if ain0 != null:
+		t.near(float(ain0.params["r"]), 1.0e9, "AIN0 probe is 1 GOhm", 1.0)
+		t.check(String(ain0.nets[1]) == "0", "AIN0 probe references ground")
+	var aout = _by_id(adc_build, "AD1#AOUT")
+	t.check(aout != null and aout.type == "vout", "PCF8591 emits a DAC output source")
+	if aout != null:
+		t.near(float(aout.params["voltage"]), 2.0, "DAC output voltage is carried through", 1e-9)
+	var adc_res = CircuitSolver.new().solve_dc(adc_build.circuit)
+	t.check(adc_res.ok, "PCF8591 circuit solves", adc_res.get("error", ""))
+	if adc_res.ok:
+		t.near(adc_res.node_voltages["a1"], 2.0, "AIN0 reads the divider midpoint", 1e-2)
+
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
 	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])

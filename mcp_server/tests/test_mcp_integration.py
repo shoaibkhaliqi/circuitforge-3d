@@ -261,6 +261,22 @@ async def main() -> int:
             except Exception as exc:
                 record("B9. Firmware EEPROM device", False, repr(exc))
 
+            # ---------------------------------------------------- Test B10
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-PCF8591"})
+                adc = (await call_ok(s, "add_component",
+                                     {"component_type": "pcf8591",
+                                      "parameters": {"address": 72, "vref": 5.0, "aout": 0.0,
+                                                     "rout": 25.0}}))["component_id"]
+                err = await call_err(s, "apply_firmware_device",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "component_id": adc})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B10. Firmware ADC/DAC (PCF8591)", ok, f"code={code}")
+            except Exception as exc:
+                record("B10. Firmware ADC/DAC (PCF8591)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

@@ -47,7 +47,7 @@ const HANDLED_TYPES := [
 	"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor",
 	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
 	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
-	"pcf8574", "mcu_analog_in", "mcu_pwm_out",
+	"pcf8574", "mcu_analog_in", "mcu_pwm_out", "pcf8591",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -251,6 +251,16 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			# voltage, so a firmware analogWrite() level can drive the circuit.
 			out.append(_el(cid, "vout", [String(nets[0]), "0"], {
 				"voltage": float(params.get("voltage", 0.0)),
+				"rout": maxf(0.1, float(params.get("rout", 25.0))),
+			}))
+		"pcf8591":
+			# I2C ADC/DAC: AIN0..AIN3 are ideal high-impedance probes (the firmware
+			# reads their solved node voltages), AOUT is an ideal Thevenin source.
+			for n in 4:
+				out.append(_el("%s#AIN%d" % [cid, n], "resistor",
+					[String(nets[n]), "0"], {"r": 1.0e9}))
+			out.append(_el("%s#AOUT" % cid, "vout", [String(nets[11]), "0"], {
+				"voltage": float(params.get("aout", 0.0)),
 				"rout": maxf(0.1, float(params.get("rout", 25.0))),
 			}))
 		"battery_aa", "battery_aaa", "battery_9v", "battery_18650", "coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu":

@@ -10,16 +10,16 @@ This report is deliberately blunt: it separates *what looks like a part* from
 
 | metric | value |
 |--------|-------|
-| Definitions | 242 |
+| Definitions | 243 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 75 |
+| Simulatable (`full` + `partial`) | 76 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 50 | real but approximate electrical model |
+| `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
 | `external` | 37 | host/backend behaviour (USB, ADB, firmware) |
 | `planned` | 107 | catalogued and placeable, not simulated yet |
@@ -33,7 +33,7 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | Sources | 11 |
 | Semiconductor | 22 |
 | Logic | 13 |
-| Analog IC | 13 |
+| Analog IC | 15 |
 | Display | 9 |
 | Sensor | 38 |
 | Communication | 11 |
@@ -81,7 +81,10 @@ loop source) and `load_cell_5kg` (four-arm Wheatstone bridge). The `pcf8574`
 I2C I/O expander drives P0..P7 as ideal quasi-bidirectional outputs from its
 `state` byte (or from firmware I2C writes via `apply_firmware_device`); firmware
 can also read it back (`run_firmware(..., attach_devices=true)`), where `inputs`
-marks bits externally held low.
+marks bits externally held low. The `pcf8591` I2C ADC/DAC exposes AIN0..AIN3 as
+ideal 1 GΩ ADC probes (firmware reads each solved node's 8-bit code) and AOUT as an
+ideal Thevenin DAC output driven by `aout` (or from firmware writes via
+`apply_firmware_device`).
 
 ## Honest caveats
 

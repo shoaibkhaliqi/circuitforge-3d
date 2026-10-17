@@ -334,11 +334,13 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
-	var devices := _firmware_devices() if attach_devices else []
-	var adc := {}
-	var analog_applied := []
-	if not analog_map.is_empty():
-		var built: Dictionary = session.build_circuit()
+	var need_solve := not analog_map.is_empty()
+	if attach_devices and _has_type("pcf8591"):
+		need_solve = true
+	var built := {}
+	var volts_by_node := {}
+	if need_solve:
+		built = session.build_circuit()
 		if built.ground_net != "0":
 			return _err("NO_REFERENCE", "Analog inputs need a reference (ground) node.",
 				"Add a Ground component.")
@@ -347,21 +349,24 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		if not bool(res.get("ok", false)):
 			return _err("SIMULATION_FAILURE", "Could not solve to read the analog inputs: " + String(res.get("error", "")),
 				"Check the circuit for floating nets or conflicting sources.")
-		var volts_by_node: Dictionary = res.get("node_voltages", {})
-		for key in analog_map.keys():
-			var ch := _adc_channel(key)
-			var cid := String(analog_map[key])
-			var c = session.find_component(cid)
-			if c == null or String(c.type) != "mcu_analog_in":
-				analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "not an mcu_analog_in"})
-				continue
-			var nets: Array = (built.pin_nets as Dictionary).get(cid, [])
-			if nets.is_empty():
-				analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "unplaced"})
-				continue
-			var volts := clampf(float(volts_by_node.get(String(nets[0]), 0.0)), 0.0, 5.0)
-			adc[ch] = volts
-			analog_applied.append({"channel": String(key), "component_id": cid, "voltage": volts})
+		volts_by_node = res.get("node_voltages", {})
+	var devices := _firmware_devices(volts_by_node, built.get("pin_nets", {})) if attach_devices else []
+	var adc := {}
+	var analog_applied := []
+	for key in analog_map.keys():
+		var ch := _adc_channel(key)
+		var cid := String(analog_map[key])
+		var c = session.find_component(cid)
+		if c == null or String(c.type) != "mcu_analog_in":
+			analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "not an mcu_analog_in"})
+			continue
+		var nets: Array = (built.get("pin_nets", {}) as Dictionary).get(cid, [])
+		if nets.is_empty():
+			analog_applied.append({"channel": String(key), "component_id": cid, "skipped": "unplaced"})
+			continue
+		var volts := clampf(float(volts_by_node.get(String(nets[0]), 0.0)), 0.0, 5.0)
+		adc[ch] = volts
+		analog_applied.append({"channel": String(key), "component_id": cid, "voltage": volts})
 	var r := FirmwareBackend.run_hex(hex_path, ms, devices, adc)
 	if not bool(r.get("ok", false)):
 		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
@@ -415,9 +420,19 @@ func _adc_channel(key) -> int:
 	return -1
 
 
+## True if the project has at least one component of the given type.
+func _has_type(t: String) -> bool:
+	var comps: Array = session.project.get("components", []) if session != null else []
+	for c in comps:
+		if String(c.get("type", "")) == t:
+			return true
+	return false
+
+
 ## Build harness device specs from the circuit's device components so firmware can
-## read (and write) them: the PCF8574 expander and the 24LC256 I2C EEPROM.
-func _firmware_devices() -> Array:
+## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM and the PCF8591
+## ADC/DAC (whose analog inputs come from the solved node voltages).
+func _firmware_devices(node_voltages := {}, pin_nets := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
 	for c in comps:
@@ -436,6 +451,20 @@ func _firmware_devices() -> Array:
 				"address": int(p.get("address", 80)) & 0x7F,
 				"size": clampi(int(p.get("size", 256)), 1, 32768),
 				"init": [],
+			})
+		elif t == "pcf8591":
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			var ain := []
+			for n in 4:
+				var v := 0.0
+				if n < nets.size():
+					v = clampf(float(node_voltages.get(String(nets[n]), 0.0)), 0.0, 100.0)
+				ain.append(v)
+			out.append({
+				"kind": "pcf8591",
+				"address": int(p.get("address", 72)) & 0x7F,
+				"vref": maxf(0.001, float(p.get("vref", 5.0))),
+				"ain": ain,
 			})
 	return out
 
@@ -495,10 +524,10 @@ func apply_firmware_device(hex_path: String, component_id: String, ms: int = 200
 		return _err("UNKNOWN_COMPONENT", "No component '%s'." % component_id,
 			"Use list_components to find the id.")
 	var ctype := String(c.type)
-	if ctype != "pcf8574":
+	if ctype != "pcf8574" and ctype != "pcf8591":
 		return _err("UNSUPPORTED_DEVICE",
 			"Component '%s' is '%s', which has no firmware device model." % [component_id, ctype],
-			"Only 'pcf8574' is supported for now.")
+			"Supported devices: 'pcf8574', 'pcf8591'.")
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
@@ -514,19 +543,33 @@ func apply_firmware_device(hex_path: String, component_id: String, ms: int = 200
 		return _err("NO_DEVICE_WRITE",
 			"Firmware did not write to I2C address 0x%02X." % addr,
 			"Check the sketch and the device 'address' parameter.")
-	session.set_params(component_id, {"state": byte})
+	if ctype == "pcf8574":
+		session.set_params(component_id, {"state": byte})
+		_bump()
+		var levels := []
+		for n in 8:
+			levels.append(1 if ((byte >> n) & 1) == 1 else 0)
+		var out := {
+			"component_id": component_id, "type": ctype,
+			"address": "0x%02X" % addr, "state": byte, "port_levels": levels,
+			"hex": hex_path, "revision": revision,
+		}
+		if simulate:
+			out["simulation"] = run_dc_simulation()
+		return _ok(out)
+	# pcf8591: the last byte written is the DAC value (control byte then data).
+	var vref := float(c.get("params", {}).get("vref", 5.0))
+	var aout := (float(byte) / 255.0) * vref
+	session.set_params(component_id, {"aout": aout})
 	_bump()
-	var levels := []
-	for n in 8:
-		levels.append(1 if ((byte >> n) & 1) == 1 else 0)
-	var out := {
+	var dout := {
 		"component_id": component_id, "type": ctype,
-		"address": "0x%02X" % addr, "state": byte, "port_levels": levels,
+		"address": "0x%02X" % addr, "dac": byte, "aout": aout, "vref": vref,
 		"hex": hex_path, "revision": revision,
 	}
 	if simulate:
-		out["simulation"] = run_dc_simulation()
-	return _ok(out)
+		dout["simulation"] = run_dc_simulation()
+	return _ok(dout)
 
 
 func apply_firmware_pwm(hex_path: String, pin_map: Dictionary, ms: int = 2000, vlogic: float = 5.0, simulate: bool = false, expected_revision = null) -> Dictionary:

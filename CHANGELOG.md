@@ -14,7 +14,7 @@ follow [Semantic Versioning](https://semver.org/).
     `data/components/*.json`, exposes facets and tokenised search with filters
     (category, status, protocol, interface, mounting, arduino-compatible,
     simulatable-only, pagination).
-  - **242 definitions across 16 categories** (`data/components/`), 0 validation
+  - **243 definitions across 16 categories** (`data/components/`), 0 validation
     errors: passives, sources, semiconductors, logic, analog ICs, displays,
     sensors, communication, power, motors, connectors, instruments, development
     boards, Android hardware and mobile devices.
@@ -146,7 +146,7 @@ follow [Semantic Versioning](https://semver.org/).
     ~50.2% duty at ~490 Hz (2.51 V), and a 1 kΩ load sags to 2.448 V. MCP tools
     40 → **41**; MCP integration 17 → **18** (Test B8); suite 653 → **663**; catalog
     240 → **241** defs (Virtual 2 → 3), simulatable 74 → **75**.
-  - **I2C EEPROM device — 24LC256** (`data/components/analog_ic.json`, `external`):
+  - **I2C EEPROM device — 24C02** (`data/components/analog_ic.json`, `external`):
     a pure-backend part with no breadboard model, served on the I2C bus by the
     harness. `run_firmware(..., attach_devices=true)` now attaches `eeprom_i2c`
     (`address`, `size`); the `eeprom` device implements the standard two-byte
@@ -155,6 +155,16 @@ follow [Semantic Versioning](https://semver.org/).
     `eeprom_read` + `verify_eeprom.mjs` assert "eeprom 165". MCP integration
     18 → **19** (Test B9); suite 663 → **665**; catalog 241 → **242** defs
     (`external` 36 → **37**). Memory does not persist across separate runs.
+  - **I2C ADC/DAC device — PCF8591** (`data/components/analog_ic.json`, `partial`):
+    AIN0..AIN3 map to ideal 1 GΩ ADC probes and AOUT to an ideal Thevenin DAC
+    output (`vout` at `aout`). `run_firmware(..., attach_devices=true)` solves the
+    circuit and serves the part on the bus with each AIN channel's solved node
+    voltage, so firmware reads an 8-bit code (`ain`, `read`). Conversely
+    `apply_firmware_device` sets the DAC `aout` from the byte firmware writes
+    (`byte/255 * vref`). Sketches `firmware/sketches/pcf8591_read` (2.0 V divider →
+    code 102) and `pcf8591_dac` + `verify_pcf8591.mjs` (2.5 V → code 128). MCP
+    integration 19 → **20** (Test B10); suite 665 → **672**; catalog 242 → **243**
+    defs, `partial` 50 → **51**, simulatable 75 → **76**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

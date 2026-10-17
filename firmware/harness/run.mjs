@@ -96,6 +96,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //
 //   CF_DEVICES=[{"kind":"pcf8574","address":39,"state":0,"inputs":15}]
 //   CF_DEVICES=[{"kind":"eeprom","address":80,"size":256,"init":[1,2,3]}]
+//   CF_DEVICES=[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
   const map = new Map();
@@ -137,6 +138,34 @@ function buildDevices() {
         },
         readByte() { const v = mem[ptr % size]; ptr = (ptr + 1) % size; return v; },
         summary: () => ({ kind: 'eeprom', address: addr, size, pointer: ptr, mem: Array.from(mem) }),
+      });
+    } else if (s.kind === 'pcf8591') {
+      const vref = Math.max(0.001, Number(s.vref ?? 5));
+      const ain = [0, 1, 2, 3].map((i) => Number((Array.isArray(s.ain) ? s.ain : [])[i] ?? 0));
+      const code8 = (v) => Math.max(0, Math.min(255, Math.round((Math.max(0, Math.min(vref, v)) / vref) * 255)));
+      let control = 0;
+      let channel = 0;
+      let dac = 0;
+      let first = true;
+      map.set(addr, {
+        kind: 'pcf8591',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { control = b; channel = b & 3; first = false; }
+          else if (control & 0x40) { dac = b; }
+        },
+        readByte() {
+          const v = code8(ain[channel]);
+          if (control & 0x04) channel = (channel + 1) & 3;
+          return v;
+        },
+        summary: () => ({
+          kind: 'pcf8591', address: addr, control, channel,
+          ain: ain.map((v) => Math.round(v * 1e6) / 1e6),
+          read: code8(ain[channel]), dac,
+          aout: Math.round((dac / 255) * vref * 1e6) / 1e6,
+        }),
       });
     }
   }

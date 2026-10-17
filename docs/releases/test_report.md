@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 665 / 665 passed
+RESULT: 672 / 672 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -33,7 +33,7 @@ STATUS: ALL TESTS PASSED
 |------------------------------------------------------------|---------------------|
 | LinAlg — linear solve                                      | numeric core        |
 | Schema — normalise, validate, status vocabulary            | catalog schema      |
-| Catalog — load, validate all 242, search, facets, status   | catalog             |
+| Catalog — load, validate all 243, search, facets, status   | catalog             |
 | DC 1–7 — Ohm, divider, parallel, KCL, KVL, sensitivity     | DC solver           |
 | Transient — RC charging, RL step, sine source              | transient solver    |
 | Nonlinear — LED forward/reverse, silicon diode             | Newton–Raphson      |
@@ -43,8 +43,8 @@ STATUS: ALL TESTS PASSED
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
-| Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, analog-input probe, analog-output source, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog-input reads, PWM duty, capability honesty | firmware backend    |
+| Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes (PWM, PCF8574/PCF8591/EEPROM), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -105,7 +105,7 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 19 / 19 passed
+RESULTS: 20 / 20 passed
 ```
 
 | Test | Checks | Result |
@@ -113,7 +113,7 @@ RESULTS: 19 / 19 passed
 | A. Server initialization | name `circuitforge-3d`, 41 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
-| B2. Catalog discovery | 242 entries, status facets/filters, I2C filter, 0 errors | pass |
+| B2. Catalog discovery | 243 entries, status facets/filters, I2C filter, 0 errors | pass |
 | B3. Board pinout | Uno R3 29 pins, groups/counts, provenance references | pass |
 | B4. Virtual pin control | mcu_pin high/low/high-Z via set_pin_levels + get_pin_states | pass |
 | B5. Firmware backend | optional/honest capabilities; missing-HEX is a clean error | pass |
@@ -121,6 +121,7 @@ RESULTS: 19 / 19 passed
 | B7. Firmware analog inputs | `mcu_analog_in` + missing-HEX `run_firmware(analog_map)` is a clean error | pass |
 | B8. Firmware PWM output | `mcu_pwm_out` + missing-HEX `apply_firmware_pwm` is a clean error | pass |
 | B9. Firmware EEPROM device | `eeprom_i2c` attached; missing-HEX `run_firmware` is a clean error | pass |
+| B10. Firmware ADC/DAC (PCF8591) | missing-HEX `apply_firmware_device` on a `pcf8591` is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

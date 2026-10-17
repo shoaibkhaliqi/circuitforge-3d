@@ -42,6 +42,10 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/eeprom_roundtrip firmware/sketches/eeprom_roundtrip
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/eeprom_read firmware/sketches/eeprom_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/pcf8591_read firmware/sketches/pcf8591_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/pcf8591_dac firmware/sketches/pcf8591_dac
 
 # 2. execute + inspect
 cd firmware/harness
@@ -58,6 +62,7 @@ node verify_expander_read.mjs ../build/expander_read/expander_read.ino.hex
 node verify_analog.mjs ../build/analog_read/analog_read.ino.hex
 node verify_pwm.mjs ../build/pwm_out/pwm_out.ino.hex
 node verify_eeprom.mjs ../build/eeprom_roundtrip/eeprom_roundtrip.ino.hex
+node verify_pcf8591.mjs ../build/pcf8591_read/pcf8591_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -79,15 +84,21 @@ device (device → firmware feedback), not just trace writes:
 CF_DEVICES='[{"kind":"pcf8574","address":39,"state":255,"inputs":15}]' \
   node run.mjs ../build/expander_read/expander_read.ino.hex 2200
 
-# 24LC256 EEPROM at 0x50: store a byte then read it back (prints "eeprom 165")
+# 24C02 EEPROM at 0x50: store a byte then read it back (prints "eeprom 165")
 CF_DEVICES='[{"kind":"eeprom","address":80,"size":256,"init":[]}]' \
   node run.mjs ../build/eeprom_roundtrip/eeprom_roundtrip.ino.hex 600
+
+# PCF8591 ADC at 0x48 with AIN0 = 2.5 V over a 5 V reference -> reads code 128
+CF_DEVICES='[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]' \
+  node run.mjs ../build/pcf8591_read/pcf8591_read.ino.hex 400
 ```
 
-Supported `kind`s: `pcf8574` (`state`, `inputs`) and `eeprom` (`address`, `size`,
-`init`); the EEPROM summary also returns the memory image (`mem`). The app does this
-automatically: `run_firmware(..., attach_devices=true)` builds the specs from the
-circuit's `pcf8574` and `eeprom_i2c` components.
+Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
+`init`) and `pcf8591` (`address`, `ain`, `vref`); the EEPROM summary also returns
+the memory image (`mem`). The app does this automatically:
+`run_firmware(..., attach_devices=true)` builds the specs from the circuit's
+`pcf8574`, `eeprom_i2c` and `pcf8591` components (a `pcf8591`'s `ain` values come
+from the solved node voltages).
 
 ## Analog inputs (circuit → firmware)
 

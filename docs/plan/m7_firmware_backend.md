@@ -189,7 +189,7 @@ the PCF8574 below.
   the analog feedback that closes the loop is covered in §10–§11. Other protocol
   parts stay `planned` until they get the same treatment.
 
-## 9b. Second device: 24LC256 I2C EEPROM (executed)
+## 9b. Second device: 24C02 I2C EEPROM (executed)
 
 `eeprom_i2c` (`data/components/analog_ic.json`) is the first **`external`** part
 added for the firmware backend — it has *no* breadboard electrical model (so it is
@@ -208,6 +208,30 @@ not in `HANDLED_TYPES`), and is served on the I2C bus only while firmware runs:
 - **Limits (honest)**: timing, write-cycle delay, page boundaries, the WP pin, ACK
   polling, endurance and data retention across *separate runs* are not modelled —
   the memory lives only for the duration of one run.
+
+## 9c. Third device: PCF8591 I2C ADC/DAC (executed)
+
+`pcf8591` (`data/components/analog_ic.json`, **`partial`**) is the first device
+whose analog channels come from the *solved* circuit — closing the "analog surface
+to a specific device" item:
+
+- **Model**: the netlist maps AIN0..AIN3 to ideal 1 GΩ ADC probes and AOUT to an
+  ideal Thevenin DAC output (`vout` at `aout`, `rout` default 25 Ω).
+- **Read (circuit → firmware)**: `run_firmware(..., attach_devices=true)` solves the
+  circuit and serves the part on the bus with each AIN channel's node voltage; the
+  harness `pcf8591` device converts to an 8-bit code over `vref` (default 5 V) and
+  honours the control byte's channel select and auto-increment. The run adds `ain`
+  and `read` per device.
+- **Write (firmware → circuit)**: `apply_firmware_device` sets the DAC `aout` from
+  the last byte firmware writes (`byte/255 * vref`), optionally re-solving.
+- **Verified**: `firmware/sketches/pcf8591_read` reads a 2.0 V divider midpoint as
+  code 102 end-to-end; `pcf8591_dac` writes `0x80` → `aout` 2.510 V.
+  `firmware/harness/verify_pcf8591.mjs` asserts 2.5 V → code 128; the mapping by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B10.
+- **Limits (honest)**: the read pipeline (the real part returns the previous
+  conversion first), conversion/auto-increment timing, `EXT`/`OSC` and the digital
+  bus itself are not modelled; the DAC is an ideal average/source, not a real
+  buffered output with offset/linearity error.
 
 ## 10. Analog loop: `mcu_analog_in` → `analogRead()` (executed)
 
@@ -259,9 +283,10 @@ catalog status change backed by a real firmware-driven test. The bus loop is clo
 for the PCF8574 (§9): firmware reads device state and writes it back. The analog
 input loop is also closed (§10): `mcu_analog_in` feeds the AVR `analogRead()` from
 the solved circuit, and the analog output loop (§11) drives the circuit from
-`analogWrite()` via `mcu_pwm_out`. Remaining work: link the analog surface to
-specific *devices* (e.g. an I²C ADC's channels from solved nodes), more device
-models (LCD/OLED, EEPROM through the app, DHT, ultrasonic), and a
+`analogWrite()` via `mcu_pwm_out`. Devices now cover the PCF8574 expander (§9),
+the 24C02 EEPROM (§9b) and the PCF8591 ADC/DAC (§9c) — whose channels come from the
+solved nodes, linking the analog surface to a specific device. Remaining work: more
+device models (LCD/OLED, DHT, ultrasonic), a MPU/IMU or quadrature encoder, and a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

@@ -249,12 +249,12 @@
     },
     {
       "id": "eeprom_i2c",
-      "name": "24LC256 I2C Serial EEPROM",
+      "name": "24C02 I2C Serial EEPROM (256 B)",
       "category": "Analog IC",
       "subcategory": "Memory",
-      "description": "256 kbit (32 KiB) I2C serial EEPROM (DIP-8). Firmware stores and reads back bytes on the bus; the memory image persists between runs.",
-      "keywords": ["i2c", "eeprom", "memory", "24lc256", "at24c", "nonvolatile", "nvram", "storage"],
-      "part_number": "24LC256",
+      "description": "2 kbit (256 byte) I2C serial EEPROM (DIP-8). Firmware stores and reads back bytes on the bus during a run.",
+      "keywords": ["i2c", "eeprom", "memory", "24c02", "24lc02", "at24c02", "nonvolatile", "nvram", "storage"],
+      "part_number": "24C02",
       "protocols": ["I2C"],
       "pins": [
         {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
@@ -272,6 +272,39 @@
         "size": {"default": 256, "label": "Memory size (bytes)", "min": 1, "max": 32768}
       },
       "notes": "No electrical model on the breadboard: the part answers on the I2C bus in the firmware harness (run_firmware with attach_devices). Firmware uses the standard two-byte address then data, auto-incrementing pointer, and reads back what it wrote. Timing, write-cycle delay, page boundaries, WP pin, ACK polling, endurance and data retention across separate runs are not modelled (the memory lives only for the duration of one run). Pin order follows DIP-8 (pin 1 = A0, pin 4 = VSS, pin 8 = VCC). 'size' must be a power of two for real parts."
+    },
+    {
+      "id": "pcf8591",
+      "name": "PCF8591 I2C ADC/DAC",
+      "category": "Analog IC",
+      "subcategory": "Interface",
+      "description": "4-channel 8-bit I2C ADC with one 8-bit DAC (DIP-16). Firmware reads channel codes from the solved analog inputs and drives the analog output.",
+      "keywords": ["i2c", "adc", "dac", "pcf8591", "analog converter", "8-bit"],
+      "part_number": "PCF8591",
+      "protocols": ["I2C"],
+      "pins": [
+        {"name": "AIN0", "type": "analog"}, {"name": "AIN1", "type": "analog"},
+        {"name": "AIN2", "type": "analog"}, {"name": "AIN3", "type": "analog"},
+        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
+        {"name": "VSS", "type": "ground"},
+        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"},
+        {"name": "EXT", "type": "input"}, {"name": "AOUT", "type": "analog"},
+        {"name": "VREF", "type": "input"}, {"name": "AGND", "type": "ground"},
+        {"name": "OSC", "type": "input"}, {"name": "VDD", "type": "power"}
+      ],
+      "model": {"shape": "dip16"},
+      "mounting": "tht",
+      "simulation_status": "partial",
+      "simulation_models": ["high-z-probe", "dac-output"],
+      "simulation_backend": "mna+firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 72, "label": "I2C address (7-bit)"},
+        "vref": {"default": 5.0, "unit": "V", "label": "Reference voltage"},
+        "aout": {"default": 0.0, "unit": "V", "label": "DAC output voltage"},
+        "rout": {"default": 25.0, "unit": "Ohm", "label": "DAC output resistance"}
+      },
+      "notes": "Partial: AIN0..AIN3 are ideal high-impedance (1 GOhm) ADC probes, so firmware can read the solved node voltage of each (run_firmware with attach_devices feeds the codes; 8-bit over 'vref'). AOUT is an ideal Thevenin source at 'aout' with 'rout' (the real part has a buffered output). Set 'aout' directly, or via apply_firmware_device from the bytes firmware writes (control byte then data, DAC enabled). The read pipeline (the PCF8591 returns the previous conversion first), auto-increment timing, conversion delay, EXT/OSC and the digital bus itself are not modelled. Pin order follows DIP-16 (pin 1 = AIN0, pin 8 = VSS, pin 16 = VDD)."
     }
   ]
 }
