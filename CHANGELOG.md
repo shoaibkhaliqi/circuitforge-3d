@@ -349,10 +349,20 @@ follow [Semantic Versioning](https://semver.org/).
   generated examples keep stable, readable reference designators).
 - **Solver scale test** (`tests/solver/test_scale.gd`): a 200-node resistor
   ladder solves in ~14 ms (well under the 5 s guard), protecting against
-  accidental complexity regressions.
+  accidental complexity regressions. It now also guards the *component* count: a
+  100-branch LED + resistor breadboard project (201 components, a nonlinear solve)
+  must solve inside the same budget, and its source current must scale linearly with
+  the branch count (which also proves all branches were really wired in parallel).
+- **Component-count / performance pass** (`tools/bench.gd`,
+  `docs/plan/m10_performance.md`): measures the solver on 200/400/800-node ladders
+  (15.7 / 62.5 / 241.7 ms) and the whole pipeline — catalogue → breadboard nets →
+  netlist builder → DC solve — on dense projects up to 402 components (netlist build
+  43 ms, solve 257 ms). Numbers recorded with how to read them; nothing is quadratic
+  in the component count beyond the matrix itself.
 - **Windows screenshot option**: `-- --screenshot=<path>` loads a circuit, lets
   the window settle, saves a PNG and quits — used to produce
-  `docs/plan/m10_*.png` visual evidence.
+  `docs/plan/m10_*.png` visual evidence, including the windowed pass over the two
+  firmware examples (`m10_env_logger.png`, `m10_motion_demo.png`).
 
 ### Fixed
 - Component visuals drew only one lead: the model frame used `Node3D.to_local()`

@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 756/756; Linux runtime verification remains blocked on WSL) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
 
 ## 3a. Progress log
 
@@ -473,7 +473,7 @@ catalog that replaces the hardcoded definition list.
   provenance. Firmware upload/execution stays gated (plan M7).
 - Integration suite now runs Tests A–J + B2 + B3 + B4 = **14 / 14**.
 
-### Milestone 10 — examples, robustness, docs (in progress)
+### Milestone 10 — examples, robustness, docs (done)
 - **Solver robustness**: fixed the `gmin` leakage no-op (`_add_gmin` used
   `add_g(i, i, gmin)`, which cancels for `p == n`). A new `MNA.add_shunt` puts a
   real 1e-9 S shunt on every node, so a node with no resistive path solves to
@@ -484,17 +484,28 @@ catalog that replaces the hardcoded definition list.
   `test_examples.gd` spot-checks.
 - **Scale test** (`tests/solver/test_scale.gd`): a 200-node resistor ladder
   solves in ~14 ms, guarding against accidental solver complexity regressions.
+- **Component-count / performance pass**: `tools/bench.gd` times both the solver on
+  synthetic ladders (200/400/800 nodes: 15.7 / 62.5 / 241.7 ms) and the *whole* pipeline
+  on dense breadboard projects (25/50/100/200 LED+resistor branches, i.e. up to 402
+  components and a nonlinear solve: netlist build 43 ms, solve 257 ms). Numbers and
+  reading recorded in `docs/plan/m10_performance.md`. `test_scale.gd` now guards the
+  component-count dimension too — the dense project's branch current must scale linearly
+  (which also proves all branches were really wired in parallel) and stay inside a
+  generous 5 s budget.
 - **Visual evidence**: the app takes `-- --screenshot=<path>` (load, settle,
   save PNG, quit); `docs/plan/m10_seven_segment.png` and
-  `docs/plan/m10_ntc_thermistor.png` show the new examples solving in the UI.
+  `docs/plan/m10_ntc_thermistor.png` show the new examples solving in the UI, and
+  `m10_env_logger.png` / `m10_motion_demo.png` are the windowed pass over the two firmware
+  examples (board rendered, project named, the "not yet simulatable; skipped" diagnostics
+  visible and honest).
 - Regression: **607 / 607 tests pass**, MCP **14 / 14**, headless load exits 0,
   catalog report has 0 errors.
-- Remaining: a component-count/performance pass, and a windowed screenshot pass
-  into `docs/plan/`.
+- Remaining: nothing on this milestone's checklist; the Linux *runtime* pass stays blocked
+  on WSL availability (the binary is ELF-validated and documented honestly instead).
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 607/607).
+   (currently 776/776).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →

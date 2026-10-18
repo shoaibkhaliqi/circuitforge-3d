@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 771 / 771 passed
+RESULT: 776 / 776 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -86,6 +86,11 @@ Performed manually on Windows with screenshot evidence:
    solved value.
 7. **Lighting toggle** — the **Lighting** control cycled studio → bright → night
    and the workbench relit accordingly.
+8. **Firmware examples (windowed)** — `15_firmware_env_logger.cf3d` and
+   `16_firmware_motion.cf3d` were loaded in a real windowed run (Vulkan) and captured with
+   `-- --screenshot=<path>`: the board renders, the status bar names the project, and the
+   console honestly reports which parts are not yet simulatable and were skipped
+   (`docs/plan/m10_env_logger.png`, `docs/plan/m10_motion_demo.png`).
 
 ## Packaging verification
 
