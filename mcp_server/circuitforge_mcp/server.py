@@ -299,7 +299,10 @@ def run_firmware(
     a quadrature Gray cycle (`counts`, `direction`, `step_us`). A `dht11`/`dht22` shares
     its DATA net and answers the MCU's one-wire start signal with a datasheet-timed bit
     train built from its `temp_c`/`humidity`.
-    The response adds `pin_devices` and `pin_inputs`.
+    A mapped `servo_sg90`/`servo_mg996r` is an *output* rather than a sensor: it shares
+    its PWM net with those components and the angle the sketch commanded is decoded from
+    the pulse-width train (see `apply_firmware_servo`).
+    The response adds `pin_devices`, `pin_inputs` and `servos`.
 
     Args:
         hex_path: Path to an Intel-HEX produced for an AVR board.
@@ -539,6 +542,34 @@ def apply_firmware_pwm(
     """
     return _wrap(call_engine("apply_firmware_pwm", {
         "hex_path": hex_path, "pin_map": pin_map, "ms": ms, "vlogic": vlogic,
+        "simulate": simulate, "expected_revision": expected_revision,
+    }))
+
+
+@mcp.tool(annotations=_edit(), structured_output=True)
+def apply_firmware_servo(
+    hex_path: str,
+    pin_map: dict[str, str],
+    ms: int = 3000,
+    simulate: bool = False,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    """Read a firmware-driven servo's commanded angle out of its pulse train.
+
+    Runs the firmware, decodes the 50 Hz pulse widths on each mapped pin (using the
+    servo part's own `min_us`/`max_us`/`range_deg` band) and writes the resulting
+    `angle` onto the servo. The angle is a mechanical state — it adds no electrical
+    behaviour, so the solved circuit is unchanged.
+
+    Args:
+        hex_path: Path to a compiled Arduino Intel-HEX.
+        pin_map: Firmware pin/digital-pin -> `servo_sg90`/`servo_mg996r` id, e.g. {"9": "S1"}.
+        ms: Emulated run length in milliseconds (1..10000; 50 Hz needs one frame per pulse).
+        simulate: Run a DC simulation after applying the angles (the circuit does not change).
+        expected_revision: Optional optimistic-concurrency guard.
+    """
+    return _wrap(call_engine("apply_firmware_servo", {
+        "hex_path": hex_path, "pin_map": pin_map, "ms": ms,
         "simulate": simulate, "expected_revision": expected_revision,
     }))
 

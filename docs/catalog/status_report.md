@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 45 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 99 | catalogued and placeable, not simulated yet |
+| `external` | 47 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 97 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -91,11 +91,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
 - A part may only claim `full`/`partial` if the netlist builder actually maps it;
   this is enforced by `tests/unit/test_netlist.gd`, so the status can never drift
   ahead of the solver. Parts without a truthful model are `visual`.
-- Connectors and IC sockets, stepper and servo motors and their drivers, multi-pin
-  regulators and DC-DC modules, relays, the USB power meter, and protocol/digital
-  sensors and displays that need a bus or timing (OLED/I2C/SPI, DHT,
-  IMU, quadrature encoders) are `visual`/`planned` for now — they need
-  a firmware/Stage-B backend to be honest. The `seven_segment` display and the
+- Connectors and IC sockets, stepper motors and their drivers, multi-pin
+  regulators and DC-DC modules, relays, the USB power meter, and any remaining
+  protocol parts that need a bus or timing they do not yet have are `visual`/`planned`
+  for now — they need a firmware/Stage-B backend to be honest. The `seven_segment` display and the
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly. The
   `pcf8574` I2C expander is the first *bus* part backed by firmware: firmware drives
@@ -115,7 +114,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   bidirectional one-wire pin devices: the harness answers the start signal with a
   datasheet-timed bit train. `sht31` is the first *command-driven, checksum-protected*
   I2C part: the harness decodes 16-bit commands and answers with two CRC-8-checked
-  16-bit words.
+  16-bit words. `servo_sg90`/`servo_mg996r` are the first *mechanical-output* parts:
+  no device is attached at all — the app decodes the commanded angle from the firmware's
+  own 50 Hz pulse train (`servos`, `apply_firmware_servo`), which is a mechanical state
+  rather than an electrical one.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`

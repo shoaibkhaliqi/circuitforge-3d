@@ -100,7 +100,7 @@ async def main() -> int:
                             "get_catalog_facets", "get_board_pinout",
                             "get_pin_states", "set_pin_levels",
                             "get_firmware_capabilities", "run_firmware", "apply_firmware_pins",
-                            "apply_firmware_device", "apply_firmware_pwm"}
+                            "apply_firmware_device", "apply_firmware_pwm", "apply_firmware_servo"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -390,6 +390,24 @@ async def main() -> int:
                 record("B17. Firmware SHT31 (I2C temp/humidity)", ok, f"code={code}")
             except Exception as exc:
                 record("B17. Firmware SHT31 (I2C temp/humidity)", False, repr(exc))
+
+            # ---------------------------------------------------- Test B18
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-SERVO"})
+                servo = (await call_ok(s, "add_component",
+                                       {"component_type": "servo_sg90",
+                                        "holes": ["a1", "a2", "a3"],
+                                        "parameters": {"min_us": 544, "max_us": 2400}}))["component_id"]
+                err = await call_err(s, "apply_firmware_servo",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "pin_map": {"9": servo}})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                caps = await call_ok(s, "get_capabilities")
+                ok = ok and "apply_firmware_servo" in caps["operations"]["edit_reversible"]
+                record("B18. Firmware servo angle (pulse train)", ok, f"code={code}")
+            except Exception as exc:
+                record("B18. Firmware servo angle (pulse train)", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:

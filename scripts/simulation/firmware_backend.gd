@@ -248,6 +248,63 @@ static func last_i2c_write_byte(events: Array, address: int) -> int:
 	return byte
 
 
+## High-pulse widths (microseconds) the firmware drove on digital `pin`, in order, from
+## a transition list. A pulse starts on a rising edge and is the time until the next
+## falling edge; widths below `min_us` are dropped as glitches and above `max_us` are
+## ignored (a stuck-high pin is not a pulse). This is a hobby servo's control signal.
+static func pulse_widths(transitions: Array, pin: int, min_us := 50.0, max_us := 30000.0) -> Array:
+	var widths := []
+	var rise := -1.0
+	for tr in transitions:
+		if typeof(tr) != TYPE_DICTIONARY:
+			continue
+		if int(tr.get("digital_pin", -1)) != pin:
+			continue
+		var t := float(tr.get("t_ms", 0.0))
+		if int(tr.get("level", 0)) == 1:
+			rise = t
+			continue
+		if rise < 0.0:
+			continue
+		var us := (t - rise) * 1000.0
+		rise = -1.0
+		if us >= min_us and us <= max_us:
+			widths.append(us)
+	return widths
+
+
+## Angle (degrees) a servo pulse of `width_us` commands: the pulse band
+## [min_us, max_us] maps onto [0, range_deg], clamped (a servo given an out-of-band
+## pulse drives to its end stop).
+static func servo_angle(width_us: float, min_us := 544.0, max_us := 2400.0, range_deg := 180.0) -> float:
+	if max_us <= min_us:
+		return 0.0
+	return clampf((width_us - min_us) / (max_us - min_us) * range_deg, 0.0, range_deg)
+
+
+## Servo position the firmware commanded on `pin`: the pulse count, the last (and
+## widest/narrowest) widths in microseconds, and the angle the last pulse encodes.
+## `pulses` is 0 when the firmware never drove a pulse, and then `angle_deg` is -1.
+static func servo_position(transitions: Array, pin: int, min_us := 544.0, max_us := 2400.0,
+		range_deg := 180.0) -> Dictionary:
+	var widths := pulse_widths(transitions, pin)
+	if widths.is_empty():
+		return {"pulses": 0, "last_us": 0.0, "min_us_seen": 0.0, "max_us_seen": 0.0, "angle_deg": -1.0}
+	var lo := float(widths[0])
+	var hi := float(widths[0])
+	for w in widths:
+		lo = minf(lo, float(w))
+		hi = maxf(hi, float(w))
+	var last := float(widths[widths.size() - 1])
+	return {
+		"pulses": widths.size(),
+		"last_us": last,
+		"min_us_seen": lo,
+		"max_us_seen": hi,
+		"angle_deg": servo_angle(last, min_us, max_us, range_deg),
+	}
+
+
 static func pins_touched(transitions: Array) -> Array:
 	var seen := {}
 	for tr in transitions:

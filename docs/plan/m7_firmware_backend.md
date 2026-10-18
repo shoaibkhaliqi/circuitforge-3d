@@ -447,6 +447,38 @@ CRC-protected 16-bit words. `sht31` (`data/components/sensors.json`, `external`)
   immediately, so drivers that wait or poll both work), no clock stretching, the internal
   heater changes no temperature, and bus capacitance/timing is ideal.
 
+## 11i. Twelfth device: servo (firmware-driven actuator, angle read back)
+
+The first part that is a **mechanical output** rather than a sensor: the firmware drives
+it, and the app recovers the commanded position. `servo_sg90` and `servo_mg996r`
+(`data/components/motors.json`) move from `planned` to `external` — M8's "servo motors
+and their drivers" item.
+
+- **Model**: no device is attached at all. A hobby servo's control signal *is* the MCU's
+  own pulse train, so `FirmwareBackend.pulse_widths(transitions, pin)` measures each high
+  pulse on the pin from the harness's exact-cycle transition record, and
+  `FirmwareBackend.servo_angle(us, min_us, max_us, range_deg)` maps the part's band
+  (544–2400 µs for the SG90, 500–2500 µs for the MG996R) onto 0…`range_deg`, clamped.
+  `FirmwareBackend.servo_position()` returns the count, last/min/max widths and the
+  angle. This is the same "measure the MCU output" idea as the PWM duty, applied to a
+  position instead of an average voltage.
+- **Path**: `run_firmware(..., pin_map={"9": "S1"})` resolves the servo's PWM net to the
+  firmware pin like the encoder's A/B pair and returns a `servos` array.
+  `apply_firmware_servo(hex_path, pin_map)` writes the decoded angle onto the part's
+  `angle` parameter. (A servo adds no electrical behaviour, so the solved circuit is
+  untouched — the angle is a mechanical state, documented as such in the catalog.)
+- **Verified**: `firmware/sketches/servo_sweep` hand-writes a 50 Hz software pulse train
+  (no `Servo` library is bundled) that sweeps 0→180° in 30° steps and settles at 90°;
+  `verify_servo.mjs` recovers every step from the transitions to within 3°. The pure
+  GDScript decode path (pulse extraction, band mapping, clamping, no-pulse case) is unit
+  tested in `tests/unit/test_firmware.gd`, the mapping by `tests/unit/test_netlist.gd`,
+  and the tool surface by MCP Test B18.
+- **Limits (honest)**: the measured widths are ~1° above nominal because that is what the
+  sketch's own micros() loop plus Timer0 ISR latency actually produce on an ATmega328P —
+  the harness reports the real pulse, not the intended one. Not modelled: torque, stall or
+  holding current, the load moving the arm, and slew time (the angle is whatever the last
+  pulse commanded). Servo power draw is not added to the circuit.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -471,7 +503,10 @@ the DHT11/DHT22 (§11f) adds a *bidirectional, timing-sensitive* pin device, so 
 protocol sketches work. The capstone example (§11g, example 15 in the app) ties a DHT22
 and an I2C LCD together in one sketch, so the whole path — circuit, `pin_map`, device
 feedback and bus decoding — is exercised at once, and the SHT31 (§11h) adds a
-command-driven, checksum-protected I2C part. Remaining work: a
+command-driven, checksum-protected I2C part. The servo (§11i) adds the opposite
+direction — a firmware-driven *actuator* whose commanded position is read back out of the
+MCU's own pulse train — which is the first part of M8's "stepper and servo motors" gap.
+Remaining work: the stepper drivers (A4988/ULN2003), and a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

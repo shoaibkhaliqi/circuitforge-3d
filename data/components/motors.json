@@ -38,12 +38,20 @@
       "description": "9 g micro hobby servo, 50 Hz PWM position control, 3-wire connector.",
       "keywords": ["servo", "sg90", "pwm", "position", "micro"],
       "pins": [{"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}, {"name": "PWM", "type": "input"}],
-      "params": {"v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"}},
+      "params": {
+        "v_nom": {"default": 5.0, "unit": "V", "label": "Nominal voltage"},
+        "min_us": {"default": 544, "unit": "us", "label": "Pulse width at 0 deg", "min": 100, "max": 10000},
+        "max_us": {"default": 2400, "unit": "us", "label": "Pulse width at range_deg", "min": 100, "max": 10000},
+        "range_deg": {"default": 180, "unit": "deg", "label": "Travel", "min": 1, "max": 360},
+        "angle": {"default": 0, "unit": "deg", "label": "Commanded angle (set by apply_firmware_servo)", "min": 0, "max": 360}
+      },
       "model": {"shape": "servo"},
       "mounting": "device",
-      "simulation_status": "planned",
+      "simulation_status": "external",
+      "simulation_models": ["servo-pwm"],
+      "simulation_backend": "firmware",
       "arduino_compatible": true,
-      "notes": "Angle output requires a PWM peripheral backend; not electrically solved."
+      "notes": "Firmware-driven actuator: drive the PWM pin with a 50 Hz pulse train (the Servo library, or a hand-written timer/micros pulse like `firmware/sketches/servo_sweep`) and the app decodes the commanded angle from the pulse widths - `run_firmware(pin_map=...)` reports it in `servos`, `apply_firmware_servo` writes it to the `angle` parameter. The angle is a mechanical state, not an electrical one: the servo draws no modelled current and does not change the solved circuit. Not modelled: torque, holding/stall current, the load moving the arm, and slew time (the angle is whatever the last pulse commanded)."
     },
     {
       "id": "servo_mg996r",
@@ -53,11 +61,20 @@
       "description": "High-torque metal-gear hobby servo, 50 Hz PWM control.",
       "keywords": ["servo", "mg996r", "torque", "pwm", "metal gear"],
       "pins": [{"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"}, {"name": "PWM", "type": "input"}],
-      "params": {"v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"}},
+      "params": {
+        "v_nom": {"default": 6.0, "unit": "V", "label": "Nominal voltage"},
+        "min_us": {"default": 500, "unit": "us", "label": "Pulse width at 0 deg", "min": 100, "max": 10000},
+        "max_us": {"default": 2500, "unit": "us", "label": "Pulse width at range_deg", "min": 100, "max": 10000},
+        "range_deg": {"default": 180, "unit": "deg", "label": "Travel", "min": 1, "max": 360},
+        "angle": {"default": 0, "unit": "deg", "label": "Commanded angle (set by apply_firmware_servo)", "min": 0, "max": 360}
+      },
       "model": {"shape": "servo_large"},
       "mounting": "device",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["servo-pwm"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "notes": "As `servo_sg90`: the app decodes the angle from the 50 Hz pulse widths the firmware drives (`servos` / `apply_firmware_servo`) using this part's 500..2500 us band, which differs from the SG90's 544..2400 us. The angle is a mechanical state; no current, torque or slew is modelled."
     },
     {
       "id": "stepper_nema17",

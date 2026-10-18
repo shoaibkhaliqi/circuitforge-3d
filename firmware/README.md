@@ -62,6 +62,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/env_logger firmware/sketches/env_logger
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/sht31_read firmware/sketches/sht31_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/servo_sweep firmware/sketches/servo_sweep
 
 # 2. execute + inspect
 cd firmware/harness
@@ -87,6 +89,7 @@ node verify_encoder.mjs ../build/encoder_read/encoder_read.ino.hex
 node verify_dht.mjs ../build/dht_read/dht_read.ino.hex
 node verify_env_logger.mjs ../build/env_logger/env_logger.ino.hex
 node verify_sht31.mjs ../build/sht31_read/sht31_read.ino.hex
+node verify_servo.mjs ../build/servo_sweep/servo_sweep.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -109,6 +112,9 @@ sensor is reported on the display). That sketch is also the bundled example
 `data/examples/15_firmware_env_logger.cf3d`. `verify_sht31.mjs` asserts the SHT31's
 16-bit words and both CRC-8s (including the datasheet's `0xBE 0xEF -> 0x92` vector) and
 that a corrupted checksum *and* a wrong I2C address are both caught by the driver.
+`verify_servo.mjs` is the *output* direction: a hand-written 50 Hz software pulse train
+(no `Servo` library is bundled) sweeps 0..180 degrees and settles at 90, and the verifier
+recovers every angle from the recorded pin transitions to within 3 degrees.
 
 ## Devices on the bus (closed loop)
 
@@ -179,7 +185,9 @@ datasheet-timed bit train. The app does this automatically:
 `eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050` and `sht31` components (a
 `pcf8591`'s `ain` values come from the solved node voltages), and `pin_map` resolves an
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B or a `dht11`/`dht22`'s DATA from the
-netlist.
+netlist. A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
+*output*, so the app decodes the commanded angle from the pulse widths the sketch drove
+(`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`).
 
 ## Analog inputs (circuit → firmware)
 

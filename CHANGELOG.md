@@ -31,7 +31,7 @@ follow [Semantic Versioning](https://semver.org/).
     (`circuitforge-local-api/1`).
   - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
     `mcp==2.3.0` SDK, speaking MCP over stdio.
-  - 41 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+  - 42 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
     simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
   - Structured error codes, `expected_revision` optimistic locking and
     `operation_id` idempotency; sandboxed persistence and hard limits.
@@ -244,6 +244,17 @@ follow [Semantic Versioning](https://semver.org/).
     and a sensor at the wrong address are both rejected by the driver. MCP integration
     26 → **27** (Test B17); suite 692 → **694**; catalog `external` 44 → **45**,
     `planned` 100 → **99**.
+  - **Servo motors — firmware-driven actuator with the angle read back**
+    (`data/components/motors.json`, `servo_sg90`/`servo_mg996r`, `planned` → `external`):
+    the first *mechanical output* part. No device is attached — a servo's control signal is
+    the MCU's own 50 Hz pulse train, so `FirmwareBackend.pulse_widths`/`servo_angle`/
+    `servo_position` decode the commanded angle from the harness's exact-cycle transition
+    record using each part's `min_us`/`max_us`/`range_deg` band. `run_firmware(pin_map=…)`
+    returns it in `servos`; the new `apply_firmware_servo(hex_path, pin_map)` writes it to
+    the part's `angle`. Sketch `firmware/sketches/servo_sweep` (hand-written software PWM —
+    no `Servo` library is bundled) + `verify_servo.mjs` recover a 0→180° sweep and a
+    settled 90° to within 3°; MCP integration 27 → **28** (Test B18); suite 694 → **713**;
+    catalog `external` 45 → **47**, `planned` 99 → **97**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

@@ -384,12 +384,29 @@ catalog that replaces the hardcoded definition list.
   sensor voltages, a divider solve and a 5 V/10 Ω/2 V-BEMF = 0.3 A solve);
   `tests/unit/test_factory.gd` builds the new shapes.
 - Regression: **572 / 572 tests pass**, MCP **14 / 14**, headless load exits 0.
-- Still planned/visual (needs a firmware/Stage-B backend): stepper and servo
-  motors and their drivers, LCD/OLED/I2C/SPI displays, and digital/protocol
-  sensors (DHT, ultrasonic, gas, IMU, ...).
+- **Servo motors (`servo_sg90`, `servo_mg996r`) — the first interactive part of this
+  milestone**: promoted `planned` → `external`. A hobby servo is not attached to the bus
+  at all: the control signal *is* the firmware's own 50 Hz pulse train, so the app
+  measures the widths from the harness's exact-cycle transition record
+  (`FirmwareBackend.pulse_widths` → `servo_angle` → `servo_position`), maps each part's
+  band (`min_us`/`max_us` at 0…`range_deg`) onto an angle, reports it in `run_firmware`'s
+  `servos` array, and `apply_firmware_servo(hex_path, pin_map)` writes it to the part's
+  `angle`. Sketch `servo_sweep` (hand-written software PWM — no `Servo` library is
+  bundled) + `verify_servo.mjs` recover a 0→180° sweep and a settled 90° to within 3°,
+  the decode path is unit tested, and MCP Test B18 covers the tool. The angle is a
+  *mechanical* state: no drive current, torque, load or slew is modelled and the solved
+  circuit is unchanged. Suite **713/713**; MCP **28/28**; catalog `external` 45 → 47,
+  `planned` 99 → 97.
+- Still planned/visual: stepper motors and their step/dir drivers (`a4988_driver`,
+  `uln2003_driver`), SPI displays, and the gas/analog sensor modules that need a real
+  ADC path. The LCD/OLED/I2C/DHT/ultrasonic/IMU/servo parts are closed by the M7 device
+  work above.
 
 ### Milestone 9 — MCP pin/metadata tooling (in progress)
-- New MCP tools (34 → **36**, later **39** with the M7 firmware tools):
+- New MCP tools (34 → **36**, plus **6** M7 firmware tools —
+  `get_firmware_capabilities`, `run_firmware`, `apply_firmware_pins`,
+  `apply_firmware_device`, `apply_firmware_pwm`, `apply_firmware_servo` — for **42**
+  total):
   `get_pin_states` (read the state of every
   `mcu_pin`: level, high/low/high-Z, logic voltage, output resistance, driven
   node and solved voltage) and `set_pin_levels` (drive one or more pins, with an

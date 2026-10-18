@@ -161,7 +161,10 @@ supply rails, because the sensor and the display are served by the optional firm
 backend. Compile `firmware/sketches/env_logger` for `arduino:avr:uno` and run
 `run_firmware(hex_path, attach_devices=true, pin_map={"2": "P1"})`; the harness answers
 the DHT22 on the `P1` net and decodes the LCD's I2C stream, so the LCD text and the
-serial report can both be checked. See `firmware/README.md`.
+serial report can both be checked. See `firmware/README.md`. Parts that *act* rather than
+sense work the same way: with a `servo_sg90` mapped on its PWM net,
+`run_firmware(hex_path, pin_map={"9": "S1"})` reports the angle the sketch's pulse train
+commands under `servos`, and `apply_firmware_servo` writes it onto the part's `angle`.
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

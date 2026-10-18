@@ -121,7 +121,8 @@ func get_capabilities() -> Dictionary:
 			"get_simulation_status", "get_diagnostics", "get_solver_info",
 			"get_waveform_data", "get_circuit_text", "get_edit_preview"],
 		"edit_reversible": ["create_project", "add_component", "update_component_parameters",
-			"set_pin_levels", "apply_firmware_pins", "apply_firmware_device", "apply_firmware_pwm", "move_component", "connect_terminals", "disconnect_connection"],
+			"set_pin_levels", "apply_firmware_pins", "apply_firmware_device", "apply_firmware_pwm",
+			"apply_firmware_servo", "move_component", "connect_terminals", "disconnect_connection"],
 		"edit_destructive": ["remove_component", "clear_circuit"],
 		"simulate": ["run_dc_simulation", "run_transient_simulation", "stop_simulation"],
 		"persistence": ["save_project", "load_project", "list_example_projects",
@@ -334,7 +335,9 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
-	var need_netlist := not analog_map.is_empty() or attach_devices
+	# `pin_map` also needs the netlist: it is how a firmware pin is drawn to the
+	# net of a servo (the pulse train's destination) as well as to a sensor's.
+	var need_netlist := not analog_map.is_empty() or attach_devices or not pin_map.is_empty()
 	var need_analog := not analog_map.is_empty() or (attach_devices and _has_type("pcf8591"))
 	var built := {}
 	var volts_by_node := {}
@@ -399,7 +402,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
-		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal."
+		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal. A mapped servo is an output: its commanded angle is decoded from the pulse train the sketch drove (see `servos`)."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -421,6 +424,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		"analog_inputs": analog_applied,
 		"pin_devices": r.get("pin_devices", []),
 		"pin_inputs": pin_applied,
+		"servos": _firmware_servos(transitions, built.get("pin_nets", {}), pin_map),
 		"note": note,
 	})
 
@@ -586,6 +590,52 @@ func _net_pin(net: String, pin_map: Dictionary, pin_nets: Dictionary) -> int:
 	return -1
 
 
+## True for the catalog types a servo pulse train can be decoded for.
+func _is_servo_type(t: String) -> bool:
+	return t == "servo_sg90" or t == "servo_mg996r"
+
+
+## Servo positions the firmware commanded. A servo is an *output*, so nothing is sent to
+## the harness: for each servo component whose PWM net shares a net with a mapped
+## component, the pulse widths the sketch drove on that pin are decoded into an angle
+## (the same band the part uses — `min_us`/`max_us` at 0/`range_deg`). `pulses` is 0
+## when the pin never drove a pulse, and then `angle_deg` is -1.
+func _firmware_servos(transitions: Array, pin_nets := {}, pin_map := {}) -> Array:
+	var out := []
+	if (pin_map as Dictionary).is_empty():
+		return out
+	var comps: Array = session.project.get("components", []) if session != null else []
+	for c in comps:
+		var t := String(c.get("type", ""))
+		if not _is_servo_type(t):
+			continue
+		var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+		if nets.size() < 3:
+			continue
+		var pin := _net_pin(String(nets[2]), pin_map, pin_nets)
+		if pin < 0:
+			continue
+		var p: Dictionary = c.get("params", {})
+		var lo := clampf(float(p.get("min_us", 544.0)), 100.0, 10000.0)
+		var hi := clampf(float(p.get("max_us", 2400.0)), 100.0, 10000.0)
+		var rng := clampf(float(p.get("range_deg", 180.0)), 1.0, 360.0)
+		var pos := FirmwareBackend.servo_position(transitions, pin, lo, hi, rng)
+		out.append({
+			"digital_pin": pin,
+			"label": FirmwareBackend.label(pin),
+			"component_id": String(c.get("id", "")),
+			"min_us": lo,
+			"max_us": hi,
+			"range_deg": rng,
+			"pulses": int(pos.pulses),
+			"last_us": snappedf(float(pos.last_us), 0.01),
+			"min_us_seen": snappedf(float(pos.min_us_seen), 0.01),
+			"max_us_seen": snappedf(float(pos.max_us_seen), 0.01),
+			"angle_deg": snappedf(float(pos.angle_deg), 0.01),
+		})
+	return out
+
+
 func apply_firmware_pins(hex_path: String, pin_map: Dictionary, ms: int = 2000, at_ms: float = -1.0, simulate: bool = false, expected_revision = null) -> Dictionary:
 	var cr := _check_revision(expected_revision)
 	if not cr.success:
@@ -730,6 +780,69 @@ func apply_firmware_pwm(hex_path: String, pin_map: Dictionary, ms: int = 2000, v
 			"Use analogWrite() on the mapped pins (PWM-capable pins 3,5,6,9,10,11 on an Uno).")
 	_bump()
 	var out := {"applied": applied, "skipped": skipped, "vlogic": vlogic, "hex": hex_path, "revision": revision}
+	if simulate:
+		out["simulation"] = run_dc_simulation()
+	return _ok(out)
+
+
+## Run firmware and write the servo angle it commanded onto each mapped servo. The angle
+## is a *mechanical* state recovered from the pulse-width train the sketch drove (50 Hz,
+## `min_us`..`max_us` at 0..`range_deg`); it adds no electrical behaviour to the circuit,
+## so the solved netlist is unchanged and `simulate` is only a convenience echo.
+func apply_firmware_servo(hex_path: String, pin_map: Dictionary, ms: int = 3000, simulate: bool = false, expected_revision = null) -> Dictionary:
+	var cr := _check_revision(expected_revision)
+	if not cr.success:
+		return cr
+	if pin_map.is_empty():
+		return _err("INVALID_PARAMETER", "No pin_map was provided.",
+			"Map a firmware pin to a servo component id, e.g. {\"9\": \"SERVO1\"}.")
+	var cap := FirmwareBackend.capabilities()
+	if not bool(cap.get("available", false)):
+		return _err("FIRMWARE_UNAVAILABLE",
+			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
+			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
+	var r := FirmwareBackend.run_hex(hex_path, ms)
+	if not bool(r.get("ok", false)):
+		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
+			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
+	var applied := []
+	var skipped := []
+	for key in pin_map.keys():
+		var pin := FirmwareBackend.pin_number(key)
+		var cid := String(pin_map[key])
+		var c = session.find_component(cid)
+		if c == null:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "unknown component"})
+			continue
+		if not _is_servo_type(String(c.type)):
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "not a servo"})
+			continue
+		if pin < 0:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "not a Uno digital pin (0..19)"})
+			continue
+		var p: Dictionary = c.get("params", {})
+		var lo := clampf(float(p.get("min_us", 544.0)), 100.0, 10000.0)
+		var hi := clampf(float(p.get("max_us", 2400.0)), 100.0, 10000.0)
+		var rng := clampf(float(p.get("range_deg", 180.0)), 1.0, 360.0)
+		var pos := FirmwareBackend.servo_position(r.get("transitions", []), pin, lo, hi, rng)
+		if int(pos.pulses) == 0:
+			skipped.append({"pin": String(key), "component_id": cid, "reason": "pin never drove a servo pulse"})
+			continue
+		var angle := snappedf(float(pos.angle_deg), 0.01)
+		session.set_params(cid, {"angle": angle})
+		applied.append({
+			"pin": String(key), "component_id": cid, "angle_deg": angle,
+			"pulse_us": snappedf(float(pos.last_us), 0.01), "pulses": int(pos.pulses),
+			"min_us_seen": snappedf(float(pos.min_us_seen), 0.01),
+			"max_us_seen": snappedf(float(pos.max_us_seen), 0.01),
+		})
+	if applied.is_empty():
+		var hint := "Drive the mapped pin with a 50 Hz pulse train (see firmware/sketches/servo_sweep)."
+		if not skipped.is_empty():
+			hint = "Nothing was applied: " + JSON.stringify(skipped) + ". " + hint
+		return _err("NO_SERVO_APPLIED", "Firmware ran but no mapped pin produced a servo pulse.", hint)
+	_bump()
+	var out := {"applied": applied, "skipped": skipped, "hex": hex_path, "ms": int(r.get("ms", ms)), "revision": revision}
 	if simulate:
 		out["simulation"] = run_dc_simulation()
 	return _ok(out)

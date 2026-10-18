@@ -93,6 +93,35 @@ func run(t) -> void:
 	t.check(FirmwareBackend.pwm_duty({}, 9) < 0.0, "empty summary -> -1")
 	t.near(FirmwareBackend.pwm_duty({"9": {"duty": 2.5}}, 9), 1.0, "duty is clamped to 1", 1e-6)
 
+	t.section("Firmware - servo pulse measurement")
+	# A 50 Hz servo sweep: 544 us (0 deg) ... 2400 us (180 deg), then settled at 1472 us.
+	var srv := []
+	var t_ms := 0.0
+	for us in [544.0, 853.0, 1163.0, 1472.0, 1781.0, 2091.0, 2400.0]:
+		srv.append(_tr(9, t_ms, 1))
+		srv.append(_tr(9, t_ms + us / 1000.0, 0))
+		t_ms += 20.0
+	srv.append(_tr(9, t_ms + 0.0, 1))
+	srv.append(_tr(9, t_ms + 1.472, 0))
+	var widths := FirmwareBackend.pulse_widths(srv, 9)
+	t.check(widths.size() == 8, "eight pulses measured", str(widths.size()))
+	t.near(float(widths[0]), 544.0, "first pulse is 544 us", 0.01)
+	t.near(float(widths[6]), 2400.0, "seventh pulse is 2400 us", 0.01)
+	t.check(FirmwareBackend.pulse_widths(srv, 10).is_empty(), "another pin has no pulses")
+	t.near(FirmwareBackend.servo_angle(544.0), 0.0, "544 us -> 0 deg", 1e-3)
+	t.near(FirmwareBackend.servo_angle(2400.0), 180.0, "2400 us -> 180 deg", 1e-3)
+	t.near(FirmwareBackend.servo_angle(1472.0), 90.0, "1472 us -> 90 deg", 1e-3)
+	t.near(FirmwareBackend.servo_angle(100.0), 0.0, "below the band clamps to 0", 1e-3)
+	t.near(FirmwareBackend.servo_angle(5000.0), 180.0, "above the band clamps to 180", 1e-3)
+	var pos := FirmwareBackend.servo_position(srv, 9)
+	t.check(int(pos.pulses) == 8, "position counts every pulse")
+	t.near(float(pos.last_us), 1472.0, "last pulse is 1472 us", 0.01)
+	t.near(float(pos.angle_deg), 90.0, "the settled pulse commands 90 deg", 0.01)
+	t.near(float(pos.min_us_seen), 544.0, "sweep minimum seen", 0.01)
+	t.near(float(pos.max_us_seen), 2400.0, "sweep maximum seen", 0.01)
+	var none := FirmwareBackend.servo_position(srv, 3)
+	t.check(int(none.pulses) == 0 and float(none.angle_deg) < 0.0, "no pulses -> no angle")
+
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()
 	t.check(cap.get("engine") == "avr8js", "engine is avr8js")
