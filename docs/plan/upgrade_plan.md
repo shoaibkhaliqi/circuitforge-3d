@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor); rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 756/756; Linux runtime verification remains blocked on WSL) |
@@ -437,7 +437,21 @@ catalog that replaces the hardcoded definition list.
   left half white; `verify_oled_spi.mjs` checks the frame *and* reruns the bytes with no DC
   line to prove DC is genuinely what splits command from data. Suite **764/764**; harness
   verifiers **21**; catalog `external` 52 → **53**, `planned` 94 → **93**.
-- Still planned/visual: the remaining SPI displays (the ILI9341 TFT) and the gas/analog
+- **ILI9341 colour TFT** (`tft_ili9341`, `planned` → `external`): the SPI plumbing proven
+  general on a second, richer panel — a 240x320 RGB565 engine instead of a monochrome
+  GDDRAM. The ILI9341 inverts the SSD1306's tagging rule (DC low = command, DC *high* = its
+  parameters and the `0x2C` pixel stream), so the decoder holds a pending command and feeds
+  DC-high bytes to it until its argument count is met; the usual init registers are consumed
+  the same way so their bytes cannot be mistaken for commands. Since a frame is 153600 bytes
+  the reply is a summary (`pixels_written`, `colors`, an FNV-1a `frame_hash` over the whole
+  buffer, probe pixels, `window`, `madctl`/`colmod`, `display_on`) instead of the buffer.
+  `tft_fill` draws the left half red / right half blue; `verify_tft.mjs` recomputes the hash
+  from the expected pattern (all 76800 pixels) plus a no-DC negative control. The app
+  resolves DC (pin 4) and CS (pin 2) from `pin_map` like the OLED. Suite **771/771**; harness
+  verifiers **22**; catalog `external` 53 → **54**, `planned` 93 → **92**.
+- **SPI trace cap**: a full-screen frame produced a ~1.1 MB `spi_bytes` array, so the trace
+  is capped at 4096 bytes (`CF_SPI_LIMIT`) with the true length in `spi_byte_count`.
+- Still planned/visual: the e-paper SPI display and the gas/analog
   sensor modules that need a real ADC
   path (the remaining `planned`/`visual` parts generally need a model the app does not have
   yet — see `docs/catalog/status_report.md`). Servos, STEP/DIR steppers and the four-phase

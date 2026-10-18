@@ -155,6 +155,9 @@ observable through the engine:
   `firmware/sketches/i2c_write`: transactions to `0x27` with data `[0x00, 0x41]`,
   surfaced as `i2c` / `i2c_addresses` (`["0x27"]`).
 - **SPI**: MOSI bytes are recorded (`spi_bytes`); MISO returns 0x00 (no device).
+  The trace is capped at 4096 bytes by default (`CF_SPI_LIMIT`) with the true length in
+  `spi_byte_count`, because a full-screen frame is 150k+ bytes; a trimmed trace is never
+  presented as the whole one.
 
 This is the groundwork for protocol parts: a bus where firmware output is the
 observable. The next step — modelling the device at the other end — started with
@@ -579,6 +582,44 @@ than from an address another device answers.
   hardware SPI pins (MOSI D11 / SCK D13); DC and CS are read but RES is not, so a sketch that
   never resets the panel still decodes; and no MISO device is modelled (reads return 0x00).
 
+## 11m. Sixteenth device: ILI9341 colour TFT on SPI
+
+The `tft_ili9341` panel (`planned` → `external`) is the second SPI device and the first
+*colour* one: a 240x320 RGB565 engine rather than a monochrome GDDRAM. It exists to show the
+§11l plumbing is general, and it exercises a genuinely different command protocol.
+
+- **Model**: `makeIli9341(width, height)` keeps an RGB565 frame plus the address window.
+  `0x2A`/`0x2B` (four argument bytes each) set the column/page window, `0x2C` starts a pixel
+  stream, and pixels arrive big-endian. The important difference from the SSD1306: here a
+  DC-low byte is a *command* and its arguments come DC-high, so the decoder holds a pending
+  command and routes DC-high bytes to it until its declared argument count is met, and only
+  then to the frame as pixels. Argument counts for the usual init registers (power/timing/
+  gamma, `0x36` MADCTL, `0x3A` COLMOD, `0x11`/`0x29`, ...) are what keeps their parameter
+  bytes from being misread as commands; an unrecognised command is assumed to take none,
+  which is the honest limit. `0x11`/`0x10`/`0x29`/`0x28` drive `sleeping`/`display_on`, and
+  MADCTL is *recorded* (`madctl`) but not applied — there is no rotation/orientation model.
+- **Output**: a 240x320 frame is 153600 bytes, so the device returns a **summary** the
+  harness computes over the whole buffer: `pixels_written`, the distinct `colors` count, an
+  FNV-1a `frame_hash` over the RGB565 bytes in row-major order, five probe pixels (four
+  corners and the centre), the last address `window`, `madctl`, `colmod`, `display_on`,
+  `sleeping`, and the byte counts. The full buffer never leaves the harness.
+- **Path**: exactly as for the SPI OLED (§11l) — the app resolves the panel's DC (pin 4) and
+  CS (pin 2) nets to firmware pins through `pin_map`, and skips the panel when DC is unwired.
+- **Verified**: `firmware/sketches/tft_fill` drives the hardware SPI peripheral, resets the
+  panel, runs a trimmed Adafruit-style init (which exercises the argument counts), sets the
+  full-screen window and streams 76800 pixels: left half red `0xF800`, right half blue
+  `0x001F`. `verify_tft.mjs` recomputes the FNV-1a hash from the *expected* pattern, so all
+  76800 pixels are checked rather than a sample, and also checks the probe geometry,
+  `colmod` 0x55, `madctl` 0x48, the byte accounting (`153600` pixel + `69` parameter + `25`
+  command = `153694`) and the raw trace; the same bytes with **no DC line** are the negative
+  control (identical stream, zero pixels written — DC is genuinely what splits the stream).
+  The app-side DC/CS resolution and the part's status/handles() pair are unit tested.
+- **Limits (honest)**: MADCTL is not applied (no mirroring/rotation), so the frame is stored
+  in the order the window walks it; only 16-bit COLMOD is modelled (an 18-bit stream would be
+  misparsed); the panel's touch controller, optics, backlight and supply current are not
+  modelled; RES is not read (a sketch that never resets still decodes); and, as for the OLED,
+  only the SPI peripheral is tapped, so the sketch must use the hardware SPI pins.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -610,9 +651,10 @@ the STEP/DIR stepper (§11j) applies the same idea to travel, and the four-phase
 `uln2003_driver`/`stepper_28byj48` pair (§11k) shows the same measurement works from a plain
 four-wire sequence — which closes M8's motor gap. The motion example (example 16 in the app)
 then puts both actuators in one project and one run, so the two output decoders are checked
-against a single transition record, and the SPI OLED (§11l) closes the last named M7 gap by
-decoding the same display from the SPI peripheral, where the command/data split comes from a
-DC line the app resolves like a sensor pin. Remaining work: the gas/analog modules that need
+against a single transition record, and the SPI devices — the SSD1306 OLED (§11l) and the
+ILI9341 colour TFT (§11m) — close the last named M7 gap by decoding a display from the SPI
+peripheral, where the command/data split comes from a DC line the app resolves like a sensor
+pin. Remaining work: the gas/analog modules that need
 a real ADC path, and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a

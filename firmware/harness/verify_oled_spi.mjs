@@ -25,6 +25,7 @@ const EXPECTED_CMD = 31;  // the init block (25) + the 0x21/0x22 window (6)
 const run = (spec, ms = 700) => {
   const raw = execFileSync(process.execPath, [join(here, 'run.mjs'), hexPath, String(ms)], {
     encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
     env: { ...process.env, CF_DEVICES: JSON.stringify([spec]) },
   });
   return JSON.parse(raw);

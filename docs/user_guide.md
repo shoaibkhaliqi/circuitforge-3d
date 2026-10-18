@@ -175,7 +175,9 @@ use `pin_map={"9": "P1", "3": "P2", "2": "P3"}`. Displays work the same way on b
 an I2C `oled_ssd1306` needs only `attach_devices=true`, while an `oled_ssd1306_spi` also
 needs its DC and CS lines wired to virtual pins and mapped (the panel has no address, so
 those two lines are how the run knows which byte is a command and which panel is selected —
-see `firmware/sketches/oled_spi`).
+see `firmware/sketches/oled_spi`). The colour `tft_ili9341` works the same way as the SPI
+OLED (`firmware/sketches/tft_fill`); its frame is reported as a summary (lit-pixel count,
+colours, a frame hash and probe pixels) rather than the whole 240x320 buffer.
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

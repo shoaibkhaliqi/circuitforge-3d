@@ -118,8 +118,15 @@
       ],
       "model": {"shape": "tft_ili9341"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["ili9341-rgb565"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "width": {"default": 240, "label": "Width (px)", "min": 1, "max": 1024},
+        "height": {"default": 320, "label": "Height (px)", "min": 1, "max": 1024}
+      },
+      "notes": "No breadboard electrical model: the harness taps the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins, MOSI = D11 / SCK = D13 - a bit-banged bus is not visible to it) and decodes the ILI9341 command stream into an RGB565 frame. A DC-low byte is a command; its parameters and the 0x2C pixel stream arrive DC-high, and CS marks the selected transaction - wire DC and CS to virtual pins and map them with pin_map ({\"9\": \"P1\", \"10\": \"P2\"}), since attach_devices resolves them from the netlist. Because a 240x320 frame is 153600 bytes, run_firmware returns a *summary* in devices[] instead of the frame: pixels_written, the distinct color count, an FNV-1a frame_hash over the RGB565 buffer, five probe pixels, the address window, MADCTL/COLMOD and display_on. The 0x2A/0x2B/0x2C commands and the usual init registers are decoded; MADCTL (rotation/orientation) is recorded but not applied, 18-bit COLMOD and the touch controller are not modelled, and an unrecognised command is assumed to take no arguments."
     },
     {
       "id": "epaper_213",

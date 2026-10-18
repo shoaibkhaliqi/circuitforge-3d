@@ -418,6 +418,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		"i2c": i2c,
 		"i2c_addresses": FirmwareBackend.i2c_addresses(i2c),
 		"spi_bytes": spi,
+		"spi_byte_count": int(r.get("spi_byte_count", spi.size())),
 		"devices": r.get("devices", []),
 		"attached_devices": devices.size(),
 		"adc": r.get("adc", {}),
@@ -530,6 +531,22 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"cs": cs,
 						"cols": clampi(int(p.get("cols", 128)), 1, 256),
 						"pages": clampi(int(p.get("pages", 8)), 1, 16),
+					})
+		elif t == "tft_ili9341":
+			# The colour TFT, resolved exactly like the SPI OLED: no address to fall back
+			# on, so its DC (command/data, pin 4) and CS (selected, pin 2) lines come from
+			# `pin_map`. Its frame is summarised rather than returned whole.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 9:
+				var dc := _net_pin(String(nets[4]), pin_map, pin_nets)
+				var cs := _net_pin(String(nets[2]), pin_map, pin_nets)
+				if dc >= 0:
+					out.append({
+						"kind": "ili9341",
+						"dc": dc,
+						"cs": cs,
+						"width": clampi(int(p.get("width", 240)), 1, 1024),
+						"height": clampi(int(p.get("height", 320)), 1, 1024),
 					})
 		elif t == "mpu6050":
 			out.append({

@@ -270,7 +270,8 @@ def run_firmware(
     pin transitions (time in ms, level 0/1), the pins the firmware touched, any
     bytes the sketch printed to Serial (USART0) as `serial` / `serial_lines`, and
     I2C/SPI bus traces (`i2c` transactions with address/data, `i2c_addresses`,
-    `spi_bytes`).
+    `spi_bytes` - capped at 4096 bytes, with the true length in `spi_byte_count`, since a
+    full colour-TFT frame is 150k+ bytes).
 
     With `attach_devices=True` the circuit's device components (the `pcf8574`, using
     its `state`/`inputs`/`address` parameters; the `eeprom_i2c`, using
@@ -280,7 +281,10 @@ def run_firmware(
     sample values come from its `ax`..`gz`/`temp_c` parameters; the `sht31`, whose 16-bit
     temperature/humidity words and both CRC-8s come from its `temp_c`/`humidity`; the
     `oled_ssd1306_spi`, whose frame is decoded from the SPI peripheral once its DC and CS
-    lines are resolved from `pin_map`; and the
+    lines are resolved from `pin_map`; the `tft_ili9341` colour TFT, resolved the same way
+    and summarised (a 240x320 RGB565 frame is 153600 bytes, so it returns `pixels_written`,
+    `colors`, an FNV-1a `frame_hash`, probe pixels and the address window instead of the
+    buffer); and the
     `hcsr04`, whose
     TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so firmware
     can read/write them (device -> firmware feedback, e.g. `Wire.requestFrom`); the
@@ -309,7 +313,8 @@ def run_firmware(
     reported in `steppers` (see `apply_firmware_stepper`).
     An `oled_ssd1306_spi` panel is decoded too: it has no address, so those components
     share its DC (command/data) and CS (selected) nets and the MOSI stream the sketch sent
-    through the hardware SPI peripheral becomes the GDDRAM frame in `devices`.
+    through the hardware SPI peripheral becomes the GDDRAM frame in `devices`. A
+    `tft_ili9341` colour panel is resolved the same way and summarised (see above).
     The response adds `pin_devices`, `pin_inputs`, `servos` and `steppers`.
 
     Args:

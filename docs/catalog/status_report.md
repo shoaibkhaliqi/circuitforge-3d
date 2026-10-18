@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 21 | rendered only, no electrical behaviour |
-| `external` | 53 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 93 | catalogued and placeable, not simulated yet |
+| `external` | 54 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 92 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -91,7 +91,7 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
 - A part may only claim `full`/`partial` if the netlist builder actually maps it;
   this is enforced by `tests/unit/test_netlist.gd`, so the status can never drift
   ahead of the solver. Parts without a truthful model are `visual`.
-- Connectors and IC sockets, the remaining SPI displays and the gas/analog sensor modules that need a real
+- Connectors and IC sockets, the remaining SPI displays (the e-paper module) and the gas/analog sensor modules that need a real
   ADC path, multi-pin regulators and DC-DC modules, relays, the USB power meter, and any
   remaining protocol parts that need a bus or timing they do not yet have are
   `visual`/`planned` for now — they need a firmware/Stage-B backend or a model that does not
@@ -113,7 +113,11 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   `oled_ssd1306_spi` sibling is the first *SPI-peripheral* part: there is no address to
   serve, so the harness tags each transfer from the ATmega's SPI peripheral with the
   panel's DC line (command vs data) and CS (selected), both resolved to firmware pins
-  through `pin_map`, and feeds the same GDDRAM model. The
+  through `pin_map`, and feeds the same GDDRAM model. The `tft_ili9341` colour panel uses
+  the same plumbing with an RGB565 engine: DC low is a command, DC high its parameters and
+  the `0x2C` pixel stream, and because a full frame is 153600 bytes the result is a
+  *summary* (pixels_written, colours, an FNV-1a `frame_hash`, probe pixels, MADCTL/COLMOD)
+  rather than the buffer. The
   `rotary_encoder` is a pin device like the HC-SR04: the harness steps an ideal
   quadrature A/B pair, so a firmware decoder can be checked. `dht11`/`dht22` are
   bidirectional one-wire pin devices: the harness answers the start signal with a
@@ -135,7 +139,9 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   (`analogWrite()` duty) from firmware output, and reads the circuit back into the
   firmware through `mcu_analog_in` (`analogRead()`), served I2C devices
   (`pcf8574`) and pin sensors (`hcsr04`); it also exposes UART/`Serial` plus
-  I2C/SPI bus traces (an SPI panel is decoded from that trace). Other
+  I2C/SPI bus traces (an SPI panel is decoded from that trace, and a trace larger than
+  4096 bytes is capped with its true length reported in `spi_byte_count` — never passed off
+  as the whole one). Other
   protocol/digital parts stay `planned` until a firmware-driven part is itself
   tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,

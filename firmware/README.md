@@ -72,6 +72,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/motion_demo firmware/sketches/motion_demo
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/oled_spi firmware/sketches/oled_spi
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/tft_fill firmware/sketches/tft_fill
 
 # 2. execute + inspect
 cd firmware/harness
@@ -102,6 +104,7 @@ node verify_stepper.mjs ../build/stepper_sweep/stepper_sweep.ino.hex
 node verify_4phase.mjs ../build/stepper_4phase/stepper_4phase.ino.hex
 node verify_motion.mjs ../build/motion_demo/motion_demo.ino.hex
 node verify_oled_spi.mjs ../build/oled_spi/oled_spi.ino.hex
+node verify_tft.mjs ../build/tft_fill/tft_fill.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -116,7 +119,10 @@ harness-driven HC-SR04 ECHO pulse makes `pulseIn()` measure ~1740 µs → ~30 cm
 accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (4096 lit
 pixels and the exact per-page hex), and `verify_oled_spi.mjs` asserts the same frame for the
 SPI panel plus a negative control with no DC line, so the check fails if DC is not really
-what tags command vs data. `verify_encoder.mjs` asserts the incremental encoder
+what tags command vs data. `verify_tft.mjs` does the same for the ILI9341 colour TFT: it
+recomputes the FNV-1a hash from the expected red/blue pattern (so all 76800 pixels count),
+checks the byte accounting and probe geometry, and reruns the bytes with no DC line.
+`verify_encoder.mjs` asserts the incremental encoder
 decodes to exactly the emitted steps, forwards and backwards. `verify_dht.mjs` asserts a
 hand-written one-wire driver decodes DHT22 (including a negative temperature) and DHT11
 frames exactly, and that a missing sensor times out. `verify_env_logger.mjs` is the
@@ -210,6 +216,13 @@ summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `cr
 One device lives on the SPI peripheral instead of the I2C bus: `ssd1306_spi` (`dc`, `cs`,
 `cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
 and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
+`ili9341` (`dc`, `cs`, `width`, `height`) is the same idea with an RGB565 engine: DC low is a
+command and DC high its parameters and the `0x2C` pixel stream, and because a 240x320 frame
+is 153600 bytes it returns a *summary* (the bytes/data counts, `pixels_written`, `colors`, an
+FNV-1a `frame_hash` over the whole buffer, five `probes`, the address `window`, `madctl`,
+`colmod`, `display_on`, `sleeping`) instead of the buffer. Since a TFT frame makes the raw
+trace 150k+ bytes, `spi_bytes` is capped at 4096 (`CF_SPI_LIMIT`) with the true length in
+`spi_byte_count`.
 Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
 (`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO; `encoder` (`a`, `b`,
 `counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle; and
@@ -221,7 +234,8 @@ datasheet-timed bit train. The app does this automatically:
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B, a `dht11`/`dht22`'s DATA or an
 `oled_ssd1306_spi`'s DC/CS from the
 netlist (the SPI panel has no address, so those two lines are how the app knows which pin
-tags a byte and which selects the panel). A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
+tags a byte and which selects the panel); the `tft_ili9341` TFT resolves DC/CS the same way.
+A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
 *output*, so the app decodes the commanded angle from the pulse widths the sketch drove
 (`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`;
 either tool takes the servo's own id or, like `run_firmware`, the component wired to its

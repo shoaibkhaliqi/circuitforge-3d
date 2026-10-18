@@ -243,4 +243,22 @@ func run(t) -> void:
 	var specs2: Array = app2._firmware_devices({}, built2.pin_nets, {"9": "P1"})
 	t.check(specs2.is_empty(), "unwired DC => no spec (the stream cannot be tagged)", str(specs2))
 
+	# The colour TFT is resolved the same way, from its own pin order (CS = 2, DC = 4).
+	var app3 = AppService.new()
+	app3.session.add_component("ground", ["TM1"])
+	app3.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P2")     # TFT CS
+	app3.session.add_component("mcu_pin", ["b3", "TM7"], {}, "P3")     # TFT DC
+	app3.session.add_component("tft_ili9341",
+		["TP2", "TM5", "a2", "d3", "a3", "d4", "d5", "TP3", "d6"],
+		{"width": 240, "height": 320}, "T1")
+	var built3: Dictionary = app3.session.build_circuit()
+	var specs3: Array = app3._firmware_devices({}, built3.pin_nets, {"9": "P3", "10": "P2"})
+	t.check(specs3.size() == 1, "TFT produces one device spec", str(specs3))
+	if specs3.size() == 1:
+		var tp: Dictionary = specs3[0]
+		t.check(String(tp.get("kind", "")) == "ili9341", "spec kind is ili9341")
+		t.check(int(tp.get("dc", -1)) == 9, "TFT DC pin resolved from pin_map", str(tp))
+		t.check(int(tp.get("cs", -1)) == 10, "TFT CS pin resolved from pin_map", str(tp))
+		t.check(int(tp.get("width", 0)) == 240 and int(tp.get("height", 0)) == 320, "TFT size from params")
+
 	t.done()

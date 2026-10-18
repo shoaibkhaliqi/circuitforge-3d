@@ -304,6 +304,26 @@ follow [Semantic Versioning](https://semver.org/).
     the left-half-white frame, with a *negative control* that reruns the same bytes with no
     DC line to prove DC is what splits command from data. Suite 756 → **764**; harness
     verifiers 20 → **21**; catalog `external` 52 → **53**, `planned` 94 → **93**.
+  - **ILI9341 colour TFT** (`data/components/displays.json`, `tft_ili9341` `planned` →
+    `external`): the SPI path proven general on a second panel, with a real RGB565 engine
+    (240x320) rather than a monochrome GDDRAM. The protocol differs in one important way —
+    DC low is a command, DC high its *parameters* and the `0x2C` pixel stream — so the
+    decoder routes DC-high bytes to the pending command until its argument count is met,
+    then to the frame; the usual init registers (power/timing/gamma, `MADCTL`, `COLMOD`)
+    are consumed by argument count so their bytes cannot be mistaken for commands. A full
+    frame is 153600 bytes, so the reply is a *summary*: `pixels_written`, distinct `colors`,
+    an FNV-1a `frame_hash` over the whole RGB565 buffer, five probe pixels, the address
+    `window`, `madctl`/`colmod` and `display_on`. `firmware/sketches/tft_fill` (hardware
+    SPI) fills the left half red and the right half blue; `verify_tft.mjs` recomputes the
+    hash from the expected pattern — so every one of the 76800 pixels is checked — and
+    reruns the bytes with no DC line as the negative control. The app resolves the panel's
+    DC (pin 4) and CS (pin 2) from `pin_map` exactly like the OLED, and the spec builder is
+    unit tested for it. Suite 764 → **771**; harness verifiers 21 → **22**; catalog
+    `external` 53 → **54**, `planned` 93 → **92**.
+  - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
+    ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
+    the true length always reported in `spi_byte_count`; the decoded device summary is the
+    useful output for a large frame, and a trimmed trace is never presented as complete.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

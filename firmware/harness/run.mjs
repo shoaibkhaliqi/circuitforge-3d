@@ -101,6 +101,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
 //   CF_DEVICES=[{"kind":"ssd1306_spi","dc":9,"cs":10,"cols":128,"pages":8}]
+//   CF_DEVICES=[{"kind":"ili9341","dc":9,"cs":10,"width":240,"height":320}]
 //   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
@@ -191,6 +192,110 @@ function makeSsd1306(cols, nPages) {
   };
 }
 
+// ILI9341 colour TFT (240x320) GDDRAM engine. The command stream is the usual one a small
+// driver sends: 0x2A/0x2B set the column/page address window (four argument bytes each) and
+// 0x2C streams pixels big-endian into that window; the other init commands are recognised
+// only so their argument bytes are consumed rather than mistaken for commands. The frame is
+// *summarised*, never returned whole (a full RGB565 frame is 153600 bytes, which would dwarf
+// the rest of the reply): the written-pixel count, the distinct colour count, an FNV-1a hash
+// over the RGB565 buffer and five probe pixels pin the drawn pattern exactly.
+function makeIli9341(width, height) {
+  const fb = new Uint16Array(width * height);
+  const painted = new Uint8Array(width * height); // separate: 0x0000 is a legal colour
+  let colStart = 0;
+  let colEnd = width - 1;
+  let pageStart = 0;
+  let pageEnd = height - 1;
+  let col = 0;
+  let page = 0;
+  let madctl = 0;
+  let colmod = 0x55; // 16 bits/pixel, the power-on default most drivers rely on
+  let displayOn = false;
+  let sleeping = true;
+  let cmd = -1;
+  let args = [];
+  let pixelsWritten = 0;
+  let dataBytes = 0;
+  let writeMode = false; // between 0x2C and the next command the data bytes are pixels
+  let hi = -1;           // high byte of the current RGB565 pixel
+  // Argument counts for the commands a typical ILI9341 init sends. An unrecognised command
+  // takes none, which is the honest limit: its arguments would then read as commands.
+  const ARGC = {
+    0x01: 0, 0x10: 0, 0x11: 0, 0x13: 0, 0x20: 0, 0x21: 0, 0x26: 1, 0x28: 0, 0x29: 0,
+    0x2a: 4, 0x2b: 4, 0x2c: 0, 0x2e: 0, 0x35: 1, 0x36: 1, 0x37: 2, 0x3a: 1,
+    0x51: 1, 0x53: 1, 0x55: 1, 0xb0: 1, 0xb1: 2, 0xb4: 1, 0xb6: 3, 0xbf: 1,
+    0xc0: 1, 0xc1: 1, 0xc5: 2, 0xc7: 1, 0xcb: 4, 0xcf: 3, 0xd3: 2, 0xda: 2,
+    0xe0: 15, 0xe1: 15, 0xe8: 3, 0xea: 2, 0xed: 4, 0xf2: 1, 0xf7: 1,
+  };
+  const applyCmd = () => {
+    const c = cmd;
+    const a = args;
+    cmd = -1;
+    args = [];
+    if (c === 0x2a) { colStart = (a[0] << 8) | a[1]; colEnd = (a[2] << 8) | a[3]; col = colStart; }
+    else if (c === 0x2b) { pageStart = (a[0] << 8) | a[1]; pageEnd = (a[2] << 8) | a[3]; page = pageStart; }
+    else if (c === 0x36) madctl = a[0]; // recorded, not applied: no rotation/orientation
+    else if (c === 0x3a) colmod = a[0];
+  };
+  const writeCommand = (b) => {
+    // A DC-low byte is a command. It also aborts an unfinished one: the ILI9341 sends a
+    // command's parameters with DC *high*, so a command byte can never be an argument.
+    writeMode = false;
+    hi = -1;
+    cmd = -1;
+    args = [];
+    if (b === 0x2c) { writeMode = true; col = colStart; page = pageStart; return; }
+    if (b === 0x11) sleeping = false;
+    else if (b === 0x10) sleeping = true;
+    else if (b === 0x29) displayOn = true;
+    else if (b === 0x28) displayOn = false;
+    if (ARGC[b] > 0) { cmd = b; args = []; }
+  };
+  const writeData = (b) => {
+    dataBytes++;
+    b &= 0xff;
+    if (cmd >= 0) { // a command's parameters arrive with DC high
+      args.push(b);
+      if (args.length >= ARGC[cmd]) applyCmd();
+      return;
+    }
+    if (!writeMode) return; // data outside a command or memory write: ignored
+    if (hi < 0) { hi = b; return; }
+    const px = (hi << 8) | b;
+    hi = -1;
+    if (col >= 0 && col < width && page >= 0 && page < height) {
+      const i = page * width + col;
+      if (!painted[i]) { painted[i] = 1; pixelsWritten++; }
+      fb[i] = px;
+    }
+    col++;
+    if (col > colEnd) { col = colStart; page++; if (page > pageEnd) page = pageStart; }
+  };
+  return {
+    writeCommand,
+    writeData,
+    fields: () => {
+      let hash = 0x811c9dc5; // FNV-1a 32-bit over the RGB565 buffer, row-major
+      const colors = new Set();
+      for (let i = 0; i < fb.length; i++) {
+        const v = fb[i];
+        hash ^= (v >> 8) & 0xff; hash = Math.imul(hash, 0x01000193) >>> 0;
+        hash ^= v & 0xff; hash = Math.imul(hash, 0x01000193) >>> 0;
+        colors.add(v);
+      }
+      const probe = (x, y) => ({ x, y, color: fb[y * width + x] });
+      return {
+        width, height, colmod, madctl, display_on: displayOn, sleeping,
+        data_bytes: dataBytes, pixels_written: pixelsWritten, colors: colors.size,
+        frame_hash: hash.toString(16).padStart(8, '0'),
+        window: [colStart, colEnd, pageStart, pageEnd],
+        probes: [probe(0, 0), probe(width - 1, 0), probe(0, height - 1),
+          probe(width - 1, height - 1), probe(width >> 1, height >> 1)],
+      };
+    },
+  };
+}
+
 // Level of a pin driven by the MCU right now (1 = high, 0 = low or input). Uses the same
 // UNO_PIN table as the transition recorder.
 function levelOfPin(pin) {
@@ -247,15 +352,20 @@ function buildDevices() {
       });
       continue;
     }
-    if (s.kind === 'ssd1306_spi') {
-      // An SSD1306 panel on the AVR's SPI peripheral. `dc` selects command vs data and
-      // `cs` frames a transfer (omit either as -1 when the board ties that line); the
-      // bytes themselves come from the SPI monitor, so there is no address to serve.
-      const cols = Math.max(1, Math.min(256, Number(s.cols ?? 128)));
-      const nPages = Math.max(1, Math.min(16, Number(s.pages ?? 8)));
-      const core = makeSsd1306(cols, nPages);
+    if (s.kind === 'ssd1306_spi' || s.kind === 'ili9341') {
+      // A panel on the AVR's SPI peripheral. Unlike I2C there is no address to serve: the
+      // bytes come from the SPI monitor and `dc` (command vs data) / `cs` (selected) are
+      // sampled live, so both panels share this path and differ only in their core
+      // (omit dc/cs as -1 when the board ties that line).
+      const core = s.kind === 'ili9341'
+        ? makeIli9341(
+          Math.max(1, Math.min(1024, Number(s.width ?? 240))),
+          Math.max(1, Math.min(1024, Number(s.height ?? 320))))
+        : makeSsd1306(
+          Math.max(1, Math.min(256, Number(s.cols ?? 128))),
+          Math.max(1, Math.min(16, Number(s.pages ?? 8))));
       spiDevices.push({
-        kind: 'ssd1306_spi',
+        kind: s.kind,
         dc: Number.isFinite(Number(s.dc)) ? Number(s.dc) : -1,
         cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
         bytes: 0,
@@ -263,7 +373,7 @@ function buildDevices() {
         core,
         summary() {
           return {
-            kind: 'ssd1306_spi', dc_pin: this.dc, cs_pin: this.cs,
+            kind: this.kind, dc_pin: this.dc, cs_pin: this.cs,
             bytes: this.bytes, deselected: this.deselected,
             ...this.core.fields(),
           };
@@ -566,6 +676,10 @@ twi.eventHandler = twiTracer;
 // SPI traffic monitor: record MOSI bytes; MISO returns 0x00 unless an SPI device answers.
 // Any SPI device (CF_DEVICES) is fed each transfer live, tagged by its DC/CS line levels -
 // the two lines a driver uses to say "this byte is a command / data" and "you are selected".
+// The raw trace is useful for small sketches, but a full-screen frame is 150k+ bytes, so the
+// reply carries at most CF_SPI_LIMIT (default 4096) bytes and always the true total in
+// `spi_byte_count` - a trimmed trace is never passed off as the whole one.
+const SPI_LIMIT = Math.max(0, Number(process.env.CF_SPI_LIMIT ?? 4096));
 const spi = [];
 const spiDevice = new AVRSPI(cpu, spiConfig, F_CPU);
 spiDevice.onByte = (value) => {
@@ -854,7 +968,8 @@ process.stdout.write(
         };
       }),
       adc: adcChannels,
-      spi_bytes: spi,
+      spi_bytes: spi.slice(0, SPI_LIMIT),
+      spi_byte_count: spi.length,
       pwm,
       transitions,
     },

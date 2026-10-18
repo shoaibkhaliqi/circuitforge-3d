@@ -141,6 +141,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("uln2003_driver"), "uln2003_driver is not mapped by the solver")
 	t.check(ComponentDB.status_of("oled_ssd1306_spi") == "external", "oled_ssd1306_spi status is 'external'")
 	t.check(not NetlistBuilder.handles("oled_ssd1306_spi"), "oled_ssd1306_spi is not mapped by the solver")
+	t.check(ComponentDB.status_of("tft_ili9341") == "external", "tft_ili9341 status is 'external'")
+	t.check(not NetlistBuilder.handles("tft_ili9341"), "tft_ili9341 is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")
