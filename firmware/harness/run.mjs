@@ -99,6 +99,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]
 //   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
+//   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
 //
 // `hc_sr04` is not an I2C device: it watches a TRIG pin and drives an ECHO input
 // pin (distance-proportional pulse), so it is listed separately as pin_devices.
@@ -280,6 +281,90 @@ function buildDevices() {
           gyro_raw: [rd16(0x43), rd16(0x45), rd16(0x47)],
           temp_c: Math.round((rd16(0x41) / 340 + 36.53) * 1000) / 1000,
         }),
+      });
+    } else if (s.kind === 'ssd1306') {
+      // SSD1306 OLED: each write transaction's first byte is a control byte
+      // (bit6 = D/C: 0 = command, 1 = data); commands configure the addressing
+      // window, data bytes write GDDRAM. Page/horizontal/vertical addressing, the
+      // 0x21/0x22 range commands and B0-B7 column-set are tracked so a driver's
+      // frame writes land in the right place; the frame is returned as hex pages.
+      const cols = Math.max(1, Number(s.cols ?? 128));
+      const nPages = Math.max(1, Number(s.pages ?? 8));
+      const fb = new Uint8Array(cols * nPages);
+      let col = 0;
+      let page = 0;
+      let colStart = 0;
+      let colEnd = cols - 1;
+      let pageStart = 0;
+      let pageEnd = nPages - 1;
+      let addrMode = 2; // 2 = page addressing, 0 = horizontal, 1 = vertical
+      let isData = false;
+      let first = true;
+      let cmd = -1;
+      let args = [];
+      let displayOn = false;
+      const argCount = (c) =>
+        c === 0x21 || c === 0x22 ? 2
+          : (c === 0x20 || c === 0x81 || c === 0xd5 || c === 0xd9 || c === 0xda || c === 0x8d || c === 0xdb || c === 0xa8) ? 1
+            : 0;
+      const applyCmd = (c) => {
+        if (cmd >= 0) {
+          args.push(c);
+          if (args.length < argCount(cmd)) return;
+          if (cmd === 0x20) addrMode = args[0] & 0x03;
+          else if (cmd === 0x21) { colStart = args[0] & 0x7f; colEnd = args[1] & 0x7f; col = colStart; }
+          else if (cmd === 0x22) { pageStart = args[0] & 0x07; pageEnd = args[1] & 0x07; page = pageStart; }
+          cmd = -1;
+          args = [];
+          return;
+        }
+        if (c >= 0xb0 && c <= 0xb7) page = (c & 0x07) % nPages;
+        else if (c <= 0x0f) col = (col & 0xf0) | c;
+        else if (c >= 0x10 && c <= 0x1f) col = (col & 0x0f) | ((c & 0x0f) << 4);
+        else if (c === 0xae) displayOn = false;
+        else if (c === 0xaf) displayOn = true;
+        else if (argCount(c) > 0) { cmd = c; args = []; }
+      };
+      const writeData = (b) => {
+        if (col >= 0 && col < cols && page >= 0 && page < nPages) fb[page * cols + col] = b;
+        if (addrMode === 0) {
+          col++;
+          if (col > colEnd) { col = colStart; page++; if (page > pageEnd) page = pageStart; }
+        } else if (addrMode === 1) {
+          page++;
+          if (page > pageEnd) { page = pageStart; col++; if (col > colEnd) col = colStart; }
+        } else {
+          col++;
+          if (col >= cols) col = 0;
+        }
+      };
+      map.set(addr, {
+        kind: 'ssd1306',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { isData = (b & 0x40) !== 0; first = false; return; }
+          if (isData) writeData(b);
+          else applyCmd(b);
+        },
+        readByte() { return 0x00; },
+        summary: () => {
+          const pagesHex = [];
+          let set = 0;
+          for (let p = 0; p < nPages; p++) {
+            let s2 = '';
+            for (let c2 = 0; c2 < cols; c2++) {
+              const v = fb[p * cols + c2];
+              s2 += v.toString(16).padStart(2, '0');
+              for (let x = v; x; x >>= 1) set += x & 1;
+            }
+            pagesHex.push(s2);
+          }
+          return {
+            kind: 'ssd1306', address: addr, cols, pages: nPages,
+            display_on: displayOn, pixels_set: set, pages_hex: pagesHex,
+          };
+        },
       });
     }
   }

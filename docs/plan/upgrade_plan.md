@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -318,6 +318,14 @@ catalog that replaces the hardcoded definition list.
   from 0x3B decodes exactly. Sketch `mpu6050_read` + `verify_mpu6050.mjs`. Suite
   **678/678**; MCP **23/23** (new Test B13); catalog `external` 39 → 40,
   `planned` 105 → 104.
+- **SSD1306 OLED — decoded GDDRAM framebuffer**: `oled_ssd1306` promoted from
+  `planned` to `external`. The harness distinguishes the control byte (bit6 = D/C) and
+  tracks page/horizontal/vertical addressing with the 0x21/0x22 range commands and the
+  B0-B7 column-set, so a driver's frame writes land in the right place; the frame comes
+  back as `devices[].pages_hex` plus `pixels_set` and `display_on`. Sketch `oled_fill`
+  (hand-written init, no library) fills the top half; `verify_oled.mjs` asserts 4096 lit
+  pixels and the exact per-page hex. Suite **680/680**; MCP **24/24** (new Test B14);
+  catalog `external` 40 → 41, `planned` 104 → 103.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

@@ -192,6 +192,16 @@ follow [Semantic Versioning](https://semver.org/).
     `verify_mpu6050.mjs` decode the served values exactly. MCP integration 22 → **23**
     (Test B13); suite 676 → **678**; catalog `external` 39 → **40**, `planned` 105 →
     **104**.
+  - **SSD1306 OLED — decoded GDDRAM framebuffer** (`data/components/displays.json`,
+    `oled_ssd1306`, `external`): the harness splits the control byte (bit6 = D/C) from
+    the payload and tracks page/horizontal/vertical addressing, the 0x21/0x22 range
+    commands and the B0-B7 column-set, so a driver's frame writes land in the right
+    place. The decoded frame is returned as `devices[].pages_hex` (plus `pixels_set` and
+    `display_on`). `run_firmware(..., attach_devices=true)` attaches the circuit's
+    `oled_ssd1306` (`address`, `cols`, `pages`). Sketch `firmware/sketches/oled_fill`
+    (hand-written init, no library) + `verify_oled.mjs` assert 4096 lit pixels and the
+    exact per-page hex. MCP integration 23 → **24** (Test B14); suite 678 → **680**;
+    catalog `external` 40 → **41**, `planned` 104 → **103**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

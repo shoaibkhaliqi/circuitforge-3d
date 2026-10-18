@@ -453,9 +453,9 @@ func _has_type(t: String) -> bool:
 ## Build harness device specs from the circuit's device components so firmware can
 ## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
 ## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, the
-## MPU-6050 register file, and firmware-driven pin sensors (the HC-SR04, whose
-## TRIG/ECHO pins are resolved from `pin_map` — a firmware digital pin -> component
-## id map like `analog_map`).
+## SSD1306 OLED, the MPU-6050 register file, and firmware-driven pin sensors (the
+## HC-SR04, whose TRIG/ECHO pins are resolved from `pin_map` — a firmware digital
+## pin -> component id map like `analog_map`).
 func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -496,6 +496,13 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"address": int(p.get("address", 39)) & 0x7F,
 				"cols": clampi(int(p.get("cols", 16)), 1, 40),
 				"rows": clampi(int(p.get("rows", 2)), 1, 4),
+			})
+		elif t == "oled_ssd1306":
+			out.append({
+				"kind": "ssd1306",
+				"address": int(p.get("address", 60)) & 0x7F,
+				"cols": clampi(int(p.get("cols", 128)), 1, 256),
+				"pages": clampi(int(p.get("pages", 8)), 1, 16),
 			})
 		elif t == "mpu6050":
 			out.append({

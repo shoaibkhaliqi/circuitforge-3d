@@ -64,8 +64,16 @@
       ],
       "model": {"shape": "oled_i2c"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["ssd1306-gddram"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 60, "label": "I2C address (7-bit)"},
+        "cols": {"default": 128, "label": "Columns", "min": 1, "max": 256},
+        "pages": {"default": 8, "label": "Pages (8 rows each)", "min": 1, "max": 16}
+      },
+      "notes": "No breadboard electrical model: the harness decodes the SSD1306 command/data stream from I2C writes into the GDDRAM frame and returns it in run_firmware's devices[].pages_hex (plus pixels_set and display_on). Command/data are distinguished by the control byte (bit6 = D/C), and page/horizontal/vertical addressing with the 0x21/0x22 range commands is tracked, so a driver's frame writes land correctly. Not modelled: the panel optics, contrast/charge-pump effects, scrolling and the 0x2E/0x2F hardware scroll, and text (there is no font in the harness)."
     },
     {
       "id": "oled_ssd1306_spi",

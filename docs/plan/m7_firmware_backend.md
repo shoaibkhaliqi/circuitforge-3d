@@ -340,6 +340,26 @@ does. `mpu6050` (`data/components/sensors.json`, `external`).
   registers (DMP, FIFO, filters, interrupts), the INT pin, timing, self-test and noise
   are not. The register file is ideal: writes are stored but change no behaviour.
 
+## 11d. Seventh device: SSD1306 OLED (framebuffer)
+
+The first **framebuffer** device: instead of a value or a register map the harness
+tracks the panel's GDDRAM, so firmware that draws pixels can be checked. `oled_ssd1306`
+(`data/components/displays.json`, `external`).
+
+- **Model**: each I2C write transaction's first byte is a control byte (bit6 = D/C:
+  0 = command, 1 = data). Commands are decoded (page/horizontal/vertical addressing via
+  0x20, the 0x21/0x22 column/page ranges, B0-B7 column-set, 0xAE/0xAF display on/off);
+  data bytes write GDDRAM with the addressing-mode auto-increment. The frame is returned
+  as `devices[].pages_hex` (one hex string per page) plus `pixels_set` and `display_on`.
+- **Path**: `run_firmware(..., attach_devices=true)` attaches the circuit's
+  `oled_ssd1306` (`address`/`cols`/`pages`).
+- **Verified**: `firmware/sketches/oled_fill` (hand-written init, no library) fills the
+  top half; `verify_oled.mjs` asserts 4096 lit pixels and the exact per-page hex.
+  Mapping is covered by `tests/unit/test_netlist.gd`; the tool surface by MCP Test B14.
+- **Limits (honest)**: no panel optics (contrast/charge-pump effects), no hardware
+  scroll (0x2E/0x2F), no font — the harness decodes pixels, not text — and the display's
+  own timing/refresh is not modelled.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -357,8 +377,9 @@ solved nodes, linking the analog surface to a specific device — and the I2C 16
 (§9d), which closes the display item. The HC-SR04 (§11b) adds the missing direction
 at the *pin* level: a part that drives an MCU input pin from inside a run, so
 `pulseIn()`/timing sketches work. The MPU-6050 (§11c) adds a served *register map*,
-so driver-style multi-register reads work. Remaining work: more device models (OLED,
-DHT), a quadrature encoder, and a streaming/interactive mode if a blocking run proves
-too coarse. If the app-side integration ever cannot meet the gate (e.g. timing or
-packaging), fall back to a separately-installed `simavr` and keep the feature
-capability-flagged.
+so driver-style multi-register reads work, and the SSD1306 (§11d) adds a *framebuffer*,
+so drawing code can be checked. Remaining work: more device models (DHT), a quadrature
+encoder, a bundled firmware example project, and a streaming/interactive mode if a
+blocking run proves too coarse. If the app-side integration ever cannot meet the gate
+(e.g. timing or packaging), fall back to a separately-installed `simavr` and keep the
+feature capability-flagged.
