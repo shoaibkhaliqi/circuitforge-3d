@@ -305,8 +305,16 @@
       ],
       "model": {"shape": "rotary_encoder"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["quadrature-pair"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "counts": {"default": 40, "label": "Quadrature counts to emit", "min": 0, "max": 100000},
+        "direction": {"default": 1, "label": "Direction (1 = CW, -1 = CCW)", "min": -1, "max": 1},
+        "step_us": {"default": 1000, "label": "Time per count", "unit": "us", "min": 50, "max": 10000000}
+      },
+      "notes": "No breadboard electrical model: the harness drives the A/B quadrature pair through a one-bit-at-a-time Gray cycle, so a polling decoder on the MCU sees every step, and reports the emitted steps under run_firmware's pin_devices. A/B are resolved from `pin_map` (the same firmware-pin -> component-id map as the HC-SR04). Not modelled: contact bounce/detents (steps are ideal), acceleration, the push switch (SW is a plain digital input you can wire to an mcu_pin), and any electrical loading."
     },
     {
       "id": "limit_switch",

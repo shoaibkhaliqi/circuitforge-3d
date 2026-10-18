@@ -202,6 +202,16 @@ follow [Semantic Versioning](https://semver.org/).
     (hand-written init, no library) + `verify_oled.mjs` assert 4096 lit pixels and the
     exact per-page hex. MCP integration 23 → **24** (Test B14); suite 678 → **680**;
     catalog `external` 40 → **41**, `planned` 104 → **103**.
+  - **Rotary encoder — ideal quadrature pin device** (`data/components/sensors.json`,
+    `rotary_encoder`, `external`): the second firmware-driven *pin* device. The harness
+    walks the Gray cycle `(A,B) = 00 → 10 → 11 → 01` (or in reverse) from the power-on
+    state, changing exactly one pin per count, so a polling decoder never sees a two-bit
+    hop; `counts` steps are emitted from `start_us` at one per `step_us` and reported
+    under `pin_devices`. `run_firmware(..., pin_map={"2":"A","3":"B"})` resolves the A/B
+    nets from the netlist (like the HC-SR04). Sketch `firmware/sketches/encoder_read`
+    (hand-written quadrature table decoder) + `verify_encoder.mjs` assert 50 steps
+    forward, 50 reverse and 200 at a 500 µs step. MCP integration 24 → **25** (Test B15);
+    suite 680 → **682**; catalog `external` 41 → **42**, `planned` 103 → **102**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

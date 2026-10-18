@@ -399,7 +399,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
-		note += " Pin-level sensors (mapped via pin_map) drive MCU inputs from the pin devices."
+		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -453,9 +453,10 @@ func _has_type(t: String) -> bool:
 ## Build harness device specs from the circuit's device components so firmware can
 ## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
 ## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, the
-## SSD1306 OLED, the MPU-6050 register file, and firmware-driven pin sensors (the
+## SSD1306 OLED, the MPU-6050 register file, and firmware-driven pin devices (the
 ## HC-SR04, whose TRIG/ECHO pins are resolved from `pin_map` — a firmware digital
-## pin -> component id map like `analog_map`).
+## pin -> component id map like `analog_map` — and the rotary encoder, whose A/B
+## quadrature pair is resolved the same way).
 func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -529,6 +530,22 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"trig": trig,
 						"echo": echo,
 						"distance_cm": maxf(0.0, float(p.get("distance_cm", 30.0))),
+					})
+		elif t == "rotary_encoder":
+			# The A/B quadrature pair is resolved from `pin_map` the same way: each
+			# mapped component shares the encoder's A or B net, naming the firmware pin.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 4:
+				var pa := _net_pin(String(nets[2]), pin_map, pin_nets)
+				var pb := _net_pin(String(nets[3]), pin_map, pin_nets)
+				if pa >= 0 and pb >= 0 and pa != pb:
+					out.append({
+						"kind": "encoder",
+						"a": pa,
+						"b": pb,
+						"counts": clampi(int(p.get("counts", 40)), 0, 100000),
+						"direction": 1 if float(p.get("direction", 1.0)) >= 0.0 else -1,
+						"step_us": maxf(50.0, float(p.get("step_us", 1000.0))),
 					})
 	return out
 

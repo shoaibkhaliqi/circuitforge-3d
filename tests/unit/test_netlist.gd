@@ -117,6 +117,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("mpu6050"), "mpu6050 is not mapped by the solver")
 	t.check(ComponentDB.status_of("oled_ssd1306") == "external", "oled_ssd1306 status is 'external'")
 	t.check(not NetlistBuilder.handles("oled_ssd1306"), "oled_ssd1306 is not mapped by the solver")
+	t.check(ComponentDB.status_of("rotary_encoder") == "external", "rotary_encoder status is 'external'")
+	t.check(not NetlistBuilder.handles("rotary_encoder"), "rotary_encoder is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

@@ -345,6 +345,21 @@ async def main() -> int:
             except Exception as exc:
                 record("B14. Firmware OLED (SSD1306)", False, repr(exc))
 
+            # ---------------------------------------------------- Test B15
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-ENC"})
+                await call_ok(s, "add_component",
+                              {"component_type": "rotary_encoder",
+                               "parameters": {"counts": 40, "direction": 1, "step_us": 1000}})
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "attach_devices": True})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B15. Firmware encoder (rotary)", ok, f"code={code}")
+            except Exception as exc:
+                record("B15. Firmware encoder (rotary)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

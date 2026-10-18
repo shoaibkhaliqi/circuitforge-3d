@@ -360,6 +360,28 @@ tracks the panel's GDDRAM, so firmware that draws pixels can be checked. `oled_s
   scroll (0x2E/0x2F), no font — the harness decodes pixels, not text — and the display's
   own timing/refresh is not modelled.
 
+## 11e. Eighth device: rotary encoder (quadrature pin device)
+
+The second **pin** device after the HC-SR04, and the first *input-only* one: the
+harness drives an MCU input pair, so a firmware-side decoder can be checked.
+`rotary_encoder` (`data/components/sensors.json`, `external`).
+
+- **Model**: the harness walks the canonical Gray cycle `(A,B) = 00 → 10 → 11 → 01`
+  (or the reverse) from the power-on state, changing exactly one pin per count, so a
+  polling decoder never sees an illegal two-bit hop. `counts` steps are emitted from
+  `start_us`, one per `step_us`; each is queued like the HC-SR04's ECHO pulse and
+  applied from the run loop. Honest limit: the steps are ideal (no contact bounce).
+- **Path**: `run_firmware(..., pin_map={"2": "A", "3": "B"})` resolves the encoder's
+  A/B nets from the netlist (the same mechanism as the HC-SR04).
+- **Verified**: `firmware/sketches/encoder_read` (a hand-written quadrature table
+  decoder, no library) counts 50 steps clockwise, 50 counter-clockwise and 200 at a
+  500 µs step; `verify_encoder.mjs` asserts each case and that an arbitrary pin pair
+  schedules without error. Mapping is covered by `tests/unit/test_netlist.gd`; the tool
+  surface by MCP Test B15.
+- **Limits (honest)**: no detent/bounce physics, no acceleration model, no electrical
+  loading, and the push switch (`SW`) is just another digital input — wire it to an
+  `mcu_pin` if you want to read it.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -378,8 +400,9 @@ solved nodes, linking the analog surface to a specific device — and the I2C 16
 at the *pin* level: a part that drives an MCU input pin from inside a run, so
 `pulseIn()`/timing sketches work. The MPU-6050 (§11c) adds a served *register map*,
 so driver-style multi-register reads work, and the SSD1306 (§11d) adds a *framebuffer*,
-so drawing code can be checked. Remaining work: more device models (DHT), a quadrature
-encoder, a bundled firmware example project, and a streaming/interactive mode if a
-blocking run proves too coarse. If the app-side integration ever cannot meet the gate
-(e.g. timing or packaging), fall back to a separately-installed `simavr` and keep the
-feature capability-flagged.
+so drawing code can be checked. The rotary encoder (§11e) adds a second pin device — an
+ideal quadrature pair — so input-decoding sketches can be checked without a library.
+Remaining work: more device models (DHT), a bundled firmware example project, and a
+streaming/interactive mode if a blocking run proves too coarse. If the app-side
+integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
+separately-installed `simavr` and keep the feature capability-flagged.

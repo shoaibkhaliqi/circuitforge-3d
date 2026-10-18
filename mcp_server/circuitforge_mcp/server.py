@@ -289,10 +289,12 @@ def run_firmware(
     analog pin -> component id, e.g. `{"A0": "AIN1"}`; the response adds `adc` and
     `analog_inputs`.
 
-    With `pin_map` the circuit's firmware-driven pin sensors drive MCU *input* pins
-    during the run (sensor -> firmware feedback). The map is firmware digital pin ->
+    With `pin_map` the circuit's firmware-driven pin devices drive MCU *input* pins
+    during the run (device -> firmware feedback). The map is firmware digital pin ->
     component id, e.g. `{"9": "TRIG", "10": "ECHO"}`; an `hcsr04` shares its TRIG/ECHO
     nets with those components, and its ECHO pulse width comes from its `distance_cm`.
+    A `rotary_encoder` shares its A/B nets with those components and steps them through
+    a quadrature Gray cycle (`counts`, `direction`, `step_us`).
     The response adds `pin_devices` and `pin_inputs`.
 
     Args:

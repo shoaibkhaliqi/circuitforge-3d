@@ -101,9 +101,10 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
 //
-// `hc_sr04` is not an I2C device: it watches a TRIG pin and drives an ECHO input
-// pin (distance-proportional pulse), so it is listed separately as pin_devices.
+// `hc_sr04` and `encoder` are not I2C devices: they drive MCU *input* pins, so they
+// are listed separately as pin_devices.
 //   CF_DEVICES=[{"kind":"hc_sr04","trig":9,"echo":10,"distance_cm":30}]
+//   CF_DEVICES=[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]
 const pinDevices = [];
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
@@ -123,6 +124,20 @@ function buildDevices() {
         echo: Number(s.echo),
         distance_cm: Math.max(0, Number(s.distance_cm ?? 30)),
         echoes: [],
+        error: null,
+      });
+      continue;
+    }
+    if (s.kind === 'encoder') {
+      pinDevices.push({
+        kind: 'encoder',
+        a: Number(s.a),
+        b: Number(s.b),
+        counts: Math.max(0, Math.min(100000, Math.round(Number(s.counts ?? 0)))),
+        direction: Number(s.direction ?? 1) >= 0 ? 1 : -1,
+        start_us: Math.max(0, Number(s.start_us ?? 2000)),
+        step_us: Math.max(50, Number(s.step_us ?? 1000)),
+        edges: [],
         error: null,
       });
       continue;
@@ -482,19 +497,46 @@ for (const [letter, port] of Object.entries(ports)) {
   });
 }
 
-// ---- Timing-driven pin devices (HC-SR04 ultrasonic) -------------------------
-// The MCU drives TRIG; on its falling edge (after a >= 5 us high pulse) the sensor
-// waits a short propagation delay and then drives ECHO -- an MCU *input* pin -- high
-// for a distance-proportional time (58 us per cm round-trip), so pulseIn(ECHO) can
-// measure it. Edges are queued and applied from the run loop (never from inside the
-// GPIO write, so we don't re-enter the port model).
+// ---- Timing-driven pin devices ----------------------------------------------
+// Two kinds, both driving MCU *input* pins:
+//  * HC-SR04: the MCU drives TRIG; on its falling edge (after a >= 5 us high pulse)
+//    the sensor waits a short propagation delay and then drives ECHO high for a
+//    distance-proportional time (58 us per cm round-trip), so pulseIn(ECHO) measures it.
+//  * Rotary encoder: drives the A/B quadrature pair through a Gray sequence, one pin
+//    changing per count, so a polling decoder sees every step.
+// Edges are queued and applied from the run loop (never from inside the GPIO write,
+// so we don't re-enter the port model).
 const pinByNumber = new Map();
 for (const [key, pin] of Object.entries(UNO_PIN)) {
   pinByNumber.set(pin, { port: key[0], bit: Number(key[1]) });
 }
 const scheduledPins = [];
 const ECHO_PROPAGATION_US = 200;
+const QUAD_SEQ = [[0, 0], [1, 0], [1, 1], [0, 1]]; // (A,B) for one CW detent
 for (const d of pinDevices) {
+  if (d.kind === 'encoder') {
+    const a = pinByNumber.get(d.a);
+    const b = pinByNumber.get(d.b);
+    if (!a || !b) { d.error = 'a/b pin out of range'; continue; }
+    if (a.port === b.port && a.bit === b.bit) { d.error = 'a and b must be different pins'; continue; }
+    // Walk the canonical one-bit-at-a-time Gray cycle forwards or backwards from the
+    // power-on state (A,B) = (0,0), so exactly one pin changes per count.
+    d.edges = [];
+    let phase = 0;
+    let tUs = d.start_us;
+    for (let i = 0; i < d.counts; i++) {
+      const from = QUAD_SEQ[phase];
+      phase = (phase + d.direction + 4) & 3;
+      const to = QUAD_SEQ[phase];
+      tUs += d.step_us;
+      const at = Math.round((tUs / 1e6) * F_CPU);
+      if (to[0] !== from[0]) scheduledPins.push({ at, port: a.port, bit: a.bit, level: to[0] });
+      if (to[1] !== from[1]) scheduledPins.push({ at, port: b.port, bit: b.bit, level: to[1] });
+      d.edges.push({ t_us: tUs, state: to[0] * 2 + to[1] });
+    }
+    scheduledPins.sort((x, y) => x.at - y.at);
+    continue;
+  }
   const trig = pinByNumber.get(d.trig);
   const echo = pinByNumber.get(d.echo);
   if (!trig || !echo) {
@@ -584,14 +626,17 @@ process.stdout.write(
       serial_bytes: serialBytes.length,
       i2c,
       devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
-      pin_devices: pinDevices.map((d) => ({
-        kind: d.kind,
-        trig: d.trig,
-        echo: d.echo,
-        distance_cm: d.distance_cm,
-        echoes: d.echoes,
-        error: d.error,
-      })),
+      pin_devices: pinDevices.map((d) =>
+        d.kind === 'encoder'
+          ? {
+              kind: d.kind, a: d.a, b: d.b, counts: d.counts, direction: d.direction,
+              start_us: d.start_us, step_us: d.step_us, states: d.edges.length, error: d.error,
+            }
+          : {
+              kind: d.kind, trig: d.trig, echo: d.echo, distance_cm: d.distance_cm,
+              echoes: d.echoes, error: d.error,
+            },
+      ),
       adc: adcChannels,
       spi_bytes: spi,
       pwm,

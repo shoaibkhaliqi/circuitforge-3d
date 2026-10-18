@@ -54,6 +54,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/mpu6050_read firmware/sketches/mpu6050_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/oled_fill firmware/sketches/oled_fill
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/encoder_read firmware/sketches/encoder_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -75,6 +77,7 @@ node verify_lcd.mjs ../build/lcd_hello/lcd_hello.ino.hex
 node verify_ultrasonic.mjs ../build/ultrasonic/ultrasonic.ino.hex
 node verify_mpu6050.mjs ../build/mpu6050_read/mpu6050_read.ino.hex
 node verify_oled.mjs ../build/oled_fill/oled_fill.ino.hex
+node verify_encoder.mjs ../build/encoder_read/encoder_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -87,7 +90,8 @@ device's `state` (P0..P7 = 1,0,1,0,1,0,1,0). `verify_ultrasonic.mjs` asserts a
 harness-driven HC-SR04 ECHO pulse makes `pulseIn()` measure ~1740 µs → ~30 cm.
 `verify_mpu6050.mjs` asserts the served MPU-6050 register file decodes to the exact
 accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (4096 lit
-pixels and the exact per-page hex).
+pixels and the exact per-page hex). `verify_encoder.mjs` asserts the incremental encoder
+decodes to exactly the emitted steps, forwards and backwards.
 
 ## Devices on the bus (closed loop)
 
@@ -123,6 +127,10 @@ CF_DEVICES='[{"kind":"mpu6050","address":104,"az":1,"temp_c":26.53}]' \
 # SSD1306 OLED at 0x3C -> the decoded 128x64 frame (top half lit)
 CF_DEVICES='[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]' \
   node run.mjs ../build/oled_fill/oled_fill.ino.hex 600
+
+# Rotary encoder on D2 (A) / D3 (B), 50 steps clockwise -> the sketch decodes 50
+CF_DEVICES='[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]' \
+  node run.mjs ../build/encoder_read/encoder_read.ino.hex 400
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
@@ -130,13 +138,15 @@ Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 `mpu6050` (`address`, `ax`..`gz`, `temp_c`) and `ssd1306` (`address`, `cols`, `pages`)
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
-`accel_raw`/`gyro_raw`/`temp_c` and the OLED summary the decoded `pages_hex`. `hc_sr04`
-(`trig`, `echo`, `distance_cm`) is a *pin* device instead: it watches TRIG and drives
-ECHO as an MCU input, and is reported under `pin_devices`. The app does this
-automatically: `run_firmware(..., attach_devices=true)` builds the specs from the
-circuit's `pcf8574`, `eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306` and
+`accel_raw`/`gyro_raw`/`temp_c` and the OLED summary the decoded `pages_hex`.
+Two *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
+(`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO, and `encoder` (`a`, `b`,
+`counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle. The
+app does this automatically: `run_firmware(..., attach_devices=true)` builds the specs
+from the circuit's `pcf8574`, `eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306` and
 `mpu6050` components (a `pcf8591`'s `ain` values come from the solved node voltages),
-and `pin_map` resolves an `hcsr04`'s TRIG/ECHO from the netlist.
+and `pin_map` resolves an `hcsr04`'s TRIG/ECHO or a `rotary_encoder`'s A/B from the
+netlist.
 
 ## Analog inputs (circuit → firmware)
 
