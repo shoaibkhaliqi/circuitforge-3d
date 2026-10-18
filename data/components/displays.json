@@ -38,8 +38,16 @@
       ],
       "model": {"shape": "lcd1602_i2c"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["hd44780-i2c"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 39, "label": "I2C address (7-bit)"},
+        "cols": {"default": 16, "label": "Columns", "min": 1, "max": 40},
+        "rows": {"default": 2, "label": "Rows", "min": 1, "max": 4}
+      },
+      "notes": "No breadboard electrical model: the harness decodes the HD44780 4-bit protocol from the backpack's PCF8574 writes (RS/RW/E/backlight + D4..D7) and returns the visible text in run_firmware's devices[].lines. Commands (clear, home, set DDRAM/CGRAM address) and character writes are tracked; timing, busy flag, CGRAM custom glyphs and display shifting are not modelled."
     },
     {
       "id": "oled_ssd1306",

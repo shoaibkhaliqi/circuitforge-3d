@@ -273,11 +273,11 @@ def run_firmware(
 
     With `attach_devices=True` the circuit's device components (the `pcf8574`, using
     its `state`/`inputs`/`address` parameters; the `eeprom_i2c`, using
-    `address`/`size`; and the `pcf8591`, whose analog channels come from the solved
-    node voltages) are attached to the emulated bus, so firmware can read/write them
-    (device -> firmware feedback, e.g. `Wire.requestFrom`); the response adds
-    `devices` and `attached_devices`. With no devices the harness only ACKs I2C and
-    reads return 0xFF.
+    `address`/`size`; the `pcf8591`, whose analog channels come from the solved node
+    voltages; and the `i2c_lcd1602`, whose decoded text is returned) are attached to
+    the emulated bus, so firmware can read/write them (device -> firmware feedback,
+    e.g. `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With
+    no devices the harness only ACKs I2C and reads return 0xFF.
 
     With `analog_map` the circuit is solved and each mapped `mcu_analog_in`
     component's node voltage is fed to the firmware's ADC, so `analogRead()` reads

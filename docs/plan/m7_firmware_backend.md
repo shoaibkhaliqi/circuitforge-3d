@@ -233,6 +233,26 @@ to a specific device" item:
   bus itself are not modelled; the DAC is an ideal average/source, not a real
   buffered output with offset/linearity error.
 
+## 9d. Fourth device: 16x2 I2C character LCD (executed)
+
+`i2c_lcd1602` (`data/components/displays.json`, **`external`**) is the first
+firmware-driven *display*. The backpack is a PCF8574, so the harness reuses the I2C
+byte stream but decodes the HD44780 4-bit protocol instead of a GPIO port:
+
+- **Model**: bit0 = RS, bit1 = RW, bit2 = E, bit3 = backlight, bits4..7 = D4..D7; a
+  nibble is latched on the E falling edge and two nibbles make a byte. The decoder
+  tracks clear/home, DDRAM (cursor) and CGRAM address commands and character writes,
+  and returns the visible text as `devices[].lines`.
+- **Path**: `run_firmware(..., attach_devices=true)` attaches the circuit's
+  `i2c_lcd1602` (`address` default `0x27`, `cols`, `rows`).
+- **Verified**: `firmware/sketches/lcd_hello` (a hand-written 4-bit driver, no
+  external library) shows "CircuitForge" / "3D"; `firmware/harness/verify_lcd.mjs`
+  asserts the decoded lines; `tests/unit/test_netlist.gd` asserts `i2c_lcd1602` is
+  `external` and *not* solver-mapped; the tool surface by MCP Test B11.
+- **Limits (honest)**: instruction timing, the busy flag, CGRAM custom glyphs,
+  display/cursor shifting, scrolling and backlight PWM are not modelled; the text is
+  decoded from the command stream, not rendered.
+
 ## 10. Analog loop: `mcu_analog_in` → `analogRead()` (executed)
 
 The AVR's own ADC is now in the loop. New virtual part **`mcu_analog_in`**
@@ -285,8 +305,9 @@ input loop is also closed (§10): `mcu_analog_in` feeds the AVR `analogRead()` f
 the solved circuit, and the analog output loop (§11) drives the circuit from
 `analogWrite()` via `mcu_pwm_out`. Devices now cover the PCF8574 expander (§9),
 the 24C02 EEPROM (§9b) and the PCF8591 ADC/DAC (§9c) — whose channels come from the
-solved nodes, linking the analog surface to a specific device. Remaining work: more
-device models (LCD/OLED, DHT, ultrasonic), a MPU/IMU or quadrature encoder, and a
-streaming/interactive mode if a blocking run proves too coarse. If the app-side
-integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
-separately-installed `simavr` and keep the feature capability-flagged.
+solved nodes, linking the analog surface to a specific device — and the I2C 16x2 LCD
+(§9d), which closes the display item. Remaining work: more device models (OLED, DHT,
+ultrasonic), a MPU/IMU or quadrature encoder, and a streaming/interactive mode if a
+blocking run proves too coarse. If the app-side integration ever cannot meet the gate
+(e.g. timing or packaging), fall back to a separately-installed `simavr` and keep the
+feature capability-flagged.

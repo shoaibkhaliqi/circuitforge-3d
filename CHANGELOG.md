@@ -165,6 +165,14 @@ follow [Semantic Versioning](https://semver.org/).
     code 102) and `pcf8591_dac` + `verify_pcf8591.mjs` (2.5 V → code 128). MCP
     integration 19 → **20** (Test B10); suite 665 → **672**; catalog 242 → **243**
     defs, `partial` 50 → **51**, simulatable 75 → **76**.
+  - **I2C character LCD device — 16x2 HD44780 backpack** (`data/components/displays.json`,
+    `i2c_lcd1602`, `external`): the harness decodes the HD44780 4-bit protocol from the
+    backpack's PCF8574 writes (RS/RW/E/backlight + D4..D7), tracking clear/home/address
+    commands and character writes, and returns the visible text as `devices[].lines`.
+    `run_firmware(..., attach_devices=true)` attaches the circuit's `i2c_lcd1602`
+    (`address`, `cols`, `rows`). Sketch `firmware/sketches/lcd_hello` (no library) +
+    `verify_lcd.mjs` assert "CircuitForge" / "3D". MCP integration 20 → **21** (Test
+    B11); suite 672 → **674**; catalog `external` 37 → **38**, `planned` 107 → **106**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

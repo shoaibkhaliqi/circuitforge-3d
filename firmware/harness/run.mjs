@@ -97,6 +97,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"pcf8574","address":39,"state":0,"inputs":15}]
 //   CF_DEVICES=[{"kind":"eeprom","address":80,"size":256,"init":[1,2,3]}]
 //   CF_DEVICES=[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]
+//   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
   const map = new Map();
@@ -166,6 +167,54 @@ function buildDevices() {
           read: code8(ain[channel]), dac,
           aout: Math.round((dac / 255) * vref * 1e6) / 1e6,
         }),
+      });
+    } else if (s.kind === 'lcd1602') {
+      // HD44780 character LCD behind a PCF8574 I2C backpack (bit0=RS, bit1=RW,
+      // bit2=E, bit3=backlight, bits4-7=D4..D7). We latch a nibble on the E falling
+      // edge and pair two nibbles into a byte (4-bit mode), then track DDRAM.
+      const cols = Math.max(1, Number(s.cols ?? 16));
+      const rows = Math.max(1, Number(s.rows ?? 2));
+      const ddram = new Array(cols * rows).fill(0x20);
+      let cursor = 0;
+      let pending = null;
+      let prevE = 0;
+      let inCgram = false;
+      const addrToIndex = (a) => {
+        const line = a >= 0x40 ? 1 : 0;
+        const col = a - (line ? 0x40 : 0x00);
+        const idx = line * cols + col;
+        return idx >= 0 && idx < cols * rows ? idx : cursor;
+      };
+      const apply = (byte, rs) => {
+        if (rs) {
+          if (!inCgram) { ddram[cursor] = byte & 0xff; cursor = (cursor + 1) % (cols * rows); }
+          return;
+        }
+        if (byte & 0x80) { cursor = addrToIndex(byte & 0x7f); inCgram = false; }
+        else if (byte === 0x01) { ddram.fill(0x20); cursor = 0; inCgram = false; }
+        else if (byte === 0x02) { cursor = 0; inCgram = false; }
+        else if (byte & 0x40) { inCgram = true; }
+      };
+      map.set(addr, {
+        kind: 'lcd1602',
+        writeByte(state) {
+          state &= 0xff;
+          const e = (state >> 2) & 1;
+          if (prevE === 1 && e === 0) {
+            const data = (state >> 4) & 0x0f;
+            if (pending === null) pending = data;
+            else { const byte = (pending << 4) | data; pending = null; apply(byte, state & 1); }
+          }
+          prevE = e;
+        },
+        readByte() { return 0xff; },
+        summary: () => {
+          const lines = [];
+          for (let r = 0; r < rows; r++) {
+            lines.push(ddram.slice(r * cols, r * cols + cols).map((c) => String.fromCharCode(c)).join(''));
+          }
+          return { kind: 'lcd1602', address: addr, cols, rows, cursor, lines };
+        },
       });
     }
   }

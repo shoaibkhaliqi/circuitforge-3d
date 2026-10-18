@@ -430,8 +430,8 @@ func _has_type(t: String) -> bool:
 
 
 ## Build harness device specs from the circuit's device components so firmware can
-## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM and the PCF8591
-## ADC/DAC (whose analog inputs come from the solved node voltages).
+## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
+## ADC/DAC (analog inputs from the solved node voltages) and the I2C 16x2 LCD.
 func _firmware_devices(node_voltages := {}, pin_nets := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -465,6 +465,13 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}) -> Array:
 				"address": int(p.get("address", 72)) & 0x7F,
 				"vref": maxf(0.001, float(p.get("vref", 5.0))),
 				"ain": ain,
+			})
+		elif t == "i2c_lcd1602":
+			out.append({
+				"kind": "lcd1602",
+				"address": int(p.get("address", 39)) & 0x7F,
+				"cols": clampi(int(p.get("cols", 16)), 1, 40),
+				"rows": clampi(int(p.get("rows", 2)), 1, 4),
 			})
 	return out
 

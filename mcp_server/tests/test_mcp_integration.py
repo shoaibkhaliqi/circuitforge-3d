@@ -277,6 +277,21 @@ async def main() -> int:
             except Exception as exc:
                 record("B10. Firmware ADC/DAC (PCF8591)", False, repr(exc))
 
+            # ---------------------------------------------------- Test B11
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-LCD"})
+                await call_ok(s, "add_component",
+                              {"component_type": "i2c_lcd1602",
+                               "parameters": {"address": 39, "cols": 16, "rows": 2}})
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "attach_devices": True})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B11. Firmware I2C LCD", ok, f"code={code}")
+            except Exception as exc:
+                record("B11. Firmware I2C LCD", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

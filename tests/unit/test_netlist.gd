@@ -109,6 +109,8 @@ func run(t) -> void:
 	t.section("Netlist - I2C EEPROM is backend-only, not a solver model")
 	t.check(ComponentDB.status_of("eeprom_i2c") == "external", "eeprom_i2c status is 'external'")
 	t.check(not NetlistBuilder.handles("eeprom_i2c"), "eeprom_i2c is not mapped by the solver")
+	t.check(ComponentDB.status_of("i2c_lcd1602") == "external", "i2c_lcd1602 status is 'external'")
+	t.check(not NetlistBuilder.handles("i2c_lcd1602"), "i2c_lcd1602 is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

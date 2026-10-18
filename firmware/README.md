@@ -46,6 +46,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/pcf8591_read firmware/sketches/pcf8591_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/pcf8591_dac firmware/sketches/pcf8591_dac
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/lcd_hello firmware/sketches/lcd_hello
 
 # 2. execute + inspect
 cd firmware/harness
@@ -63,6 +65,7 @@ node verify_analog.mjs ../build/analog_read/analog_read.ino.hex
 node verify_pwm.mjs ../build/pwm_out/pwm_out.ino.hex
 node verify_eeprom.mjs ../build/eeprom_roundtrip/eeprom_roundtrip.ino.hex
 node verify_pcf8591.mjs ../build/pcf8591_read/pcf8591_read.ino.hex
+node verify_lcd.mjs ../build/lcd_hello/lcd_hello.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -91,14 +94,19 @@ CF_DEVICES='[{"kind":"eeprom","address":80,"size":256,"init":[]}]' \
 # PCF8591 ADC at 0x48 with AIN0 = 2.5 V over a 5 V reference -> reads code 128
 CF_DEVICES='[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]' \
   node run.mjs ../build/pcf8591_read/pcf8591_read.ino.hex 400
+
+# 16x2 HD44780 LCD behind a PCF8574 backpack at 0x27 -> decoded text
+CF_DEVICES='[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]' \
+  node run.mjs ../build/lcd_hello/lcd_hello.ino.hex 800
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
-`init`) and `pcf8591` (`address`, `ain`, `vref`); the EEPROM summary also returns
-the memory image (`mem`). The app does this automatically:
+`init`), `pcf8591` (`address`, `ain`, `vref`) and `lcd1602` (`address`, `cols`,
+`rows`); the EEPROM summary also returns the memory image (`mem`) and the LCD
+summary the decoded `lines`. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's
-`pcf8574`, `eeprom_i2c` and `pcf8591` components (a `pcf8591`'s `ain` values come
-from the solved node voltages).
+`pcf8574`, `eeprom_i2c`, `pcf8591` and `i2c_lcd1602` components (a `pcf8591`'s `ain`
+values come from the solved node voltages).
 
 ## Analog inputs (circuit → firmware)
 

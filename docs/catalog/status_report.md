@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 37 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 107 | catalogued and placeable, not simulated yet |
+| `external` | 38 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 106 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -100,8 +100,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   levels, so they run without firmware by driving their pins directly. The
   `pcf8574` I2C expander is the first *bus* part backed by firmware: firmware drives
   its port (last I2C write byte) and can read it back (device → firmware). The
-  `eeprom_i2c` 24LC256 is a pure-backend part (`external`): it has no breadboard
-  electrical model and is served on the I2C bus only while firmware runs.
+  `eeprom_i2c` 24C02, the `pcf8591` ADC/DAC (channels from solved nodes) and the
+  `i2c_lcd1602` character display are pure-backend parts (`external`): they have no
+  breadboard electrical model and are served on the I2C bus only while firmware runs
+  (the LCD's visible text comes back as `devices[].lines`).
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`
