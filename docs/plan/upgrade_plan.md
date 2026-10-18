@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor); rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 756/756; Linux runtime verification remains blocked on WSL) |
@@ -427,7 +427,18 @@ catalog that replaces the hardcoded definition list.
   `int`; the schedule not fitting in `int8_t`), and `apply_firmware_servo` was made to accept
   the same `pin_map` convention as `run_firmware` (servo id *or* the component on its PWM
   net). Bundled examples 15 → **16**; harness verifiers 19 → **20**; suite 748 → **756**.
-- Still planned/visual: SPI displays and the gas/analog sensor modules that need a real ADC
+- **SPI SSD1306 OLED** (`oled_ssd1306_spi`, `planned` → `external`): the SSD1306 decoded
+  from the AVR's SPI peripheral instead of an I2C address, which closes the last named M7
+  gap. The harness tags each transfer with the panel's DC (command/data) and CS (selected)
+  levels, sampled live from the MCU's own port state, and the app resolves those two lines to
+  firmware pins from `pin_map` when it builds the device spec from the circuit — so a panel
+  is wired and mapped exactly like a sensor. The GDDRAM engine is shared with the I2C part
+  (`makeSsd1306`). `oled_spi` (hardware SPI: a bit-banged bus would be invisible) draws the
+  left half white; `verify_oled_spi.mjs` checks the frame *and* reruns the bytes with no DC
+  line to prove DC is genuinely what splits command from data. Suite **764/764**; harness
+  verifiers **21**; catalog `external` 52 → **53**, `planned` 94 → **93**.
+- Still planned/visual: the remaining SPI displays (the ILI9341 TFT) and the gas/analog
+  sensor modules that need a real ADC
   path (the remaining `planned`/`visual` parts generally need a model the app does not have
   yet — see `docs/catalog/status_report.md`). Servos, STEP/DIR steppers and the four-phase
   `uln2003_driver`/`stepper_28byj48` pair are done (above), and the LCD/OLED/I2C/DHT/

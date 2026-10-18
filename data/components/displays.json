@@ -91,8 +91,15 @@
       ],
       "model": {"shape": "oled_spi"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["ssd1306-spi-gddram"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "cols": {"default": 128, "label": "Columns", "min": 1, "max": 256},
+        "pages": {"default": 8, "label": "Pages (8 rows each)", "min": 1, "max": 16}
+      },
+      "notes": "No breadboard electrical model: the harness taps the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins, MOSI = D11 / SCK = D13 - a bit-banged bus is not visible to it) and decodes the SSD1306 command/data stream into the GDDRAM frame, returned in run_firmware's devices[].pages_hex (plus pixels_set and display_on). Command vs data comes from the panel's DC line and CS marks the selected transaction; wire DC and CS to virtual pins and map them with pin_map ({\"9\": \"P1\", ...}) exactly as for a sensor, since attach_devices resolves them from the netlist. Addressing (page/horizontal/vertical, 0x21/0x22 ranges, B0-B7 column set) is shared with the I2C variant. Not modelled: the panel optics, contrast/charge-pump effects, scrolling and text (there is no font in the harness)."
     },
     {
       "id": "tft_ili9341",

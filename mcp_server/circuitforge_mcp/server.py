@@ -278,7 +278,9 @@ def run_firmware(
     voltages; the `i2c_lcd1602`, whose decoded text is returned; the `oled_ssd1306`,
     whose decoded GDDRAM frame is returned; the `mpu6050`, an I2C register file whose
     sample values come from its `ax`..`gz`/`temp_c` parameters; the `sht31`, whose 16-bit
-    temperature/humidity words and both CRC-8s come from its `temp_c`/`humidity`; and the
+    temperature/humidity words and both CRC-8s come from its `temp_c`/`humidity`; the
+    `oled_ssd1306_spi`, whose frame is decoded from the SPI peripheral once its DC and CS
+    lines are resolved from `pin_map`; and the
     `hcsr04`, whose
     TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so firmware
     can read/write them (device -> firmware feedback, e.g. `Wire.requestFrom`); the
@@ -305,6 +307,9 @@ def run_firmware(
     a motor: map the firmware pins that drive its inputs — STEP/DIR for
     `a4988_driver`/`drv8825_driver`, or IN1..IN4 for `uln2003_driver` — and the move is
     reported in `steppers` (see `apply_firmware_stepper`).
+    An `oled_ssd1306_spi` panel is decoded too: it has no address, so those components
+    share its DC (command/data) and CS (selected) nets and the MOSI stream the sketch sent
+    through the hardware SPI peripheral becomes the GDDRAM frame in `devices`.
     The response adds `pin_devices`, `pin_inputs`, `servos` and `steppers`.
 
     Args:

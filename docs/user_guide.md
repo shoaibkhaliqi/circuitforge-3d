@@ -171,7 +171,11 @@ the firmware pins wired to the driver's STEP/DIR nets (or IN1..IN4 for a four-ph
 ULN2003 board) and the move comes back under `steppers` (net `steps` and the wrapping shaft
 `angle`), with `apply_firmware_stepper` writing it onto the motor. Example 16 puts both of
 those in one project (and one firmware run): compile `firmware/sketches/motion_demo` and
-use `pin_map={"9": "P1", "3": "P2", "2": "P3"}`.
+use `pin_map={"9": "P1", "3": "P2", "2": "P3"}`. Displays work the same way on both buses:
+an I2C `oled_ssd1306` needs only `attach_devices=true`, while an `oled_ssd1306_spi` also
+needs its DC and CS lines wired to virtual pins and mapped (the panel has no address, so
+those two lines are how the run knows which byte is a command and which panel is selected —
+see `firmware/sketches/oled_spi`).
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

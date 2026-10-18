@@ -8,6 +8,7 @@ extends RefCounted
 ## runnable with only Godot installed.
 
 const FirmwareBackend = preload("res://scripts/simulation/firmware_backend.gd")
+const AppService = preload("res://scripts/api/app_service.gd")
 
 
 func _tr(pin: int, t: float, level: int) -> Dictionary:
@@ -212,5 +213,34 @@ func run(t) -> void:
 	var r := FirmwareBackend.run_hex("res://does-not-exist.hex", 100)
 	t.check(not bool(r.get("ok", true)), "missing hex does not claim success")
 	t.check(String(r.get("error", "")) != "", "missing hex reports an error string")
+
+	t.section("Firmware - SPI display device spec from the circuit")
+	# The app builds the harness spec itself: an SPI panel has no address, so its DC and
+	# CS lines must resolve to firmware pins through `pin_map` (the same net lookup the
+	# HC-SR04/encoder use). Without DC the stream cannot be tagged, so nothing is sent.
+	var app = AppService.new()
+	app.session.add_component("ground", ["TM1"])
+	app.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # DC
+	app.session.add_component("mcu_pin", ["b3", "TM7"], {}, "P2")     # CS
+	app.session.add_component("oled_ssd1306_spi",
+		["TM4", "TP4", "d5", "d6", "b4", "a2", "a3"], {"cols": 128, "pages": 8}, "D1")
+	var built: Dictionary = app.session.build_circuit()
+	var specs: Array = app._firmware_devices({}, built.pin_nets, {"9": "P1", "10": "P2"})
+	t.check(specs.size() == 1, "SPI OLED produces one device spec", str(specs))
+	if specs.size() == 1:
+		var sp: Dictionary = specs[0]
+		t.check(String(sp.get("kind", "")) == "ssd1306_spi", "spec kind is ssd1306_spi")
+		t.check(int(sp.get("dc", -1)) == 9, "DC pin resolved from pin_map", str(sp))
+		t.check(int(sp.get("cs", -1)) == 10, "CS pin resolved from pin_map", str(sp))
+		t.check(int(sp.get("cols", 0)) == 128 and int(sp.get("pages", 0)) == 8, "size from params")
+
+	# A panel whose DC line no firmware pin drives is skipped, not guessed at.
+	var app2 = AppService.new()
+	app2.session.add_component("ground", ["TM1"])
+	app2.session.add_component("oled_ssd1306_spi",
+		["TM4", "TP4", "d5", "d6", "b4", "a20", "a21"], {"cols": 128, "pages": 8}, "D1")
+	var built2: Dictionary = app2.session.build_circuit()
+	var specs2: Array = app2._firmware_devices({}, built2.pin_nets, {"9": "P1"})
+	t.check(specs2.is_empty(), "unwired DC => no spec (the stream cannot be tagged)", str(specs2))
 
 	t.done()

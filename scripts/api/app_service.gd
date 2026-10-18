@@ -398,7 +398,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	if attach_devices and not analog_map.is_empty():
 		note = "Closed loop: attached bus devices can be read/written, firmware ADC channels read the solved node voltages, and firmware-driven sensors (HC-SR04) can drive MCU input pins; no analog OUTPUT to the circuit."
 	elif attach_devices:
-		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware; analog/ADC feedback still absent."
+		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware, and an SPI OLED's frame is decoded from the SPI trace plus its DC/CS lines; analog/ADC feedback still absent."
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
@@ -458,7 +458,8 @@ func _has_type(t: String) -> bool:
 ## Build harness device specs from the circuit's device components so firmware can
 ## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
 ## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, the
-## SSD1306 OLED, the MPU-6050 register file, the SHT31 environmental sensor, and
+## SSD1306 OLED (I2C by address, SPI by its DC/CS pins resolved from `pin_map`),
+## the MPU-6050 register file, the SHT31 environmental sensor, and
 ## firmware-driven pin devices (the HC-SR04, whose TRIG/ECHO pins are resolved from
 ## `pin_map` — a firmware digital pin -> component id map like `analog_map` — the
 ## rotary encoder, whose A/B quadrature pair is resolved the same way, and the
@@ -512,6 +513,24 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"cols": clampi(int(p.get("cols", 128)), 1, 256),
 				"pages": clampi(int(p.get("pages", 8)), 1, 16),
 			})
+		elif t == "oled_ssd1306_spi":
+			# An SPI panel has no address: the command/data split comes from its DC line
+			# and a transaction boundary from CS, both ordinary GPIOs resolved from
+			# `pin_map` (the same net lookup the HC-SR04/encoder use). The bytes themselves
+			# are whatever the sketch sent through the ATmega's SPI peripheral. Without DC
+			# the stream cannot be split, so the panel is skipped rather than guessed at.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 7:
+				var dc := _net_pin(String(nets[5]), pin_map, pin_nets)
+				var cs := _net_pin(String(nets[6]), pin_map, pin_nets)
+				if dc >= 0:
+					out.append({
+						"kind": "ssd1306_spi",
+						"dc": dc,
+						"cs": cs,
+						"cols": clampi(int(p.get("cols", 128)), 1, 256),
+						"pages": clampi(int(p.get("pages", 8)), 1, 16),
+					})
 		elif t == "mpu6050":
 			out.append({
 				"kind": "mpu6050",

@@ -100,6 +100,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
+//   CF_DEVICES=[{"kind":"ssd1306_spi","dc":9,"cs":10,"cols":128,"pages":8}]
 //   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
@@ -108,6 +109,96 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]
 //   CF_DEVICES=[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]
 const pinDevices = [];
+// SPI-attached devices. Unlike I2C there is no address to hook: the AVR's own SPI
+// peripheral is the bus, so these are decoded from the transfers the monitor records,
+// with the DC (command/data) and CS (select) line levels sampled at each transfer.
+const spiDevices = [];
+
+// SSD1306 GDDRAM + command engine, shared by the I2C and SPI panels: both are fed the same
+// command/data stream and differ only in how a byte is tagged (I2C control byte vs the SPI
+// DC line). Page/horizontal/vertical addressing, the 0x21/0x22 range commands and the
+// B0-B7 column-set are tracked so a driver's frame writes land in the right place; the
+// frame is returned as hex pages.
+function makeSsd1306(cols, nPages) {
+  const fb = new Uint8Array(cols * nPages);
+  let col = 0;
+  let page = 0;
+  let colStart = 0;
+  let colEnd = cols - 1;
+  let pageStart = 0;
+  let pageEnd = nPages - 1;
+  let addrMode = 2; // 2 = page addressing, 0 = horizontal, 1 = vertical
+  let cmd = -1;
+  let args = [];
+  let displayOn = false;
+  let dataBytes = 0;
+  const argCount = (c) =>
+    c === 0x21 || c === 0x22 ? 2
+      : (c === 0x20 || c === 0x81 || c === 0xd5 || c === 0xd9 || c === 0xda || c === 0x8d || c === 0xdb || c === 0xa8) ? 1
+        : 0;
+  const applyCmd = (c) => {
+    if (cmd >= 0) {
+      args.push(c);
+      if (args.length < argCount(cmd)) return;
+      if (cmd === 0x20) addrMode = args[0] & 0x03;
+      else if (cmd === 0x21) { colStart = args[0] & 0x7f; colEnd = args[1] & 0x7f; col = colStart; }
+      else if (cmd === 0x22) { pageStart = args[0] & 0x07; pageEnd = args[1] & 0x07; page = pageStart; }
+      cmd = -1;
+      args = [];
+      return;
+    }
+    if (c >= 0xb0 && c <= 0xb7) page = (c & 0x07) % nPages;
+    else if (c <= 0x0f) col = (col & 0xf0) | c;
+    else if (c >= 0x10 && c <= 0x1f) col = (col & 0x0f) | ((c & 0x0f) << 4);
+    else if (c === 0xae) displayOn = false;
+    else if (c === 0xaf) displayOn = true;
+    else if (argCount(c) > 0) { cmd = c; args = []; }
+  };
+  const writeData = (b) => {
+    dataBytes++;
+    if (col >= 0 && col < cols && page >= 0 && page < nPages) fb[page * cols + col] = b;
+    if (addrMode === 0) {
+      col++;
+      if (col > colEnd) { col = colStart; page++; if (page > pageEnd) page = pageStart; }
+    } else if (addrMode === 1) {
+      page++;
+      if (page > pageEnd) { page = pageStart; col++; if (col > colEnd) col = colStart; }
+    } else {
+      col++;
+      if (col >= cols) col = 0;
+    }
+  };
+  return {
+    writeCommand: applyCmd,
+    writeData,
+    fields: () => {
+      const pagesHex = [];
+      let set = 0;
+      for (let p = 0; p < nPages; p++) {
+        let s2 = '';
+        for (let c2 = 0; c2 < cols; c2++) {
+          const v = fb[p * cols + c2];
+          s2 += v.toString(16).padStart(2, '0');
+          for (let x = v; x; x >>= 1) set += x & 1;
+        }
+        pagesHex.push(s2);
+      }
+      return {
+        cols, pages: nPages, display_on: displayOn,
+        pixels_set: set, data_bytes: dataBytes, pages_hex: pagesHex,
+      };
+    },
+  };
+}
+
+// Level of a pin driven by the MCU right now (1 = high, 0 = low or input). Uses the same
+// UNO_PIN table as the transition recorder.
+function levelOfPin(pin) {
+  const p = pinByNumber.get(pin);
+  if (!p) return 0;
+  return ports[p.port].pinState(p.bit) === 1 ? 1 : 0;
+}
+
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
   const map = new Map();
@@ -153,6 +244,30 @@ function buildDevices() {
         humidity: Math.max(0, Math.min(100, Number(s.humidity ?? 48.0))),
         reads: [],
         error: null,
+      });
+      continue;
+    }
+    if (s.kind === 'ssd1306_spi') {
+      // An SSD1306 panel on the AVR's SPI peripheral. `dc` selects command vs data and
+      // `cs` frames a transfer (omit either as -1 when the board ties that line); the
+      // bytes themselves come from the SPI monitor, so there is no address to serve.
+      const cols = Math.max(1, Math.min(256, Number(s.cols ?? 128)));
+      const nPages = Math.max(1, Math.min(16, Number(s.pages ?? 8)));
+      const core = makeSsd1306(cols, nPages);
+      spiDevices.push({
+        kind: 'ssd1306_spi',
+        dc: Number.isFinite(Number(s.dc)) ? Number(s.dc) : -1,
+        cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
+        bytes: 0,
+        deselected: 0,
+        core,
+        summary() {
+          return {
+            kind: 'ssd1306_spi', dc_pin: this.dc, cs_pin: this.cs,
+            bytes: this.bytes, deselected: this.deselected,
+            ...this.core.fields(),
+          };
+        },
       });
       continue;
     }
@@ -312,88 +427,25 @@ function buildDevices() {
         }),
       });
     } else if (s.kind === 'ssd1306') {
-      // SSD1306 OLED: each write transaction's first byte is a control byte
-      // (bit6 = D/C: 0 = command, 1 = data); commands configure the addressing
-      // window, data bytes write GDDRAM. Page/horizontal/vertical addressing, the
-      // 0x21/0x22 range commands and B0-B7 column-set are tracked so a driver's
-      // frame writes land in the right place; the frame is returned as hex pages.
+      // SSD1306 OLED on I2C: each write transaction's first byte is a control byte
+      // (bit6 = D/C: 0 = command, 1 = data) that tags the rest of the transaction; the
+      // shared `makeSsd1306` core turns the tagged stream into GDDRAM.
       const cols = Math.max(1, Number(s.cols ?? 128));
       const nPages = Math.max(1, Number(s.pages ?? 8));
-      const fb = new Uint8Array(cols * nPages);
-      let col = 0;
-      let page = 0;
-      let colStart = 0;
-      let colEnd = cols - 1;
-      let pageStart = 0;
-      let pageEnd = nPages - 1;
-      let addrMode = 2; // 2 = page addressing, 0 = horizontal, 1 = vertical
+      const core = makeSsd1306(cols, nPages);
       let isData = false;
       let first = true;
-      let cmd = -1;
-      let args = [];
-      let displayOn = false;
-      const argCount = (c) =>
-        c === 0x21 || c === 0x22 ? 2
-          : (c === 0x20 || c === 0x81 || c === 0xd5 || c === 0xd9 || c === 0xda || c === 0x8d || c === 0xdb || c === 0xa8) ? 1
-            : 0;
-      const applyCmd = (c) => {
-        if (cmd >= 0) {
-          args.push(c);
-          if (args.length < argCount(cmd)) return;
-          if (cmd === 0x20) addrMode = args[0] & 0x03;
-          else if (cmd === 0x21) { colStart = args[0] & 0x7f; colEnd = args[1] & 0x7f; col = colStart; }
-          else if (cmd === 0x22) { pageStart = args[0] & 0x07; pageEnd = args[1] & 0x07; page = pageStart; }
-          cmd = -1;
-          args = [];
-          return;
-        }
-        if (c >= 0xb0 && c <= 0xb7) page = (c & 0x07) % nPages;
-        else if (c <= 0x0f) col = (col & 0xf0) | c;
-        else if (c >= 0x10 && c <= 0x1f) col = (col & 0x0f) | ((c & 0x0f) << 4);
-        else if (c === 0xae) displayOn = false;
-        else if (c === 0xaf) displayOn = true;
-        else if (argCount(c) > 0) { cmd = c; args = []; }
-      };
-      const writeData = (b) => {
-        if (col >= 0 && col < cols && page >= 0 && page < nPages) fb[page * cols + col] = b;
-        if (addrMode === 0) {
-          col++;
-          if (col > colEnd) { col = colStart; page++; if (page > pageEnd) page = pageStart; }
-        } else if (addrMode === 1) {
-          page++;
-          if (page > pageEnd) { page = pageStart; col++; if (col > colEnd) col = colStart; }
-        } else {
-          col++;
-          if (col >= cols) col = 0;
-        }
-      };
       map.set(addr, {
         kind: 'ssd1306',
         onStart(write) { if (write) first = true; },
         writeByte(b) {
           b &= 0xff;
           if (first) { isData = (b & 0x40) !== 0; first = false; return; }
-          if (isData) writeData(b);
-          else applyCmd(b);
+          if (isData) core.writeData(b);
+          else core.writeCommand(b);
         },
         readByte() { return 0x00; },
-        summary: () => {
-          const pagesHex = [];
-          let set = 0;
-          for (let p = 0; p < nPages; p++) {
-            let s2 = '';
-            for (let c2 = 0; c2 < cols; c2++) {
-              const v = fb[p * cols + c2];
-              s2 += v.toString(16).padStart(2, '0');
-              for (let x = v; x; x >>= 1) set += x & 1;
-            }
-            pagesHex.push(s2);
-          }
-          return {
-            kind: 'ssd1306', address: addr, cols, pages: nPages,
-            display_on: displayOn, pixels_set: set, pages_hex: pagesHex,
-          };
-        },
+        summary: () => ({ kind: 'ssd1306', address: addr, ...core.fields() }),
       });
     } else if (s.kind === 'sht31') {
       // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
@@ -511,11 +563,20 @@ const twi = new AVRTWI(cpu, twiConfig, F_CPU);
 const twiTracer = new TraceTWI(twi);
 twi.eventHandler = twiTracer;
 
-// SPI traffic monitor: record MOSI bytes; MISO returns 0x00 (no device attached).
+// SPI traffic monitor: record MOSI bytes; MISO returns 0x00 unless an SPI device answers.
+// Any SPI device (CF_DEVICES) is fed each transfer live, tagged by its DC/CS line levels -
+// the two lines a driver uses to say "this byte is a command / data" and "you are selected".
 const spi = [];
 const spiDevice = new AVRSPI(cpu, spiConfig, F_CPU);
 spiDevice.onByte = (value) => {
-  spi.push(value & 0xff);
+  const b = value & 0xff;
+  spi.push(b);
+  for (const d of spiDevices) {
+    if (d.cs >= 0 && levelOfPin(d.cs) === 1) { d.deselected++; continue; }
+    d.bytes++;
+    if (d.dc >= 0 && levelOfPin(d.dc) === 1) d.core.writeData(b);
+    else d.core.writeCommand(b);
+  }
   spiDevice.completeTransfer(0x00);
 };
 
@@ -770,7 +831,9 @@ process.stdout.write(
       serial: Buffer.from(serialBytes).toString('utf8'),
       serial_bytes: serialBytes.length,
       i2c,
-      devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
+      devices: [...devices.values()]
+        .map((d) => (d.summary ? d.summary() : { kind: d.kind }))
+        .concat(spiDevices.map((d) => d.summary())),
       pin_devices: pinDevices.map((d) => {
         if (d.kind === 'encoder') {
           return {

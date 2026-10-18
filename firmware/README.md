@@ -70,6 +70,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/stepper_4phase firmware/sketches/stepper_4phase
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/motion_demo firmware/sketches/motion_demo
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/oled_spi firmware/sketches/oled_spi
 
 # 2. execute + inspect
 cd firmware/harness
@@ -99,6 +101,7 @@ node verify_servo.mjs ../build/servo_sweep/servo_sweep.ino.hex
 node verify_stepper.mjs ../build/stepper_sweep/stepper_sweep.ino.hex
 node verify_4phase.mjs ../build/stepper_4phase/stepper_4phase.ino.hex
 node verify_motion.mjs ../build/motion_demo/motion_demo.ino.hex
+node verify_oled_spi.mjs ../build/oled_spi/oled_spi.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -111,7 +114,9 @@ device's `state` (P0..P7 = 1,0,1,0,1,0,1,0). `verify_ultrasonic.mjs` asserts a
 harness-driven HC-SR04 ECHO pulse makes `pulseIn()` measure ~1740 µs → ~30 cm.
 `verify_mpu6050.mjs` asserts the served MPU-6050 register file decodes to the exact
 accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (4096 lit
-pixels and the exact per-page hex). `verify_encoder.mjs` asserts the incremental encoder
+pixels and the exact per-page hex), and `verify_oled_spi.mjs` asserts the same frame for the
+SPI panel plus a negative control with no DC line, so the check fails if DC is not really
+what tags command vs data. `verify_encoder.mjs` asserts the incremental encoder
 decodes to exactly the emitted steps, forwards and backwards. `verify_dht.mjs` asserts a
 hand-written one-wire driver decodes DHT22 (including a negative temperature) and DHT11
 frames exactly, and that a missing sensor times out. `verify_env_logger.mjs` is the
@@ -173,6 +178,10 @@ CF_DEVICES='[{"kind":"mpu6050","address":104,"az":1,"temp_c":26.53}]' \
 CF_DEVICES='[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]' \
   node run.mjs ../build/oled_fill/oled_fill.ino.hex 600
 
+# The same panel on the SPI peripheral, DC = D9, CS = D10 -> the frame (left half lit)
+CF_DEVICES='[{"kind":"ssd1306_spi","dc":9,"cs":10,"cols":128,"pages":8}]' \
+  node run.mjs ../build/oled_spi/oled_spi.ino.hex 700
+
 # Rotary encoder on D2 (A) / D3 (B), 50 steps clockwise -> the sketch decodes 50
 CF_DEVICES='[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]' \
   node run.mjs ../build/encoder_read/encoder_read.ino.hex 400
@@ -198,6 +207,9 @@ are served on the I2C bus; the EEPROM summary also returns the memory image (`me
 LCD summary the decoded `lines`, the IMU summary the decoded
 `accel_raw`/`gyro_raw`/`temp_c`, the OLED summary the decoded `pages_hex` and the SHT31
 summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `crc_ok`).
+One device lives on the SPI peripheral instead of the I2C bus: `ssd1306_spi` (`dc`, `cs`,
+`cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
+and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
 Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
 (`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO; `encoder` (`a`, `b`,
 `counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle; and
@@ -206,8 +218,10 @@ datasheet-timed bit train. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
 `eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050` and `sht31` components (a
 `pcf8591`'s `ain` values come from the solved node voltages), and `pin_map` resolves an
-`hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B or a `dht11`/`dht22`'s DATA from the
-netlist. A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
+`hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B, a `dht11`/`dht22`'s DATA or an
+`oled_ssd1306_spi`'s DC/CS from the
+netlist (the SPI panel has no address, so those two lines are how the app knows which pin
+tags a byte and which selects the panel). A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
 *output*, so the app decodes the commanded angle from the pulse widths the sketch drove
 (`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`;
 either tool takes the servo's own id or, like `run_firmware`, the component wired to its

@@ -544,6 +544,41 @@ close M8's motor gap: a driver with no STEP pulse at all, four plain phase input
   holding torque, load, backlash or step loss is simulated, and `steps_per_rev` must suit
   the part (2048 for full/wave step driving of a 28BYJ-48, 4096 in half-step driving).
 
+## 11l. Fifteenth device: SSD1306 OLED on SPI
+
+The `oled_ssd1306_spi` panel (`planned` → `external`) is the same display as §11c, reached
+over the other bus, and the first device decoded from the AVR's **SPI peripheral** rather
+than from an address another device answers.
+
+- **Model**: the harness already recorded `spi_bytes`; the device model adds the two lines a
+  driver uses to give those bytes meaning. DC (data/command) and CS (selected) are sampled
+  live from the MCU's own port state (`port.pinState(bit)`) at every completed transfer, so
+  a byte is tagged with the levels that were true when it was sent. DC-high bytes are data,
+  DC-low bytes are commands, and a byte received while CS is high belongs to no transaction
+  and is counted as `deselected` instead of decoded. The GDDRAM engine is the *same*
+  `makeSsd1306(cols, pages)` core the I2C part uses (extracted for this), so page/horizontal/
+  vertical addressing, the `0x21`/`0x22` windows, `pixels_set`, `data_bytes` and `pages_hex`
+  behave identically across the two interfaces.
+- **Path**: the app builds the spec from the circuit when `attach_devices` is set. With no
+  address to fall back on, the panel's DC and CS nets are resolved to firmware pins through
+  `pin_map` (`_net_pin`, the same lookup the HC-SR04 and encoder use), which means a panel is
+  wired and mapped exactly like a sensor: put a virtual `mcu_pin` on the DC net and the CS
+  net and map the firmware pins to those components. If DC resolves to nothing the panel is
+  skipped rather than guessed at — without DC the stream cannot be split.
+- **Verified**: `firmware/sketches/oled_spi` drives the hardware SPI peripheral (the tap is
+  on the peripheral, so a bit-banged bus would be invisible — noted in the sketch and in the
+  catalog `notes`) and draws the left half of a 128x64 panel white in vertical addressing
+  mode; `verify_oled_spi.mjs` recovers 4096 lit pixels, 1024 data bytes, the exact
+  per-page frame and the raw trace, and then reruns the same bytes with **no DC line** to
+  prove the frame only appears because DC tags the stream (a negative control, so the check
+  cannot pass by accident). The app-side spec builder is unit tested for the DC/CS
+  resolution and for the unwired-DC skip, and the part's status/handles() pair by
+  `tests/unit/test_netlist.gd`.
+- **Limits (honest)**: the same list as the I2C variant (panel optics, charge pump, contrast,
+  scrolling, no font), plus: only the SPI peripheral is tapped, so the sketch must use the
+  hardware SPI pins (MOSI D11 / SCK D13); DC and CS are read but RES is not, so a sketch that
+  never resets the panel still decodes; and no MISO device is modelled (reads return 0x00).
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -575,7 +610,10 @@ the STEP/DIR stepper (§11j) applies the same idea to travel, and the four-phase
 `uln2003_driver`/`stepper_28byj48` pair (§11k) shows the same measurement works from a plain
 four-wire sequence — which closes M8's motor gap. The motion example (example 16 in the app)
 then puts both actuators in one project and one run, so the two output decoders are checked
-against a single transition record. Remaining work: SPI displays, and a
+against a single transition record, and the SPI OLED (§11l) closes the last named M7 gap by
+decoding the same display from the SPI peripheral, where the command/data split comes from a
+DC line the app resolves like a sensor pin. Remaining work: the gas/analog modules that need
+a real ADC path, and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

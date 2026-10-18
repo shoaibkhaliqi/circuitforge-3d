@@ -292,6 +292,18 @@ follow [Semantic Versioning](https://semver.org/).
     in the `int8_t` schedule). `apply_firmware_servo` now accepts the same `pin_map`
     convention as `run_firmware` (the servo's id, or the component on its PWM net) instead
     of only the id. Suite 748 → **756**; examples 15 → **16**; harness verifiers 19 → **20**.
+  - **SPI SSD1306 OLED** (`data/components/displays.json`, `oled_ssd1306_spi` `planned` →
+    `external`): the panel's SPI twin, and the first device decoded from the AVR's *SPI
+    peripheral* rather than a bus address. The harness now samples the panel's DC/CS lines at
+    each transfer: DC tags a byte as command or data and CS marks the selected transaction,
+    and both are resolved to firmware pins from `pin_map` (the same net lookup the HC-SR04
+    and encoder use) when `attach_devices` builds the spec from the circuit. The GDDRAM
+    engine is shared with the I2C part (`makeSsd1306`), so addressing, `pixels_set` and
+    `pages_hex` behave identically. Sketch `firmware/sketches/oled_spi` (hardware SPI —
+    a bit-banged bus is invisible to the peripheral tap) and `verify_oled_spi.mjs` recover
+    the left-half-white frame, with a *negative control* that reruns the same bytes with no
+    DC line to prove DC is what splits command from data. Suite 756 → **764**; harness
+    verifiers 20 → **21**; catalog `external` 52 → **53**, `planned` 94 → **93**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`
