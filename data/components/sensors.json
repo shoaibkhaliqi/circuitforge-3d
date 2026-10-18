@@ -221,9 +221,14 @@
       ],
       "model": {"shape": "hcsr04"},
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
+      "simulation_models": ["hc-sr04-echo"],
+      "simulation_backend": "firmware",
       "arduino_compatible": true,
-      "notes": "Echo output is 5 V; level-shift when driving a 3.3 V MCU input."
+      "params": {
+        "distance_cm": {"default": 30, "unit": "cm", "label": "Sensed distance", "min": 0, "max": 400}
+      },
+      "notes": "No breadboard electrical model. The harness watches the firmware's TRIG pulse and drives the ECHO pin (an MCU input) high for a distance-proportional time (58 us per cm round trip, 200 us propagation delay), so pulseIn() measures a real echo. Wire TRIG/ECHO to `mcu_pin` components and map them with run_firmware(pin_map, ...). Echo output is 5 V; level-shift when driving a 3.3 V MCU input. Timing is an idealisation: no acoustic spread, min/max range, temperature or 60 ms cycle limit."
     },
     {
       "id": "tof_vl53l0x",

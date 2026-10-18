@@ -260,6 +260,7 @@ def run_firmware(
     ms: int = 2000,
     attach_devices: bool = False,
     analog_map: dict[str, str] | None = None,
+    pin_map: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Run a compiled Arduino HEX and return its digital pin activity and UART output.
 
@@ -274,10 +275,11 @@ def run_firmware(
     With `attach_devices=True` the circuit's device components (the `pcf8574`, using
     its `state`/`inputs`/`address` parameters; the `eeprom_i2c`, using
     `address`/`size`; the `pcf8591`, whose analog channels come from the solved node
-    voltages; and the `i2c_lcd1602`, whose decoded text is returned) are attached to
-    the emulated bus, so firmware can read/write them (device -> firmware feedback,
-    e.g. `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With
-    no devices the harness only ACKs I2C and reads return 0xFF.
+    voltages; the `i2c_lcd1602`, whose decoded text is returned; and the `hcsr04`,
+    whose TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so
+    firmware can read/write them (device -> firmware feedback, e.g.
+    `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With no
+    devices the harness only ACKs I2C and reads return 0xFF.
 
     With `analog_map` the circuit is solved and each mapped `mcu_analog_in`
     component's node voltage is fed to the firmware's ADC, so `analogRead()` reads
@@ -285,15 +287,23 @@ def run_firmware(
     analog pin -> component id, e.g. `{"A0": "AIN1"}`; the response adds `adc` and
     `analog_inputs`.
 
+    With `pin_map` the circuit's firmware-driven pin sensors drive MCU *input* pins
+    during the run (sensor -> firmware feedback). The map is firmware digital pin ->
+    component id, e.g. `{"9": "TRIG", "10": "ECHO"}`; an `hcsr04` shares its TRIG/ECHO
+    nets with those components, and its ECHO pulse width comes from its `distance_cm`.
+    The response adds `pin_devices` and `pin_inputs`.
+
     Args:
         hex_path: Path to an Intel-HEX produced for an AVR board.
         ms: Emulated run length in milliseconds (1..10000).
         attach_devices: Attach the circuit's bus devices so firmware can read them.
         analog_map: Firmware analog pin -> `mcu_analog_in` component id.
+        pin_map: Firmware digital pin -> component id wired to a firmware-driven pin
+            sensor's TRIG/ECHO (e.g. an HC-SR04).
     """
     return _wrap(call_engine("run_firmware", {
         "hex_path": hex_path, "ms": ms, "attach_devices": attach_devices,
-        "analog_map": analog_map or {},
+        "analog_map": analog_map or {}, "pin_map": pin_map or {},
     }))
 
 

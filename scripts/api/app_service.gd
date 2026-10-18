@@ -328,31 +328,42 @@ func get_firmware_capabilities() -> Dictionary:
 	return _ok(FirmwareBackend.capabilities())
 
 
-func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false, analog_map: Dictionary = {}) -> Dictionary:
+func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false, analog_map: Dictionary = {}, pin_map: Dictionary = {}) -> Dictionary:
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
-	var need_solve := not analog_map.is_empty()
-	if attach_devices and _has_type("pcf8591"):
-		need_solve = true
+	var need_netlist := not analog_map.is_empty() or attach_devices
+	var need_analog := not analog_map.is_empty() or (attach_devices and _has_type("pcf8591"))
 	var built := {}
 	var volts_by_node := {}
-	if need_solve:
+	if need_netlist:
 		built = session.build_circuit()
-		if built.ground_net != "0":
-			return _err("NO_REFERENCE", "Analog inputs need a reference (ground) node.",
-				"Add a Ground component.")
-		var solver = CircuitSolver.new()
-		var res: Dictionary = solver.solve_dc(built.circuit)
-		if not bool(res.get("ok", false)):
-			return _err("SIMULATION_FAILURE", "Could not solve to read the analog inputs: " + String(res.get("error", "")),
-				"Check the circuit for floating nets or conflicting sources.")
-		volts_by_node = res.get("node_voltages", {})
-	var devices := _firmware_devices(volts_by_node, built.get("pin_nets", {})) if attach_devices else []
+		if need_analog:
+			if built.ground_net != "0":
+				return _err("NO_REFERENCE", "Analog inputs need a reference (ground) node.",
+					"Add a Ground component.")
+			var solver = CircuitSolver.new()
+			var res: Dictionary = solver.solve_dc(built.circuit)
+			if not bool(res.get("ok", false)):
+				return _err("SIMULATION_FAILURE", "Could not solve to read the analog inputs: " + String(res.get("error", "")),
+					"Check the circuit for floating nets or conflicting sources.")
+			volts_by_node = res.get("node_voltages", {})
+	var devices := _firmware_devices(volts_by_node, built.get("pin_nets", {}), pin_map) if attach_devices else []
 	var adc := {}
 	var analog_applied := []
+	var pin_applied := []
+	for key in pin_map.keys():
+		var cid := String(pin_map[key])
+		var dnum := _digital_pin(key)
+		var c = session.find_component(cid)
+		if dnum < 0:
+			pin_applied.append({"pin": String(key), "component_id": cid, "skipped": "not a Uno digital pin (0..19)"})
+		elif c == null:
+			pin_applied.append({"pin": String(key), "component_id": cid, "skipped": "component not found"})
+		else:
+			pin_applied.append({"pin": String(key), "digital_pin": dnum, "component_id": cid})
 	for key in analog_map.keys():
 		var ch := _adc_channel(key)
 		var cid := String(analog_map[key])
@@ -382,11 +393,13 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	var spi: Array = r.get("spi_bytes", [])
 	var note := "Open-loop Stage B: firmware digital pins, UART output and I2C/SPI bus traces; no analog feedback."
 	if attach_devices and not analog_map.is_empty():
-		note = "Closed loop: attached bus devices can be read/written and firmware ADC channels read the solved node voltages; no analog OUTPUT to the circuit."
+		note = "Closed loop: attached bus devices can be read/written, firmware ADC channels read the solved node voltages, and firmware-driven sensors (HC-SR04) can drive MCU input pins; no analog OUTPUT to the circuit."
 	elif attach_devices:
 		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware; analog/ADC feedback still absent."
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
+	if not pin_map.is_empty():
+		note += " Pin-level sensors (mapped via pin_map) drive MCU inputs from the pin devices."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -406,6 +419,8 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 		"attached_devices": devices.size(),
 		"adc": r.get("adc", {}),
 		"analog_inputs": analog_applied,
+		"pin_devices": r.get("pin_devices", []),
+		"pin_inputs": pin_applied,
 		"note": note,
 	})
 
@@ -420,6 +435,12 @@ func _adc_channel(key) -> int:
 	return -1
 
 
+## Firmware digital-pin key ("9", "D9", "A0") -> Uno digital pin number (0..19), or -1.
+func _digital_pin(key) -> int:
+	var n := FirmwareBackend.pin_number(key)
+	return n if n >= 0 and n <= 19 else -1
+
+
 ## True if the project has at least one component of the given type.
 func _has_type(t: String) -> bool:
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -431,8 +452,10 @@ func _has_type(t: String) -> bool:
 
 ## Build harness device specs from the circuit's device components so firmware can
 ## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
-## ADC/DAC (analog inputs from the solved node voltages) and the I2C 16x2 LCD.
-func _firmware_devices(node_voltages := {}, pin_nets := {}) -> Array:
+## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, and
+## firmware-driven pin sensors (the HC-SR04, whose TRIG/ECHO pins are resolved from
+## `pin_map` — a firmware digital pin -> component id map like `analog_map`).
+func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
 	for c in comps:
@@ -473,7 +496,33 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}) -> Array:
 				"cols": clampi(int(p.get("cols", 16)), 1, 40),
 				"rows": clampi(int(p.get("rows", 2)), 1, 4),
 			})
+		elif t == "hcsr04":
+			# TRIG and ECHO are resolved from the caller's `pin_map`: a mapped
+			# component that shares the sensor's TRIG/ECHO net names the firmware pin.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 3:
+				var trig := _net_pin(String(nets[1]), pin_map, pin_nets)
+				var echo := _net_pin(String(nets[2]), pin_map, pin_nets)
+				if trig >= 0 and echo >= 0 and trig != echo:
+					out.append({
+						"kind": "hc_sr04",
+						"trig": trig,
+						"echo": echo,
+						"distance_cm": maxf(0.0, float(p.get("distance_cm", 30.0))),
+					})
 	return out
+
+
+## Firmware digital pin wired to `net` according to the caller's `pin_map`
+## ({firmware pin key: component id}), or -1 if no mapped component shares the net.
+func _net_pin(net: String, pin_map: Dictionary, pin_nets: Dictionary) -> int:
+	for key in pin_map.keys():
+		var cid := String(pin_map[key])
+		var nets: Array = (pin_nets as Dictionary).get(cid, [])
+		for n in nets:
+			if String(n) == net:
+				return _digital_pin(key)
+	return -1
 
 
 func apply_firmware_pins(hex_path: String, pin_map: Dictionary, ms: int = 2000, at_ms: float = -1.0, simulate: bool = false, expected_revision = null) -> Dictionary:

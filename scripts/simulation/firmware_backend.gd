@@ -64,7 +64,7 @@ static func capabilities() -> Dictionary:
 		"node": node,
 		"harness": harness,
 		"boards": BOARDS,
-		"stage": "Stage B: firmware drives digital pins and bus devices, and reads solved ADC inputs; no analog output feedback",
+		"stage": "Stage B: firmware drives digital pins and bus devices, reads solved ADC inputs, and pin sensors drive MCU inputs; no analog output feedback",
 		"max_ms": MAX_MS,
 		"unavailable_reasons": reasons,
 	}

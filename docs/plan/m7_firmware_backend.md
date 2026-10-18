@@ -292,6 +292,30 @@ so it is only correct *on average* (a switch-mode load is idealised).
   `mcu_pwm_out` to 2.509 V, which with a 1 kΩ load sags to 2.448 V. Mapping is
   covered by `tests/unit/test_netlist.gd`; the tool surface by MCP Test B8.
 
+## 11b. Fifth device: HC-SR04 ultrasonic (firmware → MCU *input* pin)
+
+Closes the last missing direction at the **pin** level: until now firmware could
+*drive* pins and *read* the ADC and bus devices, but no attached part could drive an
+MCU **input** pin from within a run. `hcsr04` (`data/components/sensors.json`,
+`external`) does exactly that.
+
+- **Model**: the harness watches the firmware's TRIG pulse; on its falling edge
+  (after a ≥ 5 µs high pulse) it waits a 200 µs propagation delay and then drives
+  ECHO — an MCU input pin — high for `distance_cm · 58 µs` (the round-trip time),
+  so `pulseIn(ECHO, HIGH)` measures a real echo. Edges are queued and applied from
+  the run loop (never from inside the GPIO write, so the port model isn't re-entered).
+- **Path**: `run_firmware(..., pin_map={"9": "<TRIG pin comp>", "10": "<ECHO pin comp>"})`.
+  The `pin_map` (firmware digital pin → component id) mirrors `analog_map`; an
+  `hcsr04` whose TRIG/ECHO nets are shared with those components resolves its pin
+  numbers from the netlist. The result adds `pin_devices` and `pin_inputs`.
+- **Verified**: `firmware/sketches/ultrasonic` reports `echo 1735 dist 30` for a
+  30 cm target; `firmware/harness/verify_ultrasonic.mjs` asserts the round-trip time
+  (within 60 µs) and the distance (±1 cm) — also checked at 5/100/400 cm. The mapping
+  is covered by `tests/unit/test_netlist.gd`; the tool surface by MCP Test B12.
+- **Limits (honest)**: it is an idealisation — no acoustic spread, beam angle,
+  minimum/maximum range, temperature dependence or the 60 ms measurement cycle;
+  `pulseIn`'s own loop granularity makes the measured time run ~0.3–0.6% short.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -306,8 +330,10 @@ the solved circuit, and the analog output loop (§11) drives the circuit from
 `analogWrite()` via `mcu_pwm_out`. Devices now cover the PCF8574 expander (§9),
 the 24C02 EEPROM (§9b) and the PCF8591 ADC/DAC (§9c) — whose channels come from the
 solved nodes, linking the analog surface to a specific device — and the I2C 16x2 LCD
-(§9d), which closes the display item. Remaining work: more device models (OLED, DHT,
-ultrasonic), a MPU/IMU or quadrature encoder, and a streaming/interactive mode if a
-blocking run proves too coarse. If the app-side integration ever cannot meet the gate
-(e.g. timing or packaging), fall back to a separately-installed `simavr` and keep the
-feature capability-flagged.
+(§9d), which closes the display item. The HC-SR04 (§11b) adds the missing direction
+at the *pin* level: a part that drives an MCU input pin from inside a run, so
+`pulseIn()`/timing sketches work. Remaining work: more device models (OLED, DHT),
+an I2C register-map sensor (MPU/IMU) or a quadrature encoder, and a
+streaming/interactive mode if a blocking run proves too coarse. If the app-side
+integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
+separately-installed `simavr` and keep the feature capability-flagged.

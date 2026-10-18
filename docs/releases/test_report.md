@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 674 / 674 passed
+RESULT: 676 / 676 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,7 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text (PWM, PCF8574/PCF8591/EEPROM/LCD), capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/HC-SR04), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -105,7 +105,7 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 21 / 21 passed
+RESULTS: 22 / 22 passed
 ```
 
 | Test | Checks | Result |
@@ -123,6 +123,7 @@ RESULTS: 21 / 21 passed
 | B9. Firmware EEPROM device | `eeprom_i2c` attached; missing-HEX `run_firmware` is a clean error | pass |
 | B10. Firmware ADC/DAC (PCF8591) | missing-HEX `apply_firmware_device` on a `pcf8591` is a clean error | pass |
 | B11. Firmware I2C LCD | `i2c_lcd1602` attached; missing-HEX `run_firmware` is a clean error | pass |
+| B12. Firmware pin sensor (HC-SR04) | `hcsr04` + `mcu_pin`s wired, `pin_map` accepted; missing-HEX `run_firmware` is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

@@ -98,6 +98,11 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"eeprom","address":80,"size":256,"init":[1,2,3]}]
 //   CF_DEVICES=[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]
 //   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
+//
+// `hc_sr04` is not an I2C device: it watches a TRIG pin and drives an ECHO input
+// pin (distance-proportional pulse), so it is listed separately as pin_devices.
+//   CF_DEVICES=[{"kind":"hc_sr04","trig":9,"echo":10,"distance_cm":30}]
+const pinDevices = [];
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
   const map = new Map();
@@ -109,6 +114,17 @@ function buildDevices() {
     return map;
   }
   for (const s of Array.isArray(specs) ? specs : []) {
+    if (s.kind === 'hc_sr04') {
+      pinDevices.push({
+        kind: 'hc_sr04',
+        trig: Number(s.trig),
+        echo: Number(s.echo),
+        distance_cm: Math.max(0, Number(s.distance_cm ?? 30)),
+        echoes: [],
+        error: null,
+      });
+      continue;
+    }
     const addr = Number(s.address) & 0x7f;
     if (s.kind === 'pcf8574') {
       let state = Number(s.state ?? 0) & 0xff;
@@ -332,10 +348,55 @@ for (const [letter, port] of Object.entries(ports)) {
   });
 }
 
+// ---- Timing-driven pin devices (HC-SR04 ultrasonic) -------------------------
+// The MCU drives TRIG; on its falling edge (after a >= 5 us high pulse) the sensor
+// waits a short propagation delay and then drives ECHO -- an MCU *input* pin -- high
+// for a distance-proportional time (58 us per cm round-trip), so pulseIn(ECHO) can
+// measure it. Edges are queued and applied from the run loop (never from inside the
+// GPIO write, so we don't re-enter the port model).
+const pinByNumber = new Map();
+for (const [key, pin] of Object.entries(UNO_PIN)) {
+  pinByNumber.set(pin, { port: key[0], bit: Number(key[1]) });
+}
+const scheduledPins = [];
+const ECHO_PROPAGATION_US = 200;
+for (const d of pinDevices) {
+  const trig = pinByNumber.get(d.trig);
+  const echo = pinByNumber.get(d.echo);
+  if (!trig || !echo) {
+    d.error = 'trig/echo pin out of range';
+    continue;
+  }
+  let rise = null;
+  ports[trig.port].addListener((value, oldValue) => {
+    if (!((value ^ oldValue) & (1 << trig.bit))) return;
+    const high = (value >> trig.bit) & 1;
+    if (high) {
+      rise = cpu.cycles;
+      return;
+    }
+    if (rise === null) return;
+    const widthUs = ((cpu.cycles - rise) / F_CPU) * 1e6;
+    rise = null;
+    if (widthUs < 5) return;
+    const echoUs = Math.round(d.distance_cm * 58);
+    const startAt = cpu.cycles + Math.round((ECHO_PROPAGATION_US / 1e6) * F_CPU);
+    const endAt = startAt + Math.round((echoUs / 1e6) * F_CPU);
+    scheduledPins.push({ at: startAt, port: echo.port, bit: echo.bit, level: 1 });
+    scheduledPins.push({ at: endAt, port: echo.port, bit: echo.bit, level: 0 });
+    scheduledPins.sort((a, b) => a.at - b.at);
+    d.echoes.push({ trig_us: Math.round(widthUs * 1000) / 1000, echo_us: echoUs });
+  });
+}
+
 const maxCycles = Math.round((msLimit / 1000) * F_CPU);
 while (cpu.cycles < maxCycles) {
   avrInstruction(cpu);
   cpu.tick();
+  while (scheduledPins.length && scheduledPins[0].at <= cpu.cycles) {
+    const ev = scheduledPins.shift();
+    ports[ev.port].setPin(ev.bit, ev.level === 1);
+  }
 }
 twiTracer.flush();
 
@@ -389,6 +450,14 @@ process.stdout.write(
       serial_bytes: serialBytes.length,
       i2c,
       devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
+      pin_devices: pinDevices.map((d) => ({
+        kind: d.kind,
+        trig: d.trig,
+        echo: d.echo,
+        distance_cm: d.distance_cm,
+        echoes: d.echoes,
+        error: d.error,
+      })),
       adc: adcChannels,
       spi_bytes: spi,
       pwm,

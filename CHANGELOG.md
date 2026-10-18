@@ -173,6 +173,15 @@ follow [Semantic Versioning](https://semver.org/).
     (`address`, `cols`, `rows`). Sketch `firmware/sketches/lcd_hello` (no library) +
     `verify_lcd.mjs` assert "CircuitForge" / "3D". MCP integration 20 → **21** (Test
     B11); suite 672 → **674**; catalog `external` 37 → **38**, `planned` 107 → **106**.
+  - **HC-SR04 ultrasonic — firmware-driven MCU input pin** (`data/components/sensors.json`,
+    `hcsr04`, `external`): the first attached part to drive an MCU **input** pin during a
+    run. The harness watches the firmware's TRIG pulse and, after a 200 µs propagation
+    delay, drives ECHO high for `distance_cm · 58 µs`, so `pulseIn()` measures a real
+    echo. `run_firmware(..., pin_map={"9": "<TRIG>", "10": "<ECHO>"})` resolves TRIG/ECHO
+    from the netlist (like `analog_map`); the result adds `pin_devices` / `pin_inputs`.
+    Sketch `firmware/sketches/ultrasonic` + `verify_ultrasonic.mjs` assert
+    `echo 1735 dist 30` for a 30 cm target. MCP integration 21 → **22** (Test B12);
+    suite 674 → **676**; catalog `external` 38 → **39**, `planned` 106 → **105**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

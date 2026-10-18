@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 38 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 106 | catalogued and placeable, not simulated yet |
+| `external` | 39 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 105 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -93,8 +93,8 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   ahead of the solver. Parts without a truthful model are `visual`.
 - Connectors and IC sockets, stepper and servo motors and their drivers, multi-pin
   regulators and DC-DC modules, relays, the USB power meter, and protocol/digital
-  sensors and displays that need a bus or timing (LCD/OLED/I2C/SPI, DHT,
-  ultrasonic, IMU, quadrature encoders) are `visual`/`planned` for now — they need
+  sensors and displays that need a bus or timing (OLED/I2C/SPI, DHT,
+  IMU, quadrature encoders) are `visual`/`planned` for now — they need
   a firmware/Stage-B backend to be honest. The `seven_segment` display and the
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly. The
@@ -103,13 +103,16 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   `eeprom_i2c` 24C02, the `pcf8591` ADC/DAC (channels from solved nodes) and the
   `i2c_lcd1602` character display are pure-backend parts (`external`): they have no
   breadboard electrical model and are served on the I2C bus only while firmware runs
-  (the LCD's visible text comes back as `devices[].lines`).
+  (the LCD's visible text comes back as `devices[].lines`). The `hcsr04` ultrasonic
+  sensor is the first *pin* part backed by firmware: the harness watches its TRIG
+  pulse and drives its ECHO line (an MCU input) for a distance-proportional time.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`
   (`analogWrite()` duty) from firmware output, and reads the circuit back into the
-  firmware through `mcu_analog_in` (`analogRead()`) and served I2C devices
-  (`pcf8574`); it also exposes UART/`Serial` plus I2C/SPI bus traces. Other
+  firmware through `mcu_analog_in` (`analogRead()`), served I2C devices
+  (`pcf8574`) and pin sensors (`hcsr04`); it also exposes UART/`Serial` plus
+  I2C/SPI bus traces. Other
   protocol/digital parts stay `planned` until a firmware-driven part is itself
   tested and mapped.
 - Android devices are host/client hardware with **no breadboard GPIO**; only USB,

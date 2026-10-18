@@ -292,6 +292,29 @@ async def main() -> int:
             except Exception as exc:
                 record("B11. Firmware I2C LCD", False, repr(exc))
 
+            # ---------------------------------------------------- Test B12
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-Sonar"})
+                await call_ok(s, "add_component",
+                              {"component_type": "hcsr04",
+                               "parameters": {"distance_cm": 30},
+                               "holes": ["a1", "a2", "a3", "a4"]})
+                trig = (await call_ok(s, "add_component",
+                                      {"component_type": "mcu_pin",
+                                       "holes": ["a2", "TM1"]}))["component_id"]
+                echo = (await call_ok(s, "add_component",
+                                      {"component_type": "mcu_pin",
+                                       "holes": ["a3", "TM2"]}))["component_id"]
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "attach_devices": True,
+                                      "pin_map": {"9": trig, "10": echo}})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B12. Firmware pin sensor (HC-SR04)", ok, f"code={code}")
+            except Exception as exc:
+                record("B12. Firmware pin sensor (HC-SR04)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})
