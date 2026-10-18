@@ -69,7 +69,7 @@ date as milestones land.
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
-| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
+| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | done (43 tools: `get_board_pinout`, `get_pin_states`, `set_pin_levels`, `get_catalog_facets` and the 7 firmware tools; integration suite 29/29) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
 
 ## 3a. Progress log
@@ -458,7 +458,7 @@ catalog that replaces the hardcoded definition list.
   `uln2003_driver`/`stepper_28byj48` pair are done (above), and the LCD/OLED/I2C/DHT/
   ultrasonic/IMU parts are closed by the M7 device work above.
 
-### Milestone 9 — MCP pin/metadata tooling (in progress)
+### Milestone 9 — MCP pin/metadata tooling (done)
 - New MCP tools (34 → **36**, plus **7** M7/M8 firmware tools —
   `get_firmware_capabilities`, `run_firmware`, `apply_firmware_pins`,
   `apply_firmware_device`, `apply_firmware_pwm`, `apply_firmware_servo`,
@@ -471,7 +471,8 @@ catalog that replaces the hardcoded definition list.
   no firmware execution.
 - `get_board_pinout` (M5) already exposes documented board pin maps with
   provenance. Firmware upload/execution stays gated (plan M7).
-- Integration suite now runs Tests A–J + B2 + B3 + B4 = **14 / 14**.
+- Integration suite now runs Tests A–J plus B2–B19 = **29 / 29** over the **43** tools
+  (every tool's presence, input schema and the pin-state/board/firmware behaviour).
 
 ### Milestone 10 — examples, robustness, docs (done)
 - **Solver robustness**: fixed the `gmin` leakage no-op (`_add_gmin` used
