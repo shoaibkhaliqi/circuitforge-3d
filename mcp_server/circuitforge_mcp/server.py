@@ -301,10 +301,10 @@ def run_firmware(
     train built from its `temp_c`/`humidity`.
     A mapped `servo_sg90`/`servo_mg996r` is an *output* rather than a sensor: it shares
     its PWM net with those components and the angle the sketch commanded is decoded from
-    the pulse-width train (see `apply_firmware_servo`). A STEP/DIR driver
-    (`a4988_driver`/`drv8825_driver`) is the same idea for a stepper: map the firmware pins
-    that drive its STEP/DIR nets and the move is reported in `steppers` (see
-    `apply_firmware_stepper`).
+    the pulse-width train (see `apply_firmware_servo`). A stepper driver is the same idea for
+    a motor: map the firmware pins that drive its inputs — STEP/DIR for
+    `a4988_driver`/`drv8825_driver`, or IN1..IN4 for `uln2003_driver` — and the move is
+    reported in `steppers` (see `apply_firmware_stepper`).
     The response adds `pin_devices`, `pin_inputs`, `servos` and `steppers`.
 
     Args:
@@ -586,19 +586,23 @@ def apply_firmware_stepper(
     simulate: bool = False,
     expected_revision: int | None = None,
 ) -> dict[str, Any]:
-    """Apply a firmware-driven stepper move to the motor on a STEP/DIR driver.
+    """Apply a firmware-driven stepper move to the motor on a STEP/DIR or four-phase driver.
 
     Runs the firmware, counts the rising edges it produced on the mapped STEP pin (taking
-    the direction from DIR at each edge), finds the driver and the stepper motor wired to
-    its coil outputs, and writes the net `steps` and the shaft `angle` onto the motor.
-    Purely mechanical — it adds no electrical behaviour.
+    the direction from DIR at each edge) — or follows the IN1..IN4 pattern sequence for a
+    `uln2003_driver`, measuring each change around the drive cycle so wave, full-step and
+    half-step sketches all land in the same half-step unit — finds the driver and the
+    stepper motor wired to its coil outputs, and writes the net `steps` and the shaft
+    `angle` onto the motor. Purely mechanical — it adds no electrical behaviour.
 
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
-        pin_map: Firmware pin -> the component on the driver's STEP (and DIR) net — usually
-            the circuit's virtual `mcu_pin`s, e.g. {"3": "P1", "2": "P2"}.
+        pin_map: Firmware pin -> the component on the driver's input net — the STEP (and DIR)
+            net, or IN1..IN4 — usually the circuit's virtual `mcu_pin`s, e.g.
+            {"3": "P1", "2": "P2"}.
         ms: Emulated run length in milliseconds (1..10000).
-        microsteps: Override for the driver's `microsteps` parameter (0 = use the part's).
+        microsteps: Override for a STEP/DIR driver's `microsteps` parameter (0 = use the
+            part's; ignored by a four-phase move, which is already in half steps).
         simulate: Run a DC simulation afterwards (the circuit does not change).
         expected_revision: Optional optimistic-concurrency guard.
     """

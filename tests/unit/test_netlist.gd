@@ -135,6 +135,10 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("a4988_driver"), "a4988_driver is not mapped by the solver")
 	t.check(ComponentDB.status_of("drv8825_driver") == "external", "drv8825_driver status is 'external'")
 	t.check(not NetlistBuilder.handles("drv8825_driver"), "drv8825_driver is not mapped by the solver")
+	t.check(ComponentDB.status_of("stepper_28byj48") == "external", "stepper_28byj48 status is 'external'")
+	t.check(not NetlistBuilder.handles("stepper_28byj48"), "stepper_28byj48 is not mapped by the solver")
+	t.check(ComponentDB.status_of("uln2003_driver") == "external", "uln2003_driver status is 'external'")
+	t.check(not NetlistBuilder.handles("uln2003_driver"), "uln2003_driver is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

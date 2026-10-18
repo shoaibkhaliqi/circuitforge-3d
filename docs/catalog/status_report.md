@@ -20,9 +20,9 @@ This report is deliberately blunt: it separates *what looks like a part* from
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
-| `visual` | 22 | rendered only, no electrical behaviour |
-| `external` | 50 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 95 | catalogued and placeable, not simulated yet |
+| `visual` | 21 | rendered only, no electrical behaviour |
+| `external` | 52 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 94 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -91,10 +91,11 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
 - A part may only claim `full`/`partial` if the netlist builder actually maps it;
   this is enforced by `tests/unit/test_netlist.gd`, so the status can never drift
   ahead of the solver. Parts without a truthful model are `visual`.
-- Connectors and IC sockets, the 4-phase `uln2003_driver`/`stepper_28byj48` pair, multi-pin
-  regulators and DC-DC modules, relays, the USB power meter, and any remaining
-  protocol parts that need a bus or timing they do not yet have are `visual`/`planned`
-  for now — they need a firmware/Stage-B backend to be honest. The `seven_segment` display and the
+- Connectors and IC sockets, SPI displays and the gas/analog sensor modules that need a real
+  ADC path, multi-pin regulators and DC-DC modules, relays, the USB power meter, and any
+  remaining protocol parts that need a bus or timing they do not yet have are
+  `visual`/`planned` for now — they need a firmware/Stage-B backend or a model that does not
+  exist yet. The `seven_segment` display and the
   digital-output sensors are the exceptions: they are plain LEDs or ideal logic
   levels, so they run without firmware by driving their pins directly. The
   `pcf8574` I2C expander is the first *bus* part backed by firmware: firmware drives
@@ -120,7 +121,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   rather than an electrical one. `stepper_nema17` with the STEP/DIR drivers
   (`a4988_driver`/`drv8825_driver`) is the same idea for travel: the STEP edges are
   counted with the sign DIR held at each one and applied to the motor on the driver's
-  coil outputs (`steppers`, `apply_firmware_stepper`).
+  coil outputs (`steppers`, `apply_firmware_stepper`). `stepper_28byj48` with the
+  four-phase `uln2003_driver` is measured from the phase sequence instead: each valid
+  pattern change is worth the shortest move around the drive cycle, so wave, full-step and
+  half-step sketches all decode to half steps.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`

@@ -67,10 +67,10 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal |
-| 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
-| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
+| 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
+| 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 748/748; Linux runtime verification remains blocked on WSL) |
 
 ## 3a. Progress log
 
@@ -357,7 +357,7 @@ catalog that replaces the hardcoded definition list.
   wrong I2C address. Suite **694/694**; MCP **27/27** (new Test B17); catalog
   `external` 44 → 45, `planned` 100 → 99.
 
-### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
+### Milestone 8 — honest analog/digital parts (firmware-free subset complete; motors closed by M7)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
   so no solver change was needed): `thermistor_ntc` (beta equation
   `R = R25*exp(B*(1/T - 1/T25))`), `photoresistor_ldr` (log-linear
@@ -407,10 +407,21 @@ catalog that replaces the hardcoded definition list.
   (+200/−100/+50 = net +150 steps) + `verify_stepper.mjs` recover the move and check the
   ≥1 µs STEP pulse the driver needs. Suite **733/733**; MCP **29/29** (new Test B19);
   catalog `external` 47 → 50, `planned` 97 → 95, `visual` 23 → 22.
-- Still planned/visual: the 4-phase `uln2003_driver` + `stepper_28byj48` (wave/half-step
-  decoding), SPI displays, and the gas/analog sensor modules that need a real ADC path.
-  Servos and STEP/DIR steppers are done (above), and the LCD/OLED/I2C/DHT/ultrasonic/IMU
-  parts are closed by the M7 device work above.
+- **Four-phase steppers (`uln2003_driver`, `stepper_28byj48`)**: `stepper_28byj48`
+  `visual` → `external` and `uln2003_driver` `planned` → `external`, which closes M8's
+  motor gap. The driver's own phase sequence is the evidence: the app groups the phase-pin
+  transitions by port write (so a two-coil wave hop is not mistaken for an invalid pattern),
+  measures each valid change as the shortest move around the eight-state drive cycle and
+  reports half-step travel, so wave, full-step and half-step sketches all decode the same
+  way; a coil-off pattern breaks the sequence and nothing is counted across it. Sketch
+  `stepper_4phase` (half 32 forward, then wave 8 reverse and 8 forward) + `verify_4phase.mjs`
+  recover net +32 half steps with the two coil-off gaps counted as skipped. Suite
+  **748/748**; MCP **29/29**; catalog `external` 50 → 52, `planned` 95 → 94, `visual` 22 → 21.
+- Still planned/visual: SPI displays and the gas/analog sensor modules that need a real ADC
+  path (the remaining `planned`/`visual` parts generally need a model the app does not have
+  yet — see `docs/catalog/status_report.md`). Servos, STEP/DIR steppers and the four-phase
+  `uln2003_driver`/`stepper_28byj48` pair are done (above), and the LCD/OLED/I2C/DHT/
+  ultrasonic/IMU parts are closed by the M7 device work above.
 
 ### Milestone 9 — MCP pin/metadata tooling (in progress)
 - New MCP tools (34 → **36**, plus **7** M7/M8 firmware tools —

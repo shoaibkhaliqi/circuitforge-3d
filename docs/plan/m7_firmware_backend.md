@@ -510,6 +510,40 @@ pulse train, this time through a driver. `stepper_nema17` becomes `external` (fr
   circuit, and there is no torque, holding torque, load, backlash or step loss: every
   rising edge is assumed to move the motor exactly one (micro)step.
 
+## 11k. Fourteenth device: four-phase stepper (ULN2003 + 28BYJ-48)
+
+The `uln2003_driver` (`planned` → `external`) and `stepper_28byj48` (`visual` → `external`)
+close M8's motor gap: a driver with no STEP pulse at all, four plain phase inputs.
+
+- **Model**: `FirmwareBackend.stepper_phases(transitions, pins)` watches IN1..IN4. The
+  harness reports one transition per changed bit, so transitions sharing a timestamp are
+  grouped first — a wave-drive hop changes two coils at once and must not look like an
+  invalid pattern in between. Each valid pattern is looked up in the eight-state drive cycle
+  (`STEPPER_PHASE_CYCLE`), which contains the wave patterns (indices 0,2,4,6) and the
+  two-coil full-step patterns (1,3,5,7), and every change is measured as the shortest signed
+  move around it. That makes one table honest for half-step (1), wave and full-step (2)
+  driving, in a single half-step unit. A coil-off or otherwise invalid pattern breaks the
+  sequence — the next valid pattern only re-establishes the reference — and a 180° jump is
+  counted in `skipped` rather than guessed.
+- **Path**: the caller maps the four firmware pins on the driver's IN1..IN4 nets to the
+  components on those nets; the app finds the motor on the driver's `passive` outputs
+  (OUT1..OUT4 ↔ the 28BYJ-48's four wires), reports the move in `run_firmware`'s
+  `steppers` and `apply_firmware_stepper` writes the net `steps` and shaft `angle`
+  (4096 half steps per output revolution for the geared part). Mechanical only.
+- **Verified**: `firmware/sketches/stepper_4phase` drives a pre-energized half-step burst
+  (32 half steps forward), then wave-mode bursts backwards and forwards (8 changes each,
+  worth two half steps apiece) with a coil-off gap between them;
+  `verify_4phase.mjs` recovers net +32 half steps, 48 pattern changes, 48/16 forward/reverse
+  and exactly 2 skipped coil-off patterns. The decoder (including the same-timestamp
+  grouping, invalid patterns, the 180° jump and the no-DIR case) is unit tested; the
+  mapping by `tests/unit/test_netlist.gd`; the tool surface by MCP Test B19 (one tool
+  covers both driver families).
+- **Limits (honest)**: the direction convention follows the standard drive cycle, so
+  reversing the coil order flips the sign (as it does on hardware). The board's Darlington
+  drops, free-wheeling diodes, current limit and supply draw are not modelled, no torque,
+  holding torque, load, backlash or step loss is simulated, and `steps_per_rev` must suit
+  the part (2048 for full/wave step driving of a 28BYJ-48, 4096 in half-step driving).
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -537,8 +571,9 @@ feedback and bus decoding — is exercised at once, and the SHT31 (§11h) adds a
 command-driven, checksum-protected I2C part. The servo (§11i) adds the opposite
 direction — a firmware-driven *actuator* whose commanded position is read back out of the
 MCU's own pulse train — which is the first part of M8's "stepper and servo motors" gap, and
-the STEP/DIR stepper (§11j) applies the same idea to travel. Remaining work: the 4-phase
-`uln2003_driver`/`stepper_28byj48` pair, and a
+the STEP/DIR stepper (§11j) applies the same idea to travel, and the four-phase
+`uln2003_driver`/`stepper_28byj48` pair (§11k) shows the same measurement works from a plain
+four-wire sequence — which closes M8's motor gap. Remaining work: SPI displays, and a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

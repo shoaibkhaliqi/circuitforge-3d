@@ -350,6 +350,83 @@ static func stepper_angle(steps: float, steps_per_rev := 200.0, microsteps := 1.
 	return (frac - floorf(frac)) * 360.0
 
 
+## The eight drive patterns of a four-phase (ULN2003) stepper, in order, in units of a
+## half step: bit 0 = phase 1. It contains the four one-coil "wave" patterns (indices
+## 0,2,4,6) and the four two-coil full-step patterns (1,3,5,7), so one table decodes wave,
+## full and half-step driving alike — each valid pattern change moves the rotor by the
+## shortest number of half steps between the two entries (1 for half-step, 2 for wave and
+## full-step driving), and a pattern change of 4 is a 180-degree jump with no defined
+## direction.
+const STEPPER_PHASE_CYCLE := [0b0001, 0b0011, 0b0010, 0b0110, 0b0100, 0b1100, 0b1000, 0b1001]
+
+
+## Half steps a four-phase driver moved: `pins` are the four phase pins (IN1..IN4, -1 when
+## unwired) and every valid pattern change is measured against `STEPPER_PHASE_CYCLE`.
+## The harness reports one transition per changed bit, so transitions sharing a timestamp
+## belong to a single port write and are grouped — otherwise a two-coil change (wave drive)
+## would be seen as passing through an invalid pattern. A real all-coils-off pattern breaks
+## the sequence (the next valid pattern simply restarts it, so nothing is counted across
+## it), and a 180-degree jump is counted in `skipped` rather than guessed.
+static func stepper_phases(transitions: Array, pins: Array) -> Dictionary:
+	var idx_of := {}
+	for i in 4:
+		if i < pins.size() and int(pins[i]) >= 0:
+			idx_of[int(pins[i])] = i
+	var out := {"steps": 0, "changes": 0, "forward": 0, "reverse": 0, "skipped": 0, "last_pattern": 0}
+	if idx_of.size() < 2:
+		return out
+	var events := []
+	var pattern := 0
+	var group_t := 0.0
+	var have_group := false
+	for tr in transitions:
+		if typeof(tr) != TYPE_DICTIONARY:
+			continue
+		var pin := int(tr.get("digital_pin", -1))
+		if not idx_of.has(pin):
+			continue
+		var t := float(tr.get("t_ms", 0.0))
+		if have_group and not is_equal_approx(t, group_t):
+			events.append(pattern)
+		group_t = t
+		have_group = true
+		if int(tr.get("level", 0)) != 0:
+			pattern |= 1 << int(idx_of[pin])
+		else:
+			pattern &= ~(1 << int(idx_of[pin]))
+	if have_group:
+		events.append(pattern)
+	var last_idx := -1
+	for pat in events:
+		var idx := STEPPER_PHASE_CYCLE.find(int(pat))
+		if idx < 0:
+			last_idx = -1      # invalid pattern (e.g. all coils off): the sequence restarts
+			out["skipped"] = int(out["skipped"]) + 1
+			continue
+		out["last_pattern"] = int(pat)
+		if last_idx < 0:
+			last_idx = idx
+			continue
+		var delta := idx - last_idx
+		if delta > 4:
+			delta -= 8
+		elif delta < -4:
+			delta += 8
+		last_idx = idx
+		if delta == 0:
+			continue
+		if absi(delta) == 4:
+			out["skipped"] = int(out["skipped"]) + 1
+			continue
+		out["steps"] = int(out["steps"]) + delta
+		out["changes"] = int(out["changes"]) + 1
+		if delta > 0:
+			out["forward"] = int(out["forward"]) + delta
+		else:
+			out["reverse"] = int(out["reverse"]) - delta
+	return out
+
+
 static func pins_touched(transitions: Array) -> Array:
 	var seen := {}
 	for tr in transitions:

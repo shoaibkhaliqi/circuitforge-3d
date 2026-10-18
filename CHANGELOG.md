@@ -269,6 +269,18 @@ follow [Semantic Versioning](https://semver.org/).
     + `verify_stepper.mjs` recover the net +150 steps and check the ≥1 µs STEP pulse the
     A4988 needs. MCP integration 28 → **29** (Test B19, 43 tools); suite 713 → **733**;
     catalog `external` 47 → **50**, `planned` 97 → **95**, `visual` 23 → **22**.
+  - **Four-phase steppers (`uln2003_driver` + `stepper_28byj48`, closing M8's motor gap)**:
+    `stepper_28byj48` `visual` → `external`, `uln2003_driver` `planned` → `external`.
+    `FirmwareBackend.stepper_phases` groups the four phase-pin transitions by port write
+    (a two-coil wave hop must not look like an invalid pattern), then measures every valid
+    pattern change as the shortest move around the eight-state drive cycle — so wave,
+    full-step and half-step sketches all decode into the same half-step unit — and counts a
+    coil-off pattern as a skipped break rather than travel. `run_firmware` reports it in
+    `steppers` and `apply_firmware_stepper` writes the net `steps` + shaft `angle` onto the
+    motor (4096 half steps per output revolution for the geared part). Sketch
+    `firmware/sketches/stepper_4phase` + `verify_4phase.mjs` recover net +32 half steps
+    across half-step and wave driving with 2 skipped coil-off gaps. Suite 733 → **748**;
+    MCP **29/29**; catalog `external` 50 → **52**, `planned` 95 → **94**, `visual` 22 → **21**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

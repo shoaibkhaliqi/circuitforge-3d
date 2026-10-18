@@ -14,6 +14,22 @@ func _tr(pin: int, t: float, level: int) -> Dictionary:
 	return {"t_ms": t, "digital_pin": pin, "level": level}
 
 
+## Transitions for a four-phase pattern list the way the harness reports them: one entry per
+## changed bit, all bits of one port write sharing a timestamp (IN1..IN4 are D8..D11).
+func _phase_trs(patterns: Array) -> Array:
+	var out := []
+	var lvls := [0, 0, 0, 0]
+	var t := 0.0
+	for p in patterns:
+		t += 1.0
+		for i in 4:
+			var bit := (int(p) >> i) & 1
+			if bit != lvls[i]:
+				lvls[i] = bit
+				out.append(_tr(8 + i, t, bit))
+	return out
+
+
 func run(t) -> void:
 	t.section("Firmware - pin key normalisation")
 	t.check(FirmwareBackend.pin_number("13") == 13, "bare number")
@@ -148,6 +164,33 @@ func run(t) -> void:
 	t.check(int(single.steps) == 1 and int(single.forward) == 1, "one rising edge -> one step")
 	t.check(int(FirmwareBackend.stepper_steps(step_trs, 7, 2).steps) == 0, "a pin with no edges -> no steps")
 	t.check(int(FirmwareBackend.stepper_steps(step_trs, -1, 2).steps) == 0, "no step pin -> no steps")
+
+	t.section("Firmware - stepper four-phase (ULN2003) sequence")
+	# Half-step driving: each pattern change is one half step (bit 0 = IN1).
+	var half := FirmwareBackend.stepper_phases(_phase_trs([1, 3, 2, 6, 4, 12, 8, 9, 1]), [8, 9, 10, 11])
+	t.check(int(half.steps) == 8, "half-step cycle of 9 patterns -> 8 half steps", str(half.steps))
+	t.check(int(half.changes) == 8, "eight pattern changes", str(half.changes))
+	t.check(int(half.forward) == 8 and int(half.reverse) == 0, "all forward")
+	t.check(int(half.skipped) == 0, "a clean sequence skips nothing")
+	# Wave driving changes two coils at once: those two transitions share one timestamp, so
+	# they are one pattern change worth two half steps - not an invalid pattern in between.
+	var wave := FirmwareBackend.stepper_phases(_phase_trs([1, 2, 4, 8, 1]), [8, 9, 10, 11])
+	t.check(int(wave.steps) == 8 and int(wave.changes) == 4, "wave cycle -> 4 changes of 2 half steps", str(wave.steps))
+	var back := FirmwareBackend.stepper_phases(_phase_trs([1, 8, 4, 2, 1]), [8, 9, 10, 11])
+	t.check(int(back.steps) == -8 and int(back.reverse) == 8, "the wave cycle backwards -> -8", str(back.steps))
+	# A coil-off pattern breaks the sequence: nothing is counted across it.
+	var gap := FirmwareBackend.stepper_phases(_phase_trs([1, 3, 0, 2]), [8, 9, 10, 11])
+	t.check(int(gap.steps) == 1, "coils released -> the sequence restarts", str(gap.steps))
+	t.check(int(gap.skipped) == 1, "the coil-off pattern is counted as skipped")
+	# A 180-degree jump has no defined direction, so it is skipped rather than guessed.
+	var jump := FirmwareBackend.stepper_phases(_phase_trs([1, 4]), [8, 9, 10, 11])
+	t.check(int(jump.steps) == 0 and int(jump.skipped) == 1, "180-degree jump is not counted")
+	# Non-phase pins and too-few wired phases are ignored.
+	var noise := _phase_trs([1, 3])
+	noise.append(_tr(13, 0.5, 1))
+	t.check(int(FirmwareBackend.stepper_phases(noise, [8, 9, 10, 11]).steps) == 1, "D13 transitions are ignored")
+	t.check(int(FirmwareBackend.stepper_phases(_phase_trs([1, 3]), [-1, -1, -1, -1]).steps) == 0,
+		"no wired phases -> no steps")
 
 	t.section("Firmware - stepper angle mapping")
 	t.near(FirmwareBackend.stepper_angle(150.0, 200.0, 16.0), 16.875, "150 of 3200 microsteps", 1e-3)

@@ -402,7 +402,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
-		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal. Mapped outputs are read back the same way: a servo's commanded angle (`servos`) and a STEP/DIR stepper driver's step count (`steppers`) are decoded from the pulse trains the sketch drove."
+		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal. Mapped outputs are read back the same way: a servo's commanded angle (`servos`) and a stepper driver's move (`steppers`) are decoded from the pulse trains or phase sequence the sketch drove."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -605,6 +605,11 @@ func _is_stepper_driver_type(t: String) -> bool:
 	return t == "a4988_driver" or t == "drv8825_driver"
 
 
+## True for the four-phase (ULN2003-style) stepper drivers the app can follow a sequence on.
+func _is_phase_driver_type(t: String) -> bool:
+	return t == "uln2003_driver"
+
+
 ## True for the stepper motors a driver's coil outputs can be wired to.
 func _is_stepper_motor_type(t: String) -> bool:
 	return t == "stepper_nema17" or t == "stepper_28byj48"
@@ -632,8 +637,11 @@ func _coil_nets(type: String, nets: Array) -> Array:
 ## Stepper moves the firmware commanded. Like a servo this is an *output*: nothing is sent
 ## to the harness. For each STEP/DIR driver whose STEP (and DIR) net shares a net with a
 ## mapped component, the rising edges on STEP are counted and the DIR level at each one
-## gives the sign. If a stepper motor is wired to the driver's coil outputs, its
-## `steps_per_rev` and the driver's `microsteps` turn the count into a shaft angle.
+## gives the sign. A four-phase (ULN2003) driver is the same idea across four phase pins:
+## each valid pattern change is measured against the drive cycle, so wave, full-step and
+## half-step sketches all decode to the same half-step travel. If a stepper motor is wired
+## to the driver's coil outputs, its `steps_per_rev` (and the STEP/DIR driver's
+## `microsteps`) turn the count into a shaft angle.
 func _firmware_steppers(transitions: Array, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	if (pin_map as Dictionary).is_empty():
@@ -641,54 +649,96 @@ func _firmware_steppers(transitions: Array, pin_nets := {}, pin_map := {}) -> Ar
 	var comps: Array = session.project.get("components", []) if session != null else []
 	for c in comps:
 		var t := String(c.get("type", ""))
-		if not _is_stepper_driver_type(t):
-			continue
 		var cid := String(c.get("id", ""))
 		var nets: Array = (pin_nets as Dictionary).get(cid, [])
-		var si := _pin_index_of(t, "STEP")
-		var di := _pin_index_of(t, "DIR")
-		if si < 0 or si >= nets.size():
-			continue
-		var step_pin := _net_pin(String(nets[si]), pin_map, pin_nets, cid)
-		if step_pin < 0:
-			continue
-		var dir_pin := -1
-		if di >= 0 and di < nets.size():
-			dir_pin = _net_pin(String(nets[di]), pin_map, pin_nets, cid)
-		var p: Dictionary = c.get("params", {})
-		var micro := clampi(int(p.get("microsteps", 1)), 1, 64)
-		var counts := FirmwareBackend.stepper_steps(transitions, step_pin, dir_pin)
-		var motor_id := ""
-		var spr := 200.0
-		var coil_nets := _coil_nets(t, nets)
-		for m in comps:
-			if not _is_stepper_motor_type(String(m.get("type", ""))):
+		if _is_stepper_driver_type(t):
+			var si := _pin_index_of(t, "STEP")
+			var di := _pin_index_of(t, "DIR")
+			if si < 0 or si >= nets.size():
 				continue
-			for n in (pin_nets as Dictionary).get(String(m.get("id", "")), []):
-				if coil_nets.has(String(n)):
-					motor_id = String(m.get("id", ""))
-					spr = maxf(1.0, float((m.get("params", {}) as Dictionary).get("steps_per_rev", 200.0)))
-					break
-			if motor_id != "":
-				break
-		var steps := int(counts.steps)
-		out.append({
-			"component_id": cid,
-			"driver": t,
-			"step_pin": step_pin,
-			"step_label": FirmwareBackend.label(step_pin),
-			"dir_pin": dir_pin,
-			"dir_label": FirmwareBackend.label(dir_pin) if dir_pin >= 0 else "",
-			"dir_wired": dir_pin >= 0,
-			"microsteps": micro,
-			"steps": steps,
-			"forward": int(counts.forward),
-			"reverse": int(counts.reverse),
-			"motor_component_id": motor_id,
-			"steps_per_rev": spr,
-			"angle_deg": snappedf(FirmwareBackend.stepper_angle(float(steps), spr, float(micro)), 0.01),
-		})
+			var step_pin := _net_pin(String(nets[si]), pin_map, pin_nets, cid)
+			if step_pin < 0:
+				continue
+			var dir_pin := -1
+			if di >= 0 and di < nets.size():
+				dir_pin = _net_pin(String(nets[di]), pin_map, pin_nets, cid)
+			var micro := clampi(int((c.get("params", {}) as Dictionary).get("microsteps", 1)), 1, 64)
+			var counts := FirmwareBackend.stepper_steps(transitions, step_pin, dir_pin)
+			var target := _stepper_target(comps, t, nets, pin_nets, 200.0)
+			var spr := float(target.steps_per_rev)
+			var steps := int(counts.steps)
+			out.append({
+				"kind": "stepdir",
+				"component_id": cid,
+				"driver": t,
+				"step_pin": step_pin,
+				"step_label": FirmwareBackend.label(step_pin),
+				"dir_pin": dir_pin,
+				"dir_label": FirmwareBackend.label(dir_pin) if dir_pin >= 0 else "",
+				"dir_wired": dir_pin >= 0,
+				"microsteps": micro,
+				"steps": steps,
+				"forward": int(counts.forward),
+				"reverse": int(counts.reverse),
+				"motor_component_id": String(target.id),
+				"steps_per_rev": spr,
+				"angle_deg": snappedf(FirmwareBackend.stepper_angle(float(steps), spr, float(micro)), 0.01),
+			})
+		elif _is_phase_driver_type(t):
+			var pins := []
+			var labels := []
+			var wired := 0
+			for i in 4:
+				var ni := _pin_index_of(t, "IN%d" % (i + 1))
+				var pin := -1
+				if ni >= 0 and ni < nets.size():
+					pin = _net_pin(String(nets[ni]), pin_map, pin_nets, cid)
+				pins.append(pin)
+				labels.append(FirmwareBackend.label(pin) if pin >= 0 else "")
+				if pin >= 0:
+					wired += 1
+			if wired < 2:
+				continue
+			var ph := FirmwareBackend.stepper_phases(transitions, pins)
+			# One measured unit here is a half step, so the 28BYJ-48's 4096 (half steps per
+			# output revolution) is the natural default.
+			var ptarget := _stepper_target(comps, t, nets, pin_nets, 4096.0)
+			var pspr := float(ptarget.steps_per_rev)
+			var psteps := int(ph.steps)
+			out.append({
+				"kind": "4phase",
+				"component_id": cid,
+				"driver": t,
+				"phase_pins": pins,
+				"phase_labels": labels,
+				"pattern_changes": int(ph.changes),
+				"skipped_patterns": int(ph.skipped),
+				"steps": psteps,
+				"forward": int(ph.forward),
+				"reverse": int(ph.reverse),
+				"motor_component_id": String(ptarget.id),
+				"steps_per_rev": pspr,
+				"angle_deg": snappedf(FirmwareBackend.stepper_angle(float(psteps), pspr, 1.0), 0.01),
+			})
 	return out
+
+
+## The stepper motor wired to a driver's coil outputs, with its steps-per-revolution
+## (`default_spr` when the part does not declare one). `id` is empty when no motor is wired
+## to those outputs, and then the move has no target to be applied to.
+func _stepper_target(comps: Array, driver_type: String, driver_nets: Array, pin_nets: Dictionary, default_spr: float) -> Dictionary:
+	var coil_nets := _coil_nets(driver_type, driver_nets)
+	for m in comps:
+		if not _is_stepper_motor_type(String(m.get("type", ""))):
+			continue
+		for n in (pin_nets as Dictionary).get(String(m.get("id", "")), []):
+			if coil_nets.has(String(n)):
+				var p: Dictionary = m.get("params", {})
+				return {
+					"id": String(m.get("id", "")),
+					"steps_per_rev": maxf(1.0, float(p.get("steps_per_rev", default_spr))),
+				}
+	return {"id": "", "steps_per_rev": default_spr}
 
 
 ## Servo positions the firmware commanded. A servo is an *output*, so nothing is sent to
@@ -945,12 +995,13 @@ func apply_firmware_servo(hex_path: String, pin_map: Dictionary, ms: int = 3000,
 
 
 ## Run firmware and write the move it commanded onto each stepper motor it drives. The
-## pulses go to a STEP/DIR driver wired to the motor's coils: the caller maps the firmware
-## pins driving the driver's STEP/DIR nets to the components on those nets (usually the
-## circuit's virtual `mcu_pin`s), the app counts the edges the firmware put on STEP and
-## the direction DIR held at each one, finds the driver and the motor on its coil outputs,
-## and writes the net `steps` and the shaft `angle` onto the motor. `microsteps` overrides
-## the driver's own parameter (1/2/4/8/16 as strapped on MS1..MS3, which are not read).
+## pulses go to a STEP/DIR driver or a four-phase (ULN2003) driver wired to the motor's
+## coils: the caller maps the firmware pins driving the driver's inputs (STEP/DIR, or
+## IN1..IN4) to the components on those nets (usually the circuit's virtual `mcu_pin`s), the
+## app counts the edges or follows the drive sequence, finds the driver and the motor on its
+## coil outputs, and writes the net `steps` and the shaft `angle` onto the motor.
+## `microsteps` overrides a STEP/DIR driver's own parameter (1/2/4/8/16 as strapped on
+## MS1..MS3, which are not read; a four-phase move is measured in half steps instead).
 ## Purely mechanical: the solved circuit is unchanged.
 func apply_firmware_stepper(hex_path: String, pin_map: Dictionary, ms: int = 2000, microsteps: int = 0, simulate: bool = false, expected_revision = null) -> Dictionary:
 	var cr := _check_revision(expected_revision)
@@ -958,7 +1009,7 @@ func apply_firmware_stepper(hex_path: String, pin_map: Dictionary, ms: int = 200
 		return cr
 	if pin_map.is_empty():
 		return _err("INVALID_PARAMETER", "No pin_map was provided.",
-			"Map the firmware pins that drive a STEP/DIR driver's STEP and DIR nets to the components wired to those nets, e.g. {\"3\": \"P1\", \"2\": \"P2\"}.")
+			"Map the firmware pins that drive a stepper driver's inputs to the components wired to those nets, e.g. {\"3\": \"P1\", \"2\": \"P2\"} for STEP/DIR or {\"8\": \"P1\", \"9\": \"P2\"} for IN1/IN2.")
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
@@ -977,28 +1028,40 @@ func apply_firmware_stepper(hex_path: String, pin_map: Dictionary, ms: int = 200
 		if motor_id == "":
 			skipped.append({"driver_id": String(entry.get("component_id", "")), "reason": "no stepper motor wired to the driver's coil outputs"})
 			continue
-		var micro := int(entry.get("microsteps", 1)) if microsteps <= 0 else clampi(microsteps, 1, 64)
+		var kind := String(entry.get("kind", "stepdir"))
+		# A STEP/DIR move is measured in (micro)steps, so the driver's microstepping scales
+		# it; a four-phase move is already measured in half steps, so it does not.
+		var micro := 1
+		if kind == "stepdir":
+			micro = int(entry.get("microsteps", 1)) if microsteps <= 0 else clampi(microsteps, 1, 64)
 		var spr := maxf(1.0, float(entry.get("steps_per_rev", 200.0)))
 		var steps := int(entry.get("steps", 0))
 		var angle := snappedf(FirmwareBackend.stepper_angle(float(steps), spr, float(micro)), 0.01)
 		session.set_params(motor_id, {"steps": steps, "angle": angle})
-		applied.append({
+		var rec := {
+			"kind": kind,
 			"driver_id": String(entry.get("component_id", "")),
 			"component_id": motor_id,
 			"steps": steps,
 			"forward": int(entry.get("forward", 0)),
 			"reverse": int(entry.get("reverse", 0)),
-			"microsteps": micro,
 			"steps_per_rev": spr,
 			"angle_deg": angle,
-			"step_pin": int(entry.get("step_pin", -1)),
-			"dir_pin": int(entry.get("dir_pin", -1)),
-		})
+		}
+		if kind == "stepdir":
+			rec["microsteps"] = micro
+			rec["step_pin"] = int(entry.get("step_pin", -1))
+			rec["dir_pin"] = int(entry.get("dir_pin", -1))
+		else:
+			rec["phase_pins"] = entry.get("phase_pins", [])
+			rec["pattern_changes"] = int(entry.get("pattern_changes", 0))
+			rec["skipped_patterns"] = int(entry.get("skipped_patterns", 0))
+		applied.append(rec)
 	if found.is_empty():
-		return _err("NO_STEPPER_DRIVER", "Firmware ran but no mapped STEP/DIR driver was found.",
-			"Map the firmware pins wired to the driver's STEP/DIR nets to the components on those nets (the driver itself cannot be used: its nets do not say which pin drives them).")
+		return _err("NO_STEPPER_DRIVER", "Firmware ran but no mapped stepper driver was found.",
+			"Map the firmware pins wired to the driver's inputs (STEP/DIR, or IN1..IN4 for a ULN2003) to the components on those nets — the driver itself cannot be used: its nets do not say which pin drives them.")
 	if applied.is_empty():
-		var hint := "Wire the driver's coil outputs (1A/1B/2A/2B) to a stepper motor so the move has a target."
+		var hint := "Wire the driver's coil outputs (1A/1B/2A/2B, or OUT1..OUT4) to a stepper motor so the move has a target."
 		if not skipped.is_empty():
 			hint = "Nothing was applied: " + JSON.stringify(skipped) + ". " + hint
 		return _err("NO_STEPPER_TARGET", "Firmware ran but no motor was reachable from the driver.", hint)

@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 733 / 733 passed
+RESULT: 748 / 748 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,7 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse/stepper-stepdir), capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse/stepper-stepdir/stepper-4phase), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -130,7 +130,7 @@ RESULTS: 29 / 29 passed
 | B16. Firmware DHT22 (one-wire) | `dht22` attached as a one-wire pin device; missing-HEX `run_firmware` is a clean error | pass |
 | B17. Firmware SHT31 (I2C temp/humidity) | `sht31` attached as a CRC-protected I2C part; missing-HEX `run_firmware` is a clean error | pass |
 | B18. Firmware servo angle (pulse train) | `servo_sg90` mapped for `apply_firmware_servo`; missing-HEX run is a clean error and the tool is listed as reversible | pass |
-| B19. Firmware stepper move (STEP/DIR) | `a4988_driver` + `stepper_nema17` wired and mapped; missing-HEX `apply_firmware_stepper` is a clean error and the tool is listed as reversible | pass |
+| B19. Firmware stepper move (STEP/DIR) | `a4988_driver` + `stepper_nema17` wired and mapped; missing-HEX `apply_firmware_stepper` is a clean error and the tool is listed as reversible (the same tool covers the four-phase `uln2003_driver`/`stepper_28byj48` pair, verified by `verify_4phase.mjs`) | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

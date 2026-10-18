@@ -109,8 +109,17 @@
       ],
       "model": {"shape": "stepper_unipolar"},
       "mounting": "device",
-      "simulation_status": "visual",
-      "notes": "Modelled as resistors; step sequencing is not simulated."
+      "simulation_status": "external",
+      "simulation_models": ["stepper-4phase"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "r": {"default": 50, "unit": "ohm", "label": "Winding resistance (informational)"},
+        "steps_per_rev": {"default": 4096, "unit": "steps", "label": "Half steps per output revolution", "min": 1, "max": 1000000},
+        "steps": {"default": 0, "unit": "steps", "label": "Net steps commanded (set by apply_firmware_stepper)"},
+        "angle": {"default": 0, "unit": "deg", "label": "Shaft angle (set by apply_firmware_stepper)", "min": 0, "max": 360}
+      },
+      "notes": "Firmware-driven actuator through a four-phase driver (`uln2003_driver`): the app follows the sequence the sketch drives on IN1..IN4 and measures each valid pattern change as the shortest move around the drive cycle, so wave, full-step and half-step sketches all decode (a coil-off pattern breaks the sequence and nothing is counted across it). `run_firmware` reports it in `steppers`, `apply_firmware_stepper` writes the net `steps` and the shaft `angle`. One measured unit is a half step, so `steps_per_rev` is 4096 for this part's 64:1 gearbox in half-step driving. Not modelled: torque, holding torque, load, backlash, step loss, the internal reduction's winding detail (the 3D winding resistances are informational and are not solved)."
     },
     {
       "id": "a4988_driver",
@@ -229,8 +238,14 @@
       ],
       "model": {"shape": "uln2003_board"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["stepper-4phase"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "step_mode": {"default": 1, "unit": "", "label": "1 = half, 2 = wave/full (informational)", "min": 1, "max": 2}
+      },
+      "notes": "Served by the firmware backend as a four-phase stepper driver: the app reads the sequence the sketch drives on IN1..IN4 and measures how far it walked around the drive cycle (`run_firmware`'s `steppers`, `apply_firmware_stepper`), so wave, full-step and half-step sketches are all decoded honestly. The board's Darlington drops, its common-free-wheeling diodes, current limit and supply draw are not modelled - `step_mode` is informational, since the measured travel does not depend on it."
     },
     {
       "id": "bldc_esc",

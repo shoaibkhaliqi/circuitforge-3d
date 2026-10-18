@@ -66,6 +66,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/servo_sweep firmware/sketches/servo_sweep
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/stepper_sweep firmware/sketches/stepper_sweep
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/stepper_4phase firmware/sketches/stepper_4phase
 
 # 2. execute + inspect
 cd firmware/harness
@@ -93,6 +95,7 @@ node verify_env_logger.mjs ../build/env_logger/env_logger.ino.hex
 node verify_sht31.mjs ../build/sht31_read/sht31_read.ino.hex
 node verify_servo.mjs ../build/servo_sweep/servo_sweep.ino.hex
 node verify_stepper.mjs ../build/stepper_sweep/stepper_sweep.ino.hex
+node verify_4phase.mjs ../build/stepper_4phase/stepper_4phase.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -121,7 +124,10 @@ recovers every angle from the recorded pin transitions to within 3 degrees.
 `verify_stepper.mjs` is the same idea through a driver: a hand-written pulse generator
 moves +200, -100, +50 steps with DIR set for each phase, and the verifier recovers exactly
 250 forward / 100 reverse / net +150 steps and checks the STEP high pulse is wider than the
-1 us an A4988 needs.
+1 us an A4988 needs. `verify_4phase.mjs` drives a 28BYJ-48 through a ULN2003 the way real
+sketches do - a pre-energized half-step burst, then wave-mode bursts each way with the coils
+released in between - and recovers net +32 half steps with the two coil-off gaps counted as
+skipped, which is the same measurement whatever mix of wave/full/half-step driving is used.
 
 ## Devices on the bus (closed loop)
 
@@ -197,7 +203,9 @@ netlist. A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all —
 (`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`).
 A STEP/DIR stepper is the same: `pin_map` maps the firmware pins driving the driver's
 STEP/DIR nets to the components on those nets, and the net `steps` + shaft `angle` come
-back in `steppers` (`apply_firmware_stepper` writes them onto the motor).
+back in `steppers` (`apply_firmware_stepper` writes them onto the motor). A four-phase
+driver (`uln2003_driver`) works through the same tool: map the IN1..IN4 pins and the phase
+sequence is measured instead of pulses (one unit is a half step).
 
 ## Analog inputs (circuit → firmware)
 
