@@ -123,6 +123,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("dht11"), "dht11 is not mapped by the solver")
 	t.check(ComponentDB.status_of("dht22") == "external", "dht22 status is 'external'")
 	t.check(not NetlistBuilder.handles("dht22"), "dht22 is not mapped by the solver")
+	t.check(ComponentDB.status_of("sht31") == "external", "sht31 status is 'external'")
+	t.check(not NetlistBuilder.handles("sht31"), "sht31 is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

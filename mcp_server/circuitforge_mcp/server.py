@@ -277,7 +277,9 @@ def run_firmware(
     `address`/`size`; the `pcf8591`, whose analog channels come from the solved node
     voltages; the `i2c_lcd1602`, whose decoded text is returned; the `oled_ssd1306`,
     whose decoded GDDRAM frame is returned; the `mpu6050`, an I2C register file whose
-    sample values come from its `ax`..`gz`/`temp_c` parameters; and the `hcsr04`, whose
+    sample values come from its `ax`..`gz`/`temp_c` parameters; the `sht31`, whose 16-bit
+    temperature/humidity words and both CRC-8s come from its `temp_c`/`humidity`; and the
+    `hcsr04`, whose
     TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so firmware
     can read/write them (device -> firmware feedback, e.g. `Wire.requestFrom`); the
     response adds `devices` and `attached_devices`. With no devices the harness only

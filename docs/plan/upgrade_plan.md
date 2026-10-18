@@ -349,6 +349,13 @@ catalog that replaces the hardcoded definition list.
   feedback and bus decoding are demonstrated together. `verify_env_logger.mjs` asserts both
   outputs agree; `test_examples.gd` loads the project and checks the DATA-net wiring.
   Bundled examples 14 → 15; suite **692/692**.
+- **SHT31 — command-driven I2C temp/humidity with CRC-8**: `sht31` promoted from
+  `planned` to `external`. The harness decodes the part's 16-bit commands and answers a
+  read with two CRC-protected 16-bit words using the SHT3x CRC-8 (verified against the
+  datasheet's 0xBE 0xEF → 0x92 vector). Sketch `sht31_read` (hand-written driver) +
+  `verify_sht31.mjs` cover the values, both checksums, a deliberately corrupted CRC and a
+  wrong I2C address. Suite **694/694**; MCP **27/27** (new Test B17); catalog
+  `external` 44 → 45, `planned` 100 → 99.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

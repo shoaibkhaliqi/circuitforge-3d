@@ -60,8 +60,17 @@
       ],
       "model": {"shape": "breakout_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["sht3x-i2c"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 68, "label": "I2C address (0x44 / 0x45)", "min": 0, "max": 127},
+        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -40, "max": 125},
+        "humidity": {"default": 48, "label": "Relative humidity", "unit": "%", "min": 0, "max": 100},
+        "corrupt_crc": {"default": 0, "label": "Corrupt the CRC (tests a driver's validation)", "min": 0, "max": 1}
+      },
+      "notes": "No breadboard electrical model: the harness serves the sensor's I2C interface, so a hand-written or library driver reads real data. It accepts the part's 16-bit commands (0x2400/0x2406/0x240B measure, 0xF32D soft reset, 0x306D/0xE000 heater) and answers a read with six bytes - temperature MSB/LSB + CRC-8, humidity MSB/LSB + CRC-8 - using the SHT3x checksum (poly 0x31, init 0xFF; it matches the datasheet's 0xBE 0xEF -> 0x92 vector). Values come from `temp_c`/`humidity` (T = -45 + 175*raw/65535, RH = 100*raw/65535). Set `corrupt_crc` to break the temperature checksum and exercise a driver's error path. Not modelled: the ~15 ms measurement latency (data is available immediately, so any driver that waits or polls works), clock stretching, the internal heater's thermal effect, and I2C bus capacitance."
     },
     {
       "id": "bme280",

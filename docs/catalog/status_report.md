@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 44 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 100 | catalogued and placeable, not simulated yet |
+| `external` | 45 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 99 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -113,7 +113,9 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   `rotary_encoder` is a pin device like the HC-SR04: the harness steps an ideal
   quadrature A/B pair, so a firmware decoder can be checked. `dht11`/`dht22` are
   bidirectional one-wire pin devices: the harness answers the start signal with a
-  datasheet-timed bit train.
+  datasheet-timed bit train. `sht31` is the first *command-driven, checksum-protected*
+  I2C part: the harness decodes 16-bit commands and answers with two CRC-8-checked
+  16-bit words.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`

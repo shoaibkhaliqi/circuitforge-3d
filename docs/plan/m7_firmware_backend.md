@@ -424,6 +424,29 @@ only by harness spikes: `data/examples/15_firmware_env_logger.cf3d` (Arduino + `
   loads the bundled project, checks that the sensor's DATA net really is the `mcu_pin` net
   that `pin_map` resolves, and that the unmapped device models are skipped with a warning.
 
+## 11h. Eleventh device: SHT31 (I2C, command-driven + CRC-8)
+
+The first device whose protocol is **command-then-read with a checksum**: unlike the
+MPU-6050's register pointer, the SHT3x takes 16-bit commands and answers with two
+CRC-protected 16-bit words. `sht31` (`data/components/sensors.json`, `external`).
+
+- **Model**: the harness decodes the 16-bit command (`0x2400`/`0x2406`/`0x240B` measure,
+  `0xF32D` soft reset, `0x306D`/`0xE000` heater) and answers a read with six bytes —
+  temperature MSB/LSB + CRC, humidity MSB/LSB + CRC — using the part's own CRC-8
+  (poly `0x31`, init `0xFF`). It matches the datasheet's worked vector (`0xBE 0xEF` →
+  `0x92`), so a real driver's validation path passes. `T = -45 + 175·raw/65535`,
+  `RH = 100·raw/65535`; values come from `temp_c`/`humidity`.
+- **Path**: `run_firmware(..., attach_devices=true)` attaches the circuit's `sht31`
+  (`address`, `temp_c`, `humidity`, `corrupt_crc`) like the other I2C parts.
+- **Verified**: `firmware/sketches/sht31_read` (hand-written driver, no library) reads
+  23.0 °C / 48.0 % and −5.5 °C / 99.9 %; `verify_sht31.mjs` asserts the exact raw words,
+  both CRCs, the datasheet vector, and that both a `corrupt_crc` part *and* a sensor at
+  the wrong address are rejected by the driver's checksum check. Mapping is covered by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B17.
+- **Limits (honest)**: the ~15 ms measurement latency is not modelled (data is available
+  immediately, so drivers that wait or poll both work), no clock stretching, the internal
+  heater changes no temperature, and bus capacitance/timing is ideal.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -447,7 +470,8 @@ ideal quadrature pair — so input-decoding sketches can be checked without a li
 the DHT11/DHT22 (§11f) adds a *bidirectional, timing-sensitive* pin device, so one-wire
 protocol sketches work. The capstone example (§11g, example 15 in the app) ties a DHT22
 and an I2C LCD together in one sketch, so the whole path — circuit, `pin_map`, device
-feedback and bus decoding — is exercised at once. Remaining work: a
+feedback and bus decoding — is exercised at once, and the SHT31 (§11h) adds a
+command-driven, checksum-protected I2C part. Remaining work: a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

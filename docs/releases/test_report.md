@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 692 / 692 passed
+RESULT: 694 / 694 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,7 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT), capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -105,7 +105,7 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 26 / 26 passed
+RESULTS: 27 / 27 passed
 ```
 
 | Test | Checks | Result |
@@ -128,6 +128,7 @@ RESULTS: 26 / 26 passed
 | B14. Firmware OLED (SSD1306) | `oled_ssd1306` attached as a GDDRAM frame; missing-HEX `run_firmware` is a clean error | pass |
 | B15. Firmware encoder (rotary) | `rotary_encoder` attached as a quadrature pin device; missing-HEX `run_firmware` is a clean error | pass |
 | B16. Firmware DHT22 (one-wire) | `dht22` attached as a one-wire pin device; missing-HEX `run_firmware` is a clean error | pass |
+| B17. Firmware SHT31 (I2C temp/humidity) | `sht31` attached as a CRC-protected I2C part; missing-HEX `run_firmware` is a clean error | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

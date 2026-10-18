@@ -60,6 +60,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/dht_read firmware/sketches/dht_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/env_logger firmware/sketches/env_logger
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/sht31_read firmware/sketches/sht31_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -84,6 +86,7 @@ node verify_oled.mjs ../build/oled_fill/oled_fill.ino.hex
 node verify_encoder.mjs ../build/encoder_read/encoder_read.ino.hex
 node verify_dht.mjs ../build/dht_read/dht_read.ino.hex
 node verify_env_logger.mjs ../build/env_logger/env_logger.ino.hex
+node verify_sht31.mjs ../build/sht31_read/sht31_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -103,7 +106,9 @@ frames exactly, and that a missing sensor times out. `verify_env_logger.mjs` is 
 capstone: one sketch reads a DHT22 and reports through both a 16x2 I2C LCD and serial,
 and the verifier asserts the LCD text and the serial report agree (and that a missing
 sensor is reported on the display). That sketch is also the bundled example
-`data/examples/15_firmware_env_logger.cf3d`.
+`data/examples/15_firmware_env_logger.cf3d`. `verify_sht31.mjs` asserts the SHT31's
+16-bit words and both CRC-8s (including the datasheet's `0xBE 0xEF -> 0x92` vector) and
+that a corrupted checksum *and* a wrong I2C address are both caught by the driver.
 
 ## Devices on the bus (closed loop)
 
@@ -148,6 +153,10 @@ CF_DEVICES='[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]' \
 CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]' \
   node run.mjs ../build/dht_read/dht_read.ino.hex 200
 
+# SHT31 at 0x44 -> the 16-bit words and both CRC-8s read back exactly
+CF_DEVICES='[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]' \
+  node run.mjs ../build/sht31_read/sht31_read.ino.hex 300
+
 # Capstone: a DHT22 and a 16x2 I2C LCD in one sketch -> LCD text and serial agree
 CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48},{"kind":"lcd1602","address":39,"cols":16,"rows":2}]' \
   node run.mjs ../build/env_logger/env_logger.ino.hex 300
@@ -155,17 +164,19 @@ CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48},{"
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 `init`), `pcf8591` (`address`, `ain`, `vref`), `lcd1602` (`address`, `cols`, `rows`),
-`mpu6050` (`address`, `ax`..`gz`, `temp_c`) and `ssd1306` (`address`, `cols`, `pages`)
+`mpu6050` (`address`, `ax`..`gz`, `temp_c`), `ssd1306` (`address`, `cols`, `pages`) and
+`sht31` (`address`, `temp_c`, `humidity`, `corrupt_crc`)
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
-`accel_raw`/`gyro_raw`/`temp_c` and the OLED summary the decoded `pages_hex`.
+`accel_raw`/`gyro_raw`/`temp_c`, the OLED summary the decoded `pages_hex` and the SHT31
+summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `crc_ok`).
 Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
 (`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO; `encoder` (`a`, `b`,
 `counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle; and
 `dht` (`pin`, `model`, `temp_c`, `humidity`) answers a one-wire start signal with a
 datasheet-timed bit train. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
-`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306` and `mpu6050` components (a
+`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050` and `sht31` components (a
 `pcf8591`'s `ain` values come from the solved node voltages), and `pin_map` resolves an
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B or a `dht11`/`dht22`'s DATA from the
 netlist.

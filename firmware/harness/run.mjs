@@ -100,6 +100,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
+//   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
 // they are listed separately as pin_devices.
@@ -393,6 +394,65 @@ function buildDevices() {
             display_on: displayOn, pixels_set: set, pages_hex: pagesHex,
           };
         },
+      });
+    } else if (s.kind === 'sht31') {
+      // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
+      // 0xf32d soft reset, 0x306d/0xe000 heater) and a 6-byte read of
+      // temperature + CRC, humidity + CRC. The CRC-8 is the part's own (poly 0x31,
+      // init 0xFF). Values come from `temp_c`/`humidity`; `corrupt_crc` flips the
+      // temperature checksum so a driver's validation path can be exercised.
+      const crc8 = (a, b) => {
+        let crc = 0xff;
+        for (const byte of [a, b]) {
+          crc ^= byte & 0xff;
+          for (let i = 0; i < 8; i++) {
+            crc = crc & 0x80 ? ((crc << 1) ^ 0x31) & 0xff : (crc << 1) & 0xff;
+          }
+        }
+        return crc;
+      };
+      const tempC = Math.max(-40, Math.min(125, Number(s.temp_c ?? 23)));
+      const humPct = Math.max(0, Math.min(100, Number(s.humidity ?? 48)));
+      const tempRaw = Math.max(0, Math.min(65535, Math.round(((tempC + 45) / 175) * 65535)));
+      const humRaw = Math.max(0, Math.min(65535, Math.round((humPct / 100) * 65535)));
+      const corrupt = Number(s.corrupt_crc ?? 0) !== 0;
+      const out = [
+        (tempRaw >> 8) & 0xff, tempRaw & 0xff, 0,
+        (humRaw >> 8) & 0xff, humRaw & 0xff, 0,
+      ];
+      out[2] = corrupt ? crc8(out[0], out[1]) ^ 0xff : crc8(out[0], out[1]);
+      out[5] = crc8(out[3], out[4]);
+      let idx = 0;
+      let cmdHi = null;
+      let command = -1;
+      let reads = 0;
+      let resets = 0;
+      let heater = false;
+      map.set(addr, {
+        kind: 'sht31',
+        onStart(write) { if (write) cmdHi = null; else { idx = 0; reads++; } },
+        writeByte(b) {
+          b &= 0xff;
+          if (cmdHi === null) { cmdHi = b; return; }
+          command = (cmdHi << 8) | b;
+          cmdHi = null;
+          if (command === 0xf32d) resets++;
+          else if (command === 0x306d) heater = true;
+          else if (command === 0xe000) heater = false;
+        },
+        readByte() {
+          const v = out[idx] ?? 0xff;
+          idx = (idx + 1) % out.length;
+          return v;
+        },
+        summary: () => ({
+          kind: 'sht31', address: addr, command,
+          temp_c: Math.round(tempC * 1000) / 1000,
+          humidity: Math.round(humPct * 1000) / 1000,
+          temp_raw: tempRaw, humidity_raw: humRaw,
+          temp_crc: out[2], humidity_crc: out[5], crc_ok: !corrupt,
+          heater, reads, resets,
+        }),
       });
     }
   }

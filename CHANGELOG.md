@@ -233,6 +233,17 @@ follow [Semantic Versioning](https://semver.org/).
     missing-sensor case); `tests/integration/test_examples.gd` loads the project, checks
     the sensor DATA net is the `mcu_pin` net, and that unmapped models are skipped with a
     warning. Bundled examples 14 → **15**; suite 686 → **692**.
+  - **SHT31 — command-driven I2C temp/humidity with CRC-8** (`data/components/sensors.json`,
+    `sht31`, `external`): the first part whose protocol is *command then read with a
+    checksum*. The harness decodes the 16-bit commands (0x2400/0x2406/0x240B measure,
+    0xF32D reset, 0x306D/0xE000 heater) and answers a read with six bytes — temperature
+    MSB/LSB + CRC, humidity MSB/LSB + CRC — using the SHT3x CRC-8 (poly 0x31, init 0xFF;
+    it matches the datasheet's 0xBE 0xEF → 0x92 vector). `T = -45 + 175·raw/65535`,
+    `RH = 100·raw/65535`. Sketch `firmware/sketches/sht31_read` (hand-written driver) +
+    `verify_sht31.mjs` assert the raw words and both CRCs, and that a `corrupt_crc` part
+    and a sensor at the wrong address are both rejected by the driver. MCP integration
+    26 → **27** (Test B17); suite 692 → **694**; catalog `external` 44 → **45**,
+    `planned` 100 → **99**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

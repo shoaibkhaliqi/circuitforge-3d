@@ -453,11 +453,12 @@ func _has_type(t: String) -> bool:
 ## Build harness device specs from the circuit's device components so firmware can
 ## read (and write) them: the PCF8574 expander, the 24C02 I2C EEPROM, the PCF8591
 ## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, the
-## SSD1306 OLED, the MPU-6050 register file, and firmware-driven pin devices (the
-## HC-SR04, whose TRIG/ECHO pins are resolved from `pin_map` — a firmware digital
-## pin -> component id map like `analog_map` — the rotary encoder, whose A/B
-## quadrature pair is resolved the same way, and the DHT11/DHT22, whose DATA pin is
-## likewise resolved and which answers the start signal itself).
+## SSD1306 OLED, the MPU-6050 register file, the SHT31 environmental sensor, and
+## firmware-driven pin devices (the HC-SR04, whose TRIG/ECHO pins are resolved from
+## `pin_map` — a firmware digital pin -> component id map like `analog_map` — the
+## rotary encoder, whose A/B quadrature pair is resolved the same way, and the
+## DHT11/DHT22, whose DATA pin is likewise resolved and which answers the start
+## signal itself).
 func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -517,6 +518,14 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"gy": float(p.get("gy", 0.0)),
 				"gz": float(p.get("gz", 0.0)),
 				"temp_c": float(p.get("temp_c", 25.0)),
+			})
+		elif t == "sht31":
+			out.append({
+				"kind": "sht31",
+				"address": int(p.get("address", 68)) & 0x7F,
+				"temp_c": clampf(float(p.get("temp_c", 23.0)), -40.0, 125.0),
+				"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
+				"corrupt_crc": 1 if float(p.get("corrupt_crc", 0.0)) >= 0.5 else 0,
 			})
 		elif t == "hcsr04":
 			# TRIG and ECHO are resolved from the caller's `pin_map`: a mapped
