@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 748 / 748 passed
+RESULT: 756 / 756 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,12 +44,12 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse/stepper-stepdir/stepper-4phase), capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse/stepper-stepdir/stepper-4phase/servo+stepper-motion), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
 | End-to-end — build, solve, edit, save, reload              | integration         |
-| Examples — load/validate/simulate all 15, documented values, firmware wiring | integration         |
+| Examples — load/validate/simulate all 16, documented values, firmware wiring | integration         |
 
 ## Numerical validation (physical sanity)
 

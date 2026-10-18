@@ -1,0 +1,242 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"b5",
+				"TM6"
+			],
+			"id": "P1",
+			"params": {
+				"level": -1.0,
+				"rout": 25.0,
+				"vlogic": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "mcu_pin"
+		},
+		{
+			"holes": [
+				"b10",
+				"TM7"
+			],
+			"id": "P2",
+			"params": {
+				"level": -1.0,
+				"rout": 25.0,
+				"vlogic": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "mcu_pin"
+		},
+		{
+			"holes": [
+				"b11",
+				"TM8"
+			],
+			"id": "P3",
+			"params": {
+				"level": -1.0,
+				"rout": 25.0,
+				"vlogic": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "mcu_pin"
+		},
+		{
+			"holes": [
+				"TM5",
+				"TP5",
+				"a5"
+			],
+			"id": "S1",
+			"params": {
+				"angle": 0.0,
+				"max_us": 2400.0,
+				"min_us": 544.0,
+				"range_deg": 180.0,
+				"v_nom": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "servo_sg90"
+		},
+		{
+			"holes": [
+				"a12",
+				"a13",
+				"a14",
+				"a15",
+				"a16",
+				"a17",
+				"a10",
+				"a11",
+				"TP4",
+				"TM4",
+				"TP6",
+				"f12",
+				"f13",
+				"f14",
+				"f15"
+			],
+			"id": "U1",
+			"params": {
+				"microsteps": 1
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "a4988_driver"
+		},
+		{
+			"holes": [
+				"f12",
+				"f13",
+				"f14",
+				"f15"
+			],
+			"id": "M1",
+			"params": {
+				"angle": 0.0,
+				"steps": 0,
+				"steps_per_rev": 200
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "stepper_nema17"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-18T12:00:00",
+		"description": "Firmware example: the two firmware-driven actuators on one board - an SG90 servo on D9 (through the virtual pin P1) and an A4988 STEP/DIR driver on D3/D2 (through P2/P3) turning a NEMA 17. The sketch firmware/sketches/motion_demo drives both at once.",
+		"measurement": "Compile firmware/sketches/motion_demo for arduino:avr:uno, then run_firmware(hex_path, ms=1500, pin_map={\"9\": \"P1\", \"3\": \"P2\", \"2\": \"P3\"}). The response reports the servo under `servos` (angle_deg 90.7 after the 0..180 sweep settles at 90) and the stepper under `steppers` (steps 150 = +200 forward then -50 reverse, angle_deg 270). apply_firmware_servo / apply_firmware_stepper write those onto S1.angle and M1.steps/M1.angle. Both are mechanical, so the solved circuit does not change; only the actuators are modelled (the driver's straps and current limit are not).",
+		"modified": "2026-10-18T12:00:00",
+		"name": "Firmware Motion (Servo + STEP/DIR Stepper)"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "TP1",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TP5",
+				"kind": "hole"
+			},
+			"id": "W1"
+		},
+		{
+			"a": {
+				"id": "TP5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TP4",
+				"kind": "hole"
+			},
+			"id": "W2"
+		},
+		{
+			"a": {
+				"id": "TP4",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TP6",
+				"kind": "hole"
+			},
+			"id": "W3"
+		},
+		{
+			"a": {
+				"id": "TM1",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TM5",
+				"kind": "hole"
+			},
+			"id": "W4"
+		},
+		{
+			"a": {
+				"id": "TM5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TM4",
+				"kind": "hole"
+			},
+			"id": "W5"
+		}
+	]
+}

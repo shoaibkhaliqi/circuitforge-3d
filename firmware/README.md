@@ -68,6 +68,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/stepper_sweep firmware/sketches/stepper_sweep
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/stepper_4phase firmware/sketches/stepper_4phase
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/motion_demo firmware/sketches/motion_demo
 
 # 2. execute + inspect
 cd firmware/harness
@@ -96,6 +98,7 @@ node verify_sht31.mjs ../build/sht31_read/sht31_read.ino.hex
 node verify_servo.mjs ../build/servo_sweep/servo_sweep.ino.hex
 node verify_stepper.mjs ../build/stepper_sweep/stepper_sweep.ino.hex
 node verify_4phase.mjs ../build/stepper_4phase/stepper_4phase.ino.hex
+node verify_motion.mjs ../build/motion_demo/motion_demo.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -128,6 +131,12 @@ moves +200, -100, +50 steps with DIR set for each phase, and the verifier recove
 sketches do - a pre-energized half-step burst, then wave-mode bursts each way with the coils
 released in between - and recovers net +32 half steps with the two coil-off gaps counted as
 skipped, which is the same measurement whatever mix of wave/full/half-step driving is used.
+`verify_motion.mjs` is the capstone for the *actuators*: one sketch (`motion_demo`)
+drives a servo and a STEP/DIR stepper at the same time, and the verifier recovers the
+servo's 0..180 sweep (settling at 90) from the pulse widths *and* the stepper's net +150
+steps (200 forward, 50 back) from the STEP edges in the same transition record, so the two
+output decoders are checked together. That sketch is also the bundled example
+`data/examples/16_firmware_motion.cf3d`.
 
 ## Devices on the bus (closed loop)
 
@@ -200,7 +209,9 @@ datasheet-timed bit train. The app does this automatically:
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B or a `dht11`/`dht22`'s DATA from the
 netlist. A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
 *output*, so the app decodes the commanded angle from the pulse widths the sketch drove
-(`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`).
+(`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`;
+either tool takes the servo's own id or, like `run_firmware`, the component wired to its
+PWM net — usually the circuit's virtual `mcu_pin`).
 A STEP/DIR stepper is the same: `pin_map` maps the firmware pins driving the driver's
 STEP/DIR nets to the components on those nets, and the net `steps` + shaft `angle` come
 back in `steppers` (`apply_firmware_stepper` writes them onto the motor). A four-phase

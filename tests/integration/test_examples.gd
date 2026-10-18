@@ -25,7 +25,7 @@ func run(t) -> void:
 		fn = dir.get_next()
 	dir.list_dir_end()
 	files.sort()
-	t.check(files.size() >= 15, "at least 15 bundled examples present", "found %d" % files.size())
+	t.check(files.size() >= 16, "at least 16 bundled examples present", "found %d" % files.size())
 
 	var solver = CircuitSolver.new()
 	var builder = NetlistBuilder.new()
@@ -140,5 +140,35 @@ func run(t) -> void:
 		var r15 = solver.solve_dc(b15.circuit)
 		if t.check(r15.ok, "firmware example solves"):
 			t.check(b15.get("warnings", []).size() > 0, "unmapped devices are skipped with a warning")
+
+	# Motion example: both firmware-driven actuators, each on the net of a virtual MCU pin,
+	# which is what run_firmware(pin_map={"9": "P1", "3": "P2", "2": "P3"}) resolves.
+	t.section("Examples - firmware motion example wiring")
+	var lr16 = Persistence.load_from_file("%s/16_firmware_motion.cf3d" % EX_DIR)
+	if t.check(lr16.ok, "motion example loads", lr16.get("error", "")):
+		var bb16 = Breadboard.new(30)
+		var b16 = builder.build(bb16, lr16.project.components, lr16.project.wires)
+		var servo_nets: Array = b16.pin_nets.get("S1", [])
+		var p1_nets: Array = b16.pin_nets.get("P1", [])
+		t.check(servo_nets.size() >= 3 and p1_nets.has(String(servo_nets[2])),
+			"servo PWM shares the virtual pin P1 net",
+			"%s vs %s" % [str(servo_nets), str(p1_nets)])
+		var drv_nets: Array = b16.pin_nets.get("U1", [])
+		var p2_nets: Array = b16.pin_nets.get("P2", [])
+		var p3_nets: Array = b16.pin_nets.get("P3", [])
+		t.check(drv_nets.size() >= 15 and p2_nets.has(String(drv_nets[6])),
+			"driver STEP shares the virtual pin P2 net",
+			"%s vs %s" % [str(drv_nets), str(p2_nets)])
+		t.check(p3_nets.has(String(drv_nets[7])),
+			"driver DIR shares the virtual pin P3 net", "%s vs %s" % [str(drv_nets), str(p3_nets)])
+		var motor_nets: Array = b16.pin_nets.get("M1", [])
+		var coils_ok := motor_nets.size() >= 4
+		for i in 4:
+			if not drv_nets.has(String(motor_nets[i])):
+				coils_ok = false
+		t.check(coils_ok, "the NEMA 17 coils sit on the driver's coil-output nets",
+			"%s vs %s" % [str(motor_nets), str(drv_nets)])
+		var r16 = solver.solve_dc(b16.circuit)
+		t.check(r16.ok, "motion example solves", r16.get("error", ""))
 
 	t.done()

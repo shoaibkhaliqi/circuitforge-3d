@@ -634,6 +634,42 @@ func _coil_nets(type: String, nets: Array) -> Array:
 	return out
 
 
+## True when a `pin_map` value names a component that is not itself of `family` ("servo" or
+## "stepper"), i.e. the mapping is by net and resolving it needs the netlist.
+func _pin_map_needs_netlist(pin_map: Dictionary, family: String) -> bool:
+	for key in pin_map.keys():
+		var c = session.find_component(String(pin_map[key]))
+		if c == null:
+			continue
+		var direct := _is_servo_type(String(c.type)) if family == "servo" else _is_stepper_motor_type(String(c.type))
+		if not direct:
+			return true
+	return false
+
+
+## Id of the component of `family` driven through the net of component `cid`, or "" when
+## there is none. For a servo only its PWM pin counts (index 2): its GND/VCC sit on the
+## supply rails, which every other part shares, so matching any net would be meaningless.
+func _component_on_net(pin_nets: Dictionary, cid: String, family: String) -> String:
+	var mapped: Array = pin_nets.get(cid, [])
+	if mapped.is_empty():
+		return ""
+	for c in (session.project.get("components", []) as Array):
+		var d := c as Dictionary
+		var t := String(d.get("type", ""))
+		var other: Array = pin_nets.get(String(d.get("id", "")), [])
+		if other.is_empty():
+			continue
+		if family == "servo":
+			if _is_servo_type(t) and other.size() >= 3 and mapped.has(String(other[2])):
+				return String(d.get("id", ""))
+		elif _is_stepper_motor_type(t):
+			for n in other:
+				if mapped.has(String(n)):
+					return String(d.get("id", ""))
+	return ""
+
+
 ## Stepper moves the firmware commanded. Like a servo this is an *output*: nothing is sent
 ## to the harness. For each STEP/DIR driver whose STEP (and DIR) net shares a net with a
 ## mapped component, the rising edges on STEP are counted and the DIR level at each one
@@ -935,6 +971,8 @@ func apply_firmware_pwm(hex_path: String, pin_map: Dictionary, ms: int = 2000, v
 ## is a *mechanical* state recovered from the pulse-width train the sketch drove (50 Hz,
 ## `min_us`..`max_us` at 0..`range_deg`); it adds no electrical behaviour to the circuit,
 ## so the solved netlist is unchanged and `simulate` is only a convenience echo.
+## `pin_map` maps a firmware pin to either the servo itself or, like `run_firmware`, to a
+## component on the servo's PWM net (usually the circuit's virtual `mcu_pin`).
 func apply_firmware_servo(hex_path: String, pin_map: Dictionary, ms: int = 3000, simulate: bool = false, expected_revision = null) -> Dictionary:
 	var cr := _check_revision(expected_revision)
 	if not cr.success:
@@ -953,6 +991,13 @@ func apply_firmware_servo(hex_path: String, pin_map: Dictionary, ms: int = 3000,
 			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
 	var applied := []
 	var skipped := []
+	# `pin_map` follows the same convention as `run_firmware`: the value may name the servo
+	# itself, or a component (usually a virtual `mcu_pin`) wired to the servo's PWM net. The
+	# net form needs the netlist, so build it only when it is actually used.
+	var pin_nets: Dictionary = {}
+	if _pin_map_needs_netlist(pin_map, "servo"):
+		var built: Dictionary = session.build_circuit()
+		pin_nets = built.get("pin_nets", {})
 	for key in pin_map.keys():
 		var pin := FirmwareBackend.pin_number(key)
 		var cid := String(pin_map[key])
@@ -960,24 +1005,31 @@ func apply_firmware_servo(hex_path: String, pin_map: Dictionary, ms: int = 3000,
 		if c == null:
 			skipped.append({"pin": String(key), "component_id": cid, "reason": "unknown component"})
 			continue
-		if not _is_servo_type(String(c.type)):
-			skipped.append({"pin": String(key), "component_id": cid, "reason": "not a servo"})
-			continue
 		if pin < 0:
 			skipped.append({"pin": String(key), "component_id": cid, "reason": "not a Uno digital pin (0..19)"})
 			continue
-		var p: Dictionary = c.get("params", {})
+		var servo_id := ""
+		if _is_servo_type(String(c.type)):
+			servo_id = cid
+		elif not pin_nets.is_empty():
+			servo_id = _component_on_net(pin_nets, cid, "servo")
+		if servo_id == "":
+			skipped.append({"pin": String(key), "component_id": cid,
+				"reason": "not a servo and no servo shares its PWM net"})
+			continue
+		var sc = session.find_component(servo_id)
+		var p: Dictionary = sc.get("params", {})
 		var lo := clampf(float(p.get("min_us", 544.0)), 100.0, 10000.0)
 		var hi := clampf(float(p.get("max_us", 2400.0)), 100.0, 10000.0)
 		var rng := clampf(float(p.get("range_deg", 180.0)), 1.0, 360.0)
 		var pos := FirmwareBackend.servo_position(r.get("transitions", []), pin, lo, hi, rng)
 		if int(pos.pulses) == 0:
-			skipped.append({"pin": String(key), "component_id": cid, "reason": "pin never drove a servo pulse"})
+			skipped.append({"pin": String(key), "component_id": servo_id, "reason": "pin never drove a servo pulse"})
 			continue
 		var angle := snappedf(float(pos.angle_deg), 0.01)
-		session.set_params(cid, {"angle": angle})
+		session.set_params(servo_id, {"angle": angle})
 		applied.append({
-			"pin": String(key), "component_id": cid, "angle_deg": angle,
+			"pin": String(key), "component_id": servo_id, "angle_deg": angle,
 			"pulse_us": snappedf(float(pos.last_us), 0.01), "pulses": int(pos.pulses),
 			"min_us_seen": snappedf(float(pos.min_us_seen), 0.01),
 			"max_us_seen": snappedf(float(pos.max_us_seen), 0.01),

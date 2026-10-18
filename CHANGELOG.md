@@ -281,6 +281,17 @@ follow [Semantic Versioning](https://semver.org/).
     `firmware/sketches/stepper_4phase` + `verify_4phase.mjs` recover net +32 half steps
     across half-step and wave driving with 2 skipped coil-off gaps. Suite 733 → **748**;
     MCP **29/29**; catalog `external` 50 → **52**, `planned` 95 → **94**, `visual` 22 → **21**.
+  - **Motion capstone example** (`data/examples/16_firmware_motion.cf3d`, the 16th bundled
+    example): both firmware-driven actuators in one project — an SG90 on a virtual pin, an
+    A4988 driving a NEMA 17 through two more — and one sketch that drives them at the same
+    time (`firmware/sketches/motion_demo`: a 50 Hz servo sweep interleaved with a STEP/DIR
+    move, +200 then −50 steps). `verify_motion.mjs` recovers the servo's 0..180 sweep
+    (settling at 90) *and* the stepper's net +150 steps from the same transition record, so
+    the two output decoders are checked together; it also caught two real firmware bugs while
+    being written (a 16-bit `int` overflow in the pulse-width math, and 144/180 not fitting
+    in the `int8_t` schedule). `apply_firmware_servo` now accepts the same `pin_map`
+    convention as `run_firmware` (the servo's id, or the component on its PWM net) instead
+    of only the id. Suite 748 → **756**; examples 15 → **16**; harness verifiers 19 → **20**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

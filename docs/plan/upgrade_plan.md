@@ -70,7 +70,7 @@ date as milestones land.
 | 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; the firmware tool surface itself is built — see M7) |
-| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 748/748; Linux runtime verification remains blocked on WSL) |
+| 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 756/756; Linux runtime verification remains blocked on WSL) |
 
 ## 3a. Progress log
 
@@ -417,6 +417,16 @@ catalog that replaces the hardcoded definition list.
   `stepper_4phase` (half 32 forward, then wave 8 reverse and 8 forward) + `verify_4phase.mjs`
   recover net +32 half steps with the two coil-off gaps counted as skipped. Suite
   **748/748**; MCP **29/29**; catalog `external` 50 → 52, `planned` 95 → 94, `visual` 22 → 21.
+- **Motion capstone example** (`data/examples/16_firmware_motion.cf3d`): the first *actuator*
+  example and the first that drives two firmware outputs at once — an SG90 servo and an
+  A4988/NEMA 17 stepper, each behind its own virtual pin, run by one sketch
+  (`firmware/sketches/motion_demo`) that interleaves a 50 Hz servo sweep with a +200/−50 step
+  move. `verify_motion.mjs` recovers both from the same transition record (servo 0..180
+  settling at 90, stepper net +150 steps), which is a stronger check than the two separate
+  verifiers. Writing it found two genuine firmware bugs (pulse-width math overflowing 16-bit
+  `int`; the schedule not fitting in `int8_t`), and `apply_firmware_servo` was made to accept
+  the same `pin_map` convention as `run_firmware` (servo id *or* the component on its PWM
+  net). Bundled examples 15 → **16**; harness verifiers 19 → **20**; suite 748 → **756**.
 - Still planned/visual: SPI displays and the gas/analog sensor modules that need a real ADC
   path (the remaining `planned`/`visual` parts generally need a model the app does not have
   yet — see `docs/catalog/status_report.md`). Servos, STEP/DIR steppers and the four-phase

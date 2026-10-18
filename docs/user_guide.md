@@ -155,6 +155,7 @@ godot --path <project> -- res://data/examples/04_voltage_divider.cf3d
 | 13_ntc_thermistor             | NTC + 10k divider                      | 2.5 V at 25 °C; ~3.6 V at 50 °C          |
 | 14_limit_switch_motor         | Limit switch switching a DC motor      | ≈1 A when actuated; ~0 when released     |
 | 15_firmware_env_logger        | DHT22 + I2C LCD, driven by firmware    | LCD and serial show "T=23.0C H=48.0%"    |
+| 16_firmware_motion            | Servo + STEP/DIR stepper, driven by firmware | servo `angle_deg` 90.7; stepper `steps` 150 (angle 270°) |
 
 Example 15 is a *firmware* example: nothing about it solves electrically beyond the
 supply rails, because the sensor and the display are served by the optional firmware
@@ -162,13 +163,15 @@ backend. Compile `firmware/sketches/env_logger` for `arduino:avr:uno` and run
 `run_firmware(hex_path, attach_devices=true, pin_map={"2": "P1"})`; the harness answers
 the DHT22 on the `P1` net and decodes the LCD's I2C stream, so the LCD text and the
 serial report can both be checked. See `firmware/README.md`. Parts that *act* rather than
-sense work the same way: with a `servo_sg90` mapped on its PWM net,
-`run_firmware(hex_path, pin_map={"9": "S1"})` reports the angle the sketch's pulse train
-commands under `servos`, and `apply_firmware_servo` writes it onto the part's `angle`. A
-stepper is read the same way through its driver: map the firmware pins wired to the
-driver's STEP/DIR nets (or IN1..IN4 for a four-phase ULN2003 board) and the move comes back
-under `steppers` (net `steps` and the wrapping shaft `angle`), with
-`apply_firmware_stepper` writing it onto the motor.
+sense work the same way: with a `servo_sg90` wired to a virtual pin, map the firmware pin
+to that pin's net — `run_firmware(hex_path, pin_map={"9": "P1"})` — and the angle the
+sketch's pulse train commands comes back under `servos`, with `apply_firmware_servo`
+writing it onto the part's `angle`. A stepper is read the same way through its driver: map
+the firmware pins wired to the driver's STEP/DIR nets (or IN1..IN4 for a four-phase
+ULN2003 board) and the move comes back under `steppers` (net `steps` and the wrapping shaft
+`angle`), with `apply_firmware_stepper` writing it onto the motor. Example 16 puts both of
+those in one project (and one firmware run): compile `firmware/sketches/motion_demo` and
+use `pin_map={"9": "P1", "3": "P2", "2": "P3"}`.
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

@@ -573,7 +573,37 @@ direction — a firmware-driven *actuator* whose commanded position is read back
 MCU's own pulse train — which is the first part of M8's "stepper and servo motors" gap, and
 the STEP/DIR stepper (§11j) applies the same idea to travel, and the four-phase
 `uln2003_driver`/`stepper_28byj48` pair (§11k) shows the same measurement works from a plain
-four-wire sequence — which closes M8's motor gap. Remaining work: SPI displays, and a
-streaming/interactive mode if a blocking run proves too coarse. If the app-side
+four-wire sequence — which closes M8's motor gap. The motion example (example 16 in the app)
+then puts both actuators in one project and one run, so the two output decoders are checked
+against a single transition record. Remaining work: SPI displays, and a
+streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.
+
+## 13. Streaming / interactive runs: decision
+
+The open question in §12 is whether a *streaming* (long-lived, step-by-step) firmware mode is
+needed, i.e. one where the app and the user can interact with the AVR while it runs. The
+decision is **no — the blocking run is enough for this milestone**, for these reasons:
+
+- A run is **instruction-accurate and deterministic**: `run.mjs` executes the compiled HEX
+  cycle by cycle and returns the complete record (serial, per-pin transitions with
+  timestamps, I2C/SPI events, PWM/ADC summaries). Nothing about the *fidelity* depends on the
+  interaction model, so a streaming mode would not make any measurement more truthful.
+- **Inputs are already time-addressable without a stream**: pin devices inject their
+  protocol answers at the emulated time the sketch asks for them, `apply_firmware_pins`
+  drives a pin at a chosen `at_ms`, `CF_DEVICES`/`CF_ADC` set device state and analog
+  voltages for the whole run, and a run can simply be repeated with different inputs.
+- A stream would add real cost: a long-lived child process, IPC framing, back-pressure and
+  cancellation paths, and a second source of truth for "what the firmware did" — plus a
+  partly-observable run makes the *evidence* weaker (the returned trace would depend on when
+  the caller polled).
+
+The honest middle ground, if live interaction is ever wanted, is a **scripted event list**:
+`run.mjs --events '[{"at_ms":250,"pin":2,"level":1}]'` (the same shape `apply_firmware_pins`
+already uses, but many events in one run). That keeps runs deterministic and the record
+complete, so it should be preferred over a streaming protocol if the need appears. Recording
+interactively — a user clicking a button in the GUI and the emulator pausing — is a UI
+feature on top of that, not a different backend.
+
+

@@ -566,7 +566,9 @@ def apply_firmware_servo(
 
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
-        pin_map: Firmware pin/digital-pin -> `servo_sg90`/`servo_mg996r` id, e.g. {"9": "S1"}.
+        pin_map: Firmware pin/digital-pin -> either the `servo_sg90`/`servo_mg996r` id itself
+            ({"9": "S1"}) or, like `run_firmware`, the component on the servo's PWM net —
+            usually the circuit's virtual `mcu_pin` ({"9": "P1"}).
         ms: Emulated run length in milliseconds (1..10000; 50 Hz needs one frame per pulse).
         simulate: Run a DC simulation after applying the angles (the circuit does not change).
         expected_revision: Optional optimistic-concurrency guard.
