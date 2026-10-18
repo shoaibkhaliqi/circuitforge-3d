@@ -360,6 +360,21 @@ async def main() -> int:
             except Exception as exc:
                 record("B15. Firmware encoder (rotary)", False, repr(exc))
 
+            # ---------------------------------------------------- Test B16
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-DHT"})
+                await call_ok(s, "add_component",
+                              {"component_type": "dht22",
+                               "parameters": {"temp_c": 23, "humidity": 48}})
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "attach_devices": True})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B16. Firmware DHT22 (one-wire)", ok, f"code={code}")
+            except Exception as exc:
+                record("B16. Firmware DHT22 (one-wire)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

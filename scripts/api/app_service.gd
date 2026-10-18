@@ -399,7 +399,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
-		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair."
+		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -455,8 +455,9 @@ func _has_type(t: String) -> bool:
 ## ADC/DAC (analog inputs from the solved node voltages), the I2C 16x2 LCD, the
 ## SSD1306 OLED, the MPU-6050 register file, and firmware-driven pin devices (the
 ## HC-SR04, whose TRIG/ECHO pins are resolved from `pin_map` — a firmware digital
-## pin -> component id map like `analog_map` — and the rotary encoder, whose A/B
-## quadrature pair is resolved the same way).
+## pin -> component id map like `analog_map` — the rotary encoder, whose A/B
+## quadrature pair is resolved the same way, and the DHT11/DHT22, whose DATA pin is
+## likewise resolved and which answers the start signal itself).
 func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Array:
 	var out := []
 	var comps: Array = session.project.get("components", []) if session != null else []
@@ -546,6 +547,20 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"counts": clampi(int(p.get("counts", 40)), 0, 100000),
 						"direction": 1 if float(p.get("direction", 1.0)) >= 0.0 else -1,
 						"step_us": maxf(50.0, float(p.get("step_us", 1000.0))),
+					})
+		elif t == "dht11" or t == "dht22":
+			# One-wire environmental sensor: its DATA pin is resolved from `pin_map`
+			# and the part answers the start signal itself.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 2:
+				var data := _net_pin(String(nets[1]), pin_map, pin_nets)
+				if data >= 0:
+					out.append({
+						"kind": "dht",
+						"pin": data,
+						"model": t,
+						"temp_c": clampf(float(p.get("temp_c", 23.0)), -40.0, 125.0),
+						"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
 					})
 	return out
 

@@ -294,7 +294,9 @@ def run_firmware(
     component id, e.g. `{"9": "TRIG", "10": "ECHO"}`; an `hcsr04` shares its TRIG/ECHO
     nets with those components, and its ECHO pulse width comes from its `distance_cm`.
     A `rotary_encoder` shares its A/B nets with those components and steps them through
-    a quadrature Gray cycle (`counts`, `direction`, `step_us`).
+    a quadrature Gray cycle (`counts`, `direction`, `step_us`). A `dht11`/`dht22` shares
+    its DATA net and answers the MCU's one-wire start signal with a datasheet-timed bit
+    train built from its `temp_c`/`humidity`.
     The response adds `pin_devices` and `pin_inputs`.
 
     Args:

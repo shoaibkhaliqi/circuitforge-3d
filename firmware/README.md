@@ -56,6 +56,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/oled_fill firmware/sketches/oled_fill
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/encoder_read firmware/sketches/encoder_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/dht_read firmware/sketches/dht_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -78,6 +80,7 @@ node verify_ultrasonic.mjs ../build/ultrasonic/ultrasonic.ino.hex
 node verify_mpu6050.mjs ../build/mpu6050_read/mpu6050_read.ino.hex
 node verify_oled.mjs ../build/oled_fill/oled_fill.ino.hex
 node verify_encoder.mjs ../build/encoder_read/encoder_read.ino.hex
+node verify_dht.mjs ../build/dht_read/dht_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -91,7 +94,9 @@ harness-driven HC-SR04 ECHO pulse makes `pulseIn()` measure ~1740 µs → ~30 cm
 `verify_mpu6050.mjs` asserts the served MPU-6050 register file decodes to the exact
 accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (4096 lit
 pixels and the exact per-page hex). `verify_encoder.mjs` asserts the incremental encoder
-decodes to exactly the emitted steps, forwards and backwards.
+decodes to exactly the emitted steps, forwards and backwards. `verify_dht.mjs` asserts a
+hand-written one-wire driver decodes DHT22 (including a negative temperature) and DHT11
+frames exactly, and that a missing sensor times out.
 
 ## Devices on the bus (closed loop)
 
@@ -131,6 +136,10 @@ CF_DEVICES='[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]' \
 # Rotary encoder on D2 (A) / D3 (B), 50 steps clockwise -> the sketch decodes 50
 CF_DEVICES='[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]' \
   node run.mjs ../build/encoder_read/encoder_read.ino.hex 400
+
+# DHT22 on D2 at 23 C / 48 % -> the one-wire frame reads back exactly
+CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]' \
+  node run.mjs ../build/dht_read/dht_read.ino.hex 200
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
@@ -139,13 +148,15 @@ Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
 `accel_raw`/`gyro_raw`/`temp_c` and the OLED summary the decoded `pages_hex`.
-Two *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
-(`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO, and `encoder` (`a`, `b`,
-`counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle. The
-app does this automatically: `run_firmware(..., attach_devices=true)` builds the specs
-from the circuit's `pcf8574`, `eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306` and
-`mpu6050` components (a `pcf8591`'s `ain` values come from the solved node voltages),
-and `pin_map` resolves an `hcsr04`'s TRIG/ECHO or a `rotary_encoder`'s A/B from the
+Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
+(`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO; `encoder` (`a`, `b`,
+`counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle; and
+`dht` (`pin`, `model`, `temp_c`, `humidity`) answers a one-wire start signal with a
+datasheet-timed bit train. The app does this automatically:
+`run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
+`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306` and `mpu6050` components (a
+`pcf8591`'s `ain` values come from the solved node voltages), and `pin_map` resolves an
+`hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B or a `dht11`/`dht22`'s DATA from the
 netlist.
 
 ## Analog inputs (circuit → firmware)

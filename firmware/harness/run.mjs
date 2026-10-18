@@ -101,10 +101,11 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //   CF_DEVICES=[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]
 //
-// `hc_sr04` and `encoder` are not I2C devices: they drive MCU *input* pins, so they
-// are listed separately as pin_devices.
+// `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
+// they are listed separately as pin_devices.
 //   CF_DEVICES=[{"kind":"hc_sr04","trig":9,"echo":10,"distance_cm":30}]
 //   CF_DEVICES=[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]
+//   CF_DEVICES=[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]
 const pinDevices = [];
 function buildDevices() {
   const raw = process.env.CF_DEVICES;
@@ -138,6 +139,18 @@ function buildDevices() {
         start_us: Math.max(0, Number(s.start_us ?? 2000)),
         step_us: Math.max(50, Number(s.step_us ?? 1000)),
         edges: [],
+        error: null,
+      });
+      continue;
+    }
+    if (s.kind === 'dht') {
+      pinDevices.push({
+        kind: 'dht',
+        pin: Number(s.pin),
+        model: String(s.model ?? 'dht22').toLowerCase() === 'dht11' ? 'dht11' : 'dht22',
+        temp_c: Math.max(-40, Math.min(125, Number(s.temp_c ?? 23.0))),
+        humidity: Math.max(0, Math.min(100, Number(s.humidity ?? 48.0))),
+        reads: [],
         error: null,
       });
       continue;
@@ -498,12 +511,17 @@ for (const [letter, port] of Object.entries(ports)) {
 }
 
 // ---- Timing-driven pin devices ----------------------------------------------
-// Two kinds, both driving MCU *input* pins:
+// Three kinds, all driving MCU *input* pins:
 //  * HC-SR04: the MCU drives TRIG; on its falling edge (after a >= 5 us high pulse)
 //    the sensor waits a short propagation delay and then drives ECHO high for a
 //    distance-proportional time (58 us per cm round-trip), so pulseIn(ECHO) measures it.
 //  * Rotary encoder: drives the A/B quadrature pair through a Gray sequence, one pin
 //    changing per count, so a polling decoder sees every step.
+//  * DHT11/DHT22: a *bidirectional* one-wire part. The MCU pulls the line low as a start
+//    signal and releases it; the harness then plays the sensor's response bit train at
+//    datasheet timings (80 us low + 80 us high handshake, then 40 bits of 50 us low with
+//    a 27 us or 70 us high), sub-100 us pulses that a bit-banged reader times with
+//    micros(). The line is held high by the module pull-up whenever the MCU releases it.
 // Edges are queued and applied from the run loop (never from inside the GPIO write,
 // so we don't re-enter the port model).
 const pinByNumber = new Map();
@@ -513,6 +531,21 @@ for (const [key, pin] of Object.entries(UNO_PIN)) {
 const scheduledPins = [];
 const ECHO_PROPAGATION_US = 200;
 const QUAD_SEQ = [[0, 0], [1, 0], [1, 1], [0, 1]]; // (A,B) for one CW detent
+
+// DHT payload bytes for the configured model, in wire order (MSB first).
+function dhtBytes(model, tempC, humidity) {
+  if (model === 'dht11') {
+    const hum = Math.max(0, Math.min(100, Math.round(humidity)));
+    const tmp = Math.max(0, Math.min(100, Math.round(tempC)));
+    return [hum, 0, tmp, 0, (hum + tmp) & 0xff];
+  }
+  const hum = Math.round(Math.abs(humidity) * 10) & 0xffff; // tenths of %
+  let tmp = Math.round(Math.abs(tempC) * 10) & 0x7fff; // tenths of degC, bit15 = sign
+  if (tempC < 0) tmp |= 0x8000;
+  const b = [(hum >> 8) & 0xff, hum & 0xff, (tmp >> 8) & 0xff, tmp & 0xff];
+  return [b[0], b[1], b[2], b[3], (b[0] + b[1] + b[2] + b[3]) & 0xff];
+}
+
 for (const d of pinDevices) {
   if (d.kind === 'encoder') {
     const a = pinByNumber.get(d.a);
@@ -535,6 +568,58 @@ for (const d of pinDevices) {
       d.edges.push({ t_us: tUs, state: to[0] * 2 + to[1] });
     }
     scheduledPins.sort((x, y) => x.at - y.at);
+    continue;
+  }
+  if (d.kind === 'dht') {
+    const p = pinByNumber.get(d.pin);
+    if (!p) { d.error = 'pin out of range'; continue; }
+    const port = ports[p.port];
+    port.setPin(p.bit, true); // module pull-up: the line idles high when released
+    const bytes = dhtBytes(d.model, d.temp_c, d.humidity);
+    const bits = [];
+    for (const b of bytes) for (let i = 7; i >= 0; i--) bits.push((b >> i) & 1);
+    d.reads = [];
+    const scheduleResponse = (t0Cycles) => {
+      let us = 20; // the sensor waits, then pulls the line low for 80 us
+      const add = (atUs, level) =>
+        scheduledPins.push({
+          at: t0Cycles + Math.round((atUs / 1e6) * F_CPU), port: p.port, bit: p.bit, level,
+        });
+      add(us, 0); us += 80;
+      add(us, 1); us += 80;
+      for (const bit of bits) {
+        add(us, 0); us += 50; // each bit: 50 us low ...
+        add(us, 1); us += bit ? 70 : 27; // ... then 27 us (0) or 70 us (1) high
+      }
+      add(us, 0); us += 50;
+      add(us, 1); // release: back to idle high
+      scheduledPins.sort((x, y) => x.at - y.at);
+      d.reads.push({ model: d.model, temp_c: d.temp_c, humidity: d.humidity, bytes, total_us: us });
+    };
+    // Trigger on the line going from driven-low (the start signal) to released. The port
+    // listener catches PORT writes; the DDR hook catches pinMode() changes (releasing the
+    // line with the pull-up), so both driver styles are supported.
+    let lowSince = null;
+    const check = () => {
+      const st = port.pinState(p.bit); // 0 = PinState.Low (driven low)
+      if (st === 0) {
+        if (lowSince === null) lowSince = cpu.cycles;
+        return;
+      }
+      if (lowSince === null) return;
+      const lowUs = ((cpu.cycles - lowSince) / F_CPU) * 1e6;
+      lowSince = null;
+      if (lowUs < 500 || d.reads.length >= 4) return;
+      scheduleResponse(cpu.cycles);
+    };
+    port.addListener(() => check());
+    const ddrAddr = port.portConfig.DDR;
+    const prevDdrHook = cpu.writeHooks[ddrAddr];
+    cpu.writeHooks[ddrAddr] = (value, oldValue, addr, mask) => {
+      if (prevDdrHook) prevDdrHook(value, oldValue, addr, mask);
+      check();
+      return true;
+    };
     continue;
   }
   const trig = pinByNumber.get(d.trig);
@@ -626,17 +711,25 @@ process.stdout.write(
       serial_bytes: serialBytes.length,
       i2c,
       devices: [...devices.values()].map((d) => (d.summary ? d.summary() : { kind: d.kind })),
-      pin_devices: pinDevices.map((d) =>
-        d.kind === 'encoder'
-          ? {
-              kind: d.kind, a: d.a, b: d.b, counts: d.counts, direction: d.direction,
-              start_us: d.start_us, step_us: d.step_us, states: d.edges.length, error: d.error,
-            }
-          : {
-              kind: d.kind, trig: d.trig, echo: d.echo, distance_cm: d.distance_cm,
-              echoes: d.echoes, error: d.error,
-            },
-      ),
+      pin_devices: pinDevices.map((d) => {
+        if (d.kind === 'encoder') {
+          return {
+            kind: d.kind, a: d.a, b: d.b, counts: d.counts, direction: d.direction,
+            start_us: d.start_us, step_us: d.step_us, states: d.edges.length, error: d.error,
+          };
+        }
+        if (d.kind === 'dht') {
+          return {
+            kind: d.kind, pin: d.pin, model: d.model, temp_c: d.temp_c,
+            humidity: d.humidity, reads: d.reads.length, bytes: d.reads[0]?.bytes ?? [],
+            error: d.error,
+          };
+        }
+        return {
+          kind: d.kind, trig: d.trig, echo: d.echo, distance_cm: d.distance_cm,
+          echoes: d.echoes, error: d.error,
+        };
+      }),
       adc: adcChannels,
       spi_bytes: spi,
       pwm,

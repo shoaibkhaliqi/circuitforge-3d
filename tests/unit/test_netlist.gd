@@ -119,6 +119,10 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("oled_ssd1306"), "oled_ssd1306 is not mapped by the solver")
 	t.check(ComponentDB.status_of("rotary_encoder") == "external", "rotary_encoder status is 'external'")
 	t.check(not NetlistBuilder.handles("rotary_encoder"), "rotary_encoder is not mapped by the solver")
+	t.check(ComponentDB.status_of("dht11") == "external", "dht11 status is 'external'")
+	t.check(not NetlistBuilder.handles("dht11"), "dht11 is not mapped by the solver")
+	t.check(ComponentDB.status_of("dht22") == "external", "dht22 status is 'external'")
+	t.check(not NetlistBuilder.handles("dht22"), "dht22 is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

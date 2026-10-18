@@ -382,6 +382,32 @@ harness drives an MCU input pair, so a firmware-side decoder can be checked.
   loading, and the push switch (`SW`) is just another digital input — wire it to an
   `mcu_pin` if you want to read it.
 
+## 11f. Ninth + tenth devices: DHT11/DHT22 (one-wire environmental)
+
+The first **bidirectional** pin device: the MCU drives the line, then *listens*, and the
+harness answers. `dht11` and `dht22` (`data/components/sensors.json`, both `external`).
+
+- **Model**: the harness holds the line high (the module pull-up) whenever the MCU
+  releases it, watches for a start signal (the line driven low for ≥ 500 µs, then
+  released — detected on both PORT writes and `pinMode()`/DDR changes, so either driver
+  style works), and then plays the datasheet bit train: a 20-40 µs wait, 80 µs low, 80 µs
+  high, then 40 bits of 50 µs low with a 27 µs (0) or 70 µs (1) high, then 50 µs low.
+  Edges land from the run loop at instruction precision, so a `micros()`-timed bit-bang
+  reader sees sub-100 µs pulses exactly. Encodings: DHT22 = 16-bit humidity (tenths),
+  16-bit temperature (tenths, bit 15 = sign) + checksum; DHT11 = humidity, 0, temperature,
+  0 + checksum.
+- **Path**: `run_firmware(..., pin_map={"2": "DATA"})` resolves the DATA net (like the
+  HC-SR04/encoder); values come from the `temp_c`/`humidity` parameters.
+- **Verified**: `firmware/sketches/dht_read` (hand-written one-wire driver, no library)
+  reads 23.0 °C / 48.0 %, −5.5 °C / 99.9 % (sign bit + 16-bit humidity) and a DHT11
+  21 °C / 55 % frame; `verify_dht.mjs` asserts each raw frame, the checksum and the
+  decoded values, and that a sensor on an unwired pin times out. Mapping is covered by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B16.
+- **Limits (honest)**: no <0.5 Hz sample-rate hold-off, no power-on settling, no timing
+  jitter, and the pull-up is ideal. A reader that requires interrupts to be *disabled*
+  for the whole frame (some libraries) is not modelled — the harness responds to the
+  line, not to the library.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -401,8 +427,9 @@ at the *pin* level: a part that drives an MCU input pin from inside a run, so
 `pulseIn()`/timing sketches work. The MPU-6050 (§11c) adds a served *register map*,
 so driver-style multi-register reads work, and the SSD1306 (§11d) adds a *framebuffer*,
 so drawing code can be checked. The rotary encoder (§11e) adds a second pin device — an
-ideal quadrature pair — so input-decoding sketches can be checked without a library.
-Remaining work: more device models (DHT), a bundled firmware example project, and a
+ideal quadrature pair — so input-decoding sketches can be checked without a library, and
+the DHT11/DHT22 (§11f) adds a *bidirectional, timing-sensitive* pin device, so one-wire
+protocol sketches work. Remaining work: a bundled firmware example project and a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

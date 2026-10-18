@@ -212,6 +212,18 @@ follow [Semantic Versioning](https://semver.org/).
     (hand-written quadrature table decoder) + `verify_encoder.mjs` assert 50 steps
     forward, 50 reverse and 200 at a 500 µs step. MCP integration 24 → **25** (Test B15);
     suite 680 → **682**; catalog `external` 41 → **42**, `planned` 103 → **102**.
+  - **DHT11/DHT22 — bidirectional one-wire pin device** (`data/components/sensors.json`,
+    `dht11` + `dht22`, both `external`): the harness holds the line high (module pull-up)
+    when the MCU releases it, detects the start signal (driven low ≥ 500 µs, then
+    released — on PORT *or* DDR writes), then answers with the datasheet bit train
+    (20-40 µs wait, 80 µs low, 80 µs high, then 40 bits of 50 µs low with a 27 µs or
+    70 µs high). Edges land at instruction precision, so a `micros()`-timed reader sees
+    sub-100 µs pulses exactly. DHT22 = 16-bit tenths with a sign bit; DHT11 = integer
+    framing. `run_firmware(..., pin_map={"2":"DATA"})` resolves the data net. Sketch
+    `firmware/sketches/dht_read` (hand-written one-wire driver) + `verify_dht.mjs` assert
+    the raw frames for 23.0/48.0, −5.5/99.9 and a DHT11 frame, plus an unwired-pin
+    timeout. MCP integration 25 → **26** (Test B16); suite 682 → **686**; catalog
+    `external` 42 → **44**, `planned` 102 → **100**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

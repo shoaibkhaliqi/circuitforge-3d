@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -334,6 +334,14 @@ catalog that replaces the hardcoded definition list.
   `encoder_read` (hand-written quadrature table decoder) + `verify_encoder.mjs` assert
   50 forward, 50 reverse and 200 steps at a 500 µs step. Suite **682/682**; MCP
   **25/25** (new Test B15); catalog `external` 41 → 42, `planned` 103 → 102.
+- **DHT11/DHT22 — bidirectional one-wire device**: both promoted from `planned` to
+  `external`. The harness holds the line high (module pull-up) when the MCU releases it,
+  detects the start signal (low ≥ 500 µs then released) and answers with the datasheet
+  bit train, so sub-100 µs one-wire pulses are exact. Values come from `temp_c`/`humidity`
+  and DATA is resolved from `pin_map`. Sketch `dht_read` (hand-written driver) +
+  `verify_dht.mjs` assert the DHT22 frames (23.0/48.0 and −5.5/99.9, sign bit included),
+  a DHT11 frame, and an unwired-pin timeout. Suite **686/686**; MCP **26/26** (new Test
+  B16); catalog `external` 42 → 44, `planned` 102 → 100.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,
