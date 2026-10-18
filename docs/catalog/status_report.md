@@ -20,9 +20,9 @@ This report is deliberately blunt: it separates *what looks like a part* from
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
-| `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 47 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 97 | catalogued and placeable, not simulated yet |
+| `visual` | 22 | rendered only, no electrical behaviour |
+| `external` | 50 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 95 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -91,7 +91,7 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
 - A part may only claim `full`/`partial` if the netlist builder actually maps it;
   this is enforced by `tests/unit/test_netlist.gd`, so the status can never drift
   ahead of the solver. Parts without a truthful model are `visual`.
-- Connectors and IC sockets, stepper motors and their drivers, multi-pin
+- Connectors and IC sockets, the 4-phase `uln2003_driver`/`stepper_28byj48` pair, multi-pin
   regulators and DC-DC modules, relays, the USB power meter, and any remaining
   protocol parts that need a bus or timing they do not yet have are `visual`/`planned`
   for now — they need a firmware/Stage-B backend to be honest. The `seven_segment` display and the
@@ -117,7 +117,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   16-bit words. `servo_sg90`/`servo_mg996r` are the first *mechanical-output* parts:
   no device is attached at all — the app decodes the commanded angle from the firmware's
   own 50 Hz pulse train (`servos`, `apply_firmware_servo`), which is a mechanical state
-  rather than an electrical one.
+  rather than an electrical one. `stepper_nema17` with the STEP/DIR drivers
+  (`a4988_driver`/`drv8825_driver`) is the same idea for travel: the STEP edges are
+  counted with the sign DIR held at each one and applied to the motor on the driver's
+  coil outputs (`steppers`, `apply_firmware_stepper`).
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`

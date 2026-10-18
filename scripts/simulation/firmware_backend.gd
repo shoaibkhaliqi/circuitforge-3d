@@ -305,6 +305,51 @@ static func servo_position(transitions: Array, pin: int, min_us := 544.0, max_us
 	}
 
 
+## Steps a STEP/DIR stepper driver was pulsed: every rising edge on `step_pin` counts one
+## step, taken in the direction the `dir_pin` level named at that instant (starting from
+## the reset state, all pins low). `dir_pin` may be -1 when the board only drives STEP,
+## and then every step counts forward. `forward`/`reverse` split the total.
+static func stepper_steps(transitions: Array, step_pin: int, dir_pin := -1,
+		dir_high_forward := true) -> Dictionary:
+	var steps := 0
+	var forward := 0
+	var reverse := 0
+	var level := 0
+	var dir_level := 0
+	if step_pin < 0:
+		return {"steps": 0, "forward": 0, "reverse": 0, "last_dir": 0}
+	for tr in transitions:
+		if typeof(tr) != TYPE_DICTIONARY:
+			continue
+		var pin := int(tr.get("digital_pin", -1))
+		var lvl := int(tr.get("level", 0))
+		if pin == dir_pin:
+			dir_level = lvl
+			continue
+		if pin != step_pin:
+			continue
+		if lvl == 1 and level == 0:
+			var fwd: bool = true if dir_pin < 0 else (dir_level == 1 if dir_high_forward else dir_level == 0)
+			steps += 1 if fwd else -1
+			if fwd:
+				forward += 1
+			else:
+				reverse += 1
+		level = lvl
+	return {"steps": steps, "forward": forward, "reverse": reverse, "last_dir": dir_level}
+
+
+## Shaft angle (degrees, 0..360) a signed step count leaves a motor at. One full turn is
+## `steps_per_rev * microsteps` steps, so a multi-turn move wraps — the *net* travel is
+## the `steps` count itself.
+static func stepper_angle(steps: float, steps_per_rev := 200.0, microsteps := 1.0) -> float:
+	var full := steps_per_rev * maxf(1.0, microsteps)
+	if full <= 0.0:
+		return 0.0
+	var frac := steps / full
+	return (frac - floorf(frac)) * 360.0
+
+
 static func pins_touched(transitions: Array) -> Array:
 	var seen := {}
 	for tr in transitions:

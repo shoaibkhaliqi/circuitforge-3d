@@ -397,15 +397,26 @@ catalog that replaces the hardcoded definition list.
   *mechanical* state: no drive current, torque, load or slew is modelled and the solved
   circuit is unchanged. Suite **713/713**; MCP **28/28**; catalog `external` 45 → 47,
   `planned` 99 → 97.
-- Still planned/visual: stepper motors and their step/dir drivers (`a4988_driver`,
-  `uln2003_driver`), SPI displays, and the gas/analog sensor modules that need a real
-  ADC path. The LCD/OLED/I2C/DHT/ultrasonic/IMU/servo parts are closed by the M7 device
-  work above.
+- **Stepper motors through a STEP/DIR driver (`a4988_driver`, `drv8825_driver`,
+  `stepper_nema17`)**: `stepper_nema17` `visual` → `external` and both drivers `planned` →
+  `external`. The caller maps the firmware pins driving the driver's STEP/DIR nets to the
+  components on those nets (the driver itself cannot be mapped: its nets do not say which
+  pin drives them); the app counts the STEP rising edges, takes the sign from DIR at each
+  edge, finds the motor wired to the driver's coil outputs, and writes the net `steps` plus
+  the wrapping shaft `angle` (`steps_per_rev × microsteps` per turn). Sketch `stepper_sweep`
+  (+200/−100/+50 = net +150 steps) + `verify_stepper.mjs` recover the move and check the
+  ≥1 µs STEP pulse the driver needs. Suite **733/733**; MCP **29/29** (new Test B19);
+  catalog `external` 47 → 50, `planned` 97 → 95, `visual` 23 → 22.
+- Still planned/visual: the 4-phase `uln2003_driver` + `stepper_28byj48` (wave/half-step
+  decoding), SPI displays, and the gas/analog sensor modules that need a real ADC path.
+  Servos and STEP/DIR steppers are done (above), and the LCD/OLED/I2C/DHT/ultrasonic/IMU
+  parts are closed by the M7 device work above.
 
 ### Milestone 9 — MCP pin/metadata tooling (in progress)
-- New MCP tools (34 → **36**, plus **6** M7 firmware tools —
+- New MCP tools (34 → **36**, plus **7** M7/M8 firmware tools —
   `get_firmware_capabilities`, `run_firmware`, `apply_firmware_pins`,
-  `apply_firmware_device`, `apply_firmware_pwm`, `apply_firmware_servo` — for **42**
+  `apply_firmware_device`, `apply_firmware_pwm`, `apply_firmware_servo`,
+  `apply_firmware_stepper` — for **43**
   total):
   `get_pin_states` (read the state of every
   `mcu_pin`: level, high/low/high-Z, logic voltage, output resistance, driven

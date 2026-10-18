@@ -31,7 +31,7 @@ follow [Semantic Versioning](https://semver.org/).
     (`circuitforge-local-api/1`).
   - Python adapter (`mcp_server/circuitforge_mcp/`) built on the official
     `mcp==2.3.0` SDK, speaking MCP over stdio.
-  - 42 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
+  - 43 tools, 7 resources (`circuit://…`) and 8 prompts; read/inspect/edit/
     simulate/persist workflow; `read_only_hint`/`destructive_hint` annotations.
   - Structured error codes, `expected_revision` optimistic locking and
     `operation_id` idempotency; sandboxed persistence and hard limits.
@@ -255,6 +255,20 @@ follow [Semantic Versioning](https://semver.org/).
     no `Servo` library is bundled) + `verify_servo.mjs` recover a 0→180° sweep and a
     settled 90° to within 3°; MCP integration 27 → **28** (Test B18); suite 694 → **713**;
     catalog `external` 45 → **47**, `planned` 99 → **97**.
+  - **Stepper motors through a STEP/DIR driver** (`data/components/motors.json`,
+    `stepper_nema17` `visual` → `external`, `a4988_driver`/`drv8825_driver` `planned` →
+    `external`): the same "read the MCU's own output" idea as the servo, for travel rather
+    than position. The caller maps the firmware pins driving the driver's STEP/DIR nets to
+    the components on those nets; the app counts the rising edges on STEP, takes the sign
+    from DIR at each edge (`FirmwareBackend.stepper_steps`), finds the driver and the motor
+    on its coil outputs, and turns the count into a shaft angle
+    (`FirmwareBackend.stepper_angle`, wrapping each turn). `run_firmware` reports it in
+    `steppers`; the new `apply_firmware_stepper(hex_path, pin_map, microsteps=0)` writes the
+    net `steps` and `angle` onto the motor (a full turn is `steps_per_rev × microsteps`).
+    Sketch `firmware/sketches/stepper_sweep` (hand-written pulse generator, +200/−100/+50)
+    + `verify_stepper.mjs` recover the net +150 steps and check the ≥1 µs STEP pulse the
+    A4988 needs. MCP integration 28 → **29** (Test B19, 43 tools); suite 713 → **733**;
+    catalog `external` 47 → **50**, `planned` 97 → **95**, `visual` 23 → **22**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

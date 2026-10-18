@@ -122,6 +122,40 @@ func run(t) -> void:
 	var none := FirmwareBackend.servo_position(srv, 3)
 	t.check(int(none.pulses) == 0 and float(none.angle_deg) < 0.0, "no pulses -> no angle")
 
+	t.section("Firmware - stepper STEP/DIR counting")
+	# Five steps with DIR high, then three with DIR low - the classic sweep move.
+	var step_trs := []
+	var st := 0.0
+	step_trs.append(_tr(2, st, 1))
+	for i in 5:
+		st += 1.0
+		step_trs.append(_tr(3, st, 1))
+		step_trs.append(_tr(3, st + 0.005, 0))
+	st += 1.0
+	step_trs.append(_tr(2, st, 0))
+	for i in 3:
+		st += 1.0
+		step_trs.append(_tr(3, st, 1))
+		step_trs.append(_tr(3, st + 0.005, 0))
+	var sc := FirmwareBackend.stepper_steps(step_trs, 3, 2)
+	t.check(int(sc.steps) == 2, "5 forward then 3 reverse nets +2 steps", str(sc.steps))
+	t.check(int(sc.forward) == 5, "five forward steps", str(sc.forward))
+	t.check(int(sc.reverse) == 3, "three reverse steps", str(sc.reverse))
+	t.check(int(sc.last_dir) == 0, "last DIR level is low")
+	t.check(int(FirmwareBackend.stepper_steps(step_trs, 3, 2, false).steps) == -2, "flipped polarity nets -2 steps")
+	t.check(int(FirmwareBackend.stepper_steps(step_trs, 3).steps) == 8, "no DIR pin -> all forward")
+	var single := FirmwareBackend.stepper_steps([_tr(3, 1.0, 1), _tr(3, 1.005, 0)], 3)
+	t.check(int(single.steps) == 1 and int(single.forward) == 1, "one rising edge -> one step")
+	t.check(int(FirmwareBackend.stepper_steps(step_trs, 7, 2).steps) == 0, "a pin with no edges -> no steps")
+	t.check(int(FirmwareBackend.stepper_steps(step_trs, -1, 2).steps) == 0, "no step pin -> no steps")
+
+	t.section("Firmware - stepper angle mapping")
+	t.near(FirmwareBackend.stepper_angle(150.0, 200.0, 16.0), 16.875, "150 of 3200 microsteps", 1e-3)
+	t.near(FirmwareBackend.stepper_angle(150.0, 200.0, 1.0), 270.0, "150 of 200 full steps", 1e-3)
+	t.near(FirmwareBackend.stepper_angle(200.0, 200.0, 1.0), 0.0, "one full turn wraps to 0", 1e-3)
+	t.near(FirmwareBackend.stepper_angle(-50.0, 200.0, 1.0), 270.0, "negative travel wraps", 1e-3)
+	t.near(FirmwareBackend.stepper_angle(0.0, 200.0, 1.0), 0.0, "no steps -> 0 deg", 1e-3)
+
 	t.section("Firmware - capabilities honesty")
 	var cap := FirmwareBackend.capabilities()
 	t.check(cap.get("engine") == "avr8js", "engine is avr8js")

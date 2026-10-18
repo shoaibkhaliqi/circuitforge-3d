@@ -64,6 +64,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/sht31_read firmware/sketches/sht31_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/servo_sweep firmware/sketches/servo_sweep
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/stepper_sweep firmware/sketches/stepper_sweep
 
 # 2. execute + inspect
 cd firmware/harness
@@ -90,6 +92,7 @@ node verify_dht.mjs ../build/dht_read/dht_read.ino.hex
 node verify_env_logger.mjs ../build/env_logger/env_logger.ino.hex
 node verify_sht31.mjs ../build/sht31_read/sht31_read.ino.hex
 node verify_servo.mjs ../build/servo_sweep/servo_sweep.ino.hex
+node verify_stepper.mjs ../build/stepper_sweep/stepper_sweep.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -115,6 +118,10 @@ that a corrupted checksum *and* a wrong I2C address are both caught by the drive
 `verify_servo.mjs` is the *output* direction: a hand-written 50 Hz software pulse train
 (no `Servo` library is bundled) sweeps 0..180 degrees and settles at 90, and the verifier
 recovers every angle from the recorded pin transitions to within 3 degrees.
+`verify_stepper.mjs` is the same idea through a driver: a hand-written pulse generator
+moves +200, -100, +50 steps with DIR set for each phase, and the verifier recovers exactly
+250 forward / 100 reverse / net +150 steps and checks the STEP high pulse is wider than the
+1 us an A4988 needs.
 
 ## Devices on the bus (closed loop)
 
@@ -188,6 +195,9 @@ datasheet-timed bit train. The app does this automatically:
 netlist. A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
 *output*, so the app decodes the commanded angle from the pulse widths the sketch drove
 (`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`).
+A STEP/DIR stepper is the same: `pin_map` maps the firmware pins driving the driver's
+STEP/DIR nets to the components on those nets, and the net `steps` + shaft `angle` come
+back in `steppers` (`apply_firmware_stepper` writes them onto the motor).
 
 ## Analog inputs (circuit → firmware)
 

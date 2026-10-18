@@ -129,6 +129,12 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("servo_sg90"), "servo_sg90 is not mapped by the solver")
 	t.check(ComponentDB.status_of("servo_mg996r") == "external", "servo_mg996r status is 'external'")
 	t.check(not NetlistBuilder.handles("servo_mg996r"), "servo_mg996r is not mapped by the solver")
+	t.check(ComponentDB.status_of("stepper_nema17") == "external", "stepper_nema17 status is 'external'")
+	t.check(not NetlistBuilder.handles("stepper_nema17"), "stepper_nema17 is not mapped by the solver")
+	t.check(ComponentDB.status_of("a4988_driver") == "external", "a4988_driver status is 'external'")
+	t.check(not NetlistBuilder.handles("a4988_driver"), "a4988_driver is not mapped by the solver")
+	t.check(ComponentDB.status_of("drv8825_driver") == "external", "drv8825_driver status is 'external'")
+	t.check(not NetlistBuilder.handles("drv8825_driver"), "drv8825_driver is not mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

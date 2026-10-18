@@ -206,6 +206,11 @@ func _dispatch(method: String, p: Dictionary) -> Dictionary:
 				String(p.get("hex_path", "")), p.get("pin_map", {}),
 				int(p.get("ms", 3000)), bool(p.get("simulate", false)),
 				p.get("expected_revision", null))
+		"apply_firmware_stepper":
+			return _service.apply_firmware_stepper(
+				String(p.get("hex_path", "")), p.get("pin_map", {}),
+				int(p.get("ms", 2000)), int(p.get("microsteps", 0)),
+				bool(p.get("simulate", false)), p.get("expected_revision", null))
 		"get_project_summary":
 			return _service.get_project_summary()
 		"list_components":

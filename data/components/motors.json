@@ -87,11 +87,14 @@
         {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"},
         {"name": "B+", "type": "passive"}, {"name": "B-", "type": "passive"}
       ],
-      "params": {"r": {"default": 1.5, "unit": "ohm", "label": "Coil resistance"}, "i_rated": {"default": 1.5, "unit": "A", "label": "Rated current per phase"}},
+      "params": {"r": {"default": 1.5, "unit": "ohm", "label": "Coil resistance (informational)"}, "i_rated": {"default": 1.5, "unit": "A", "label": "Rated current per phase (informational)"}, "steps_per_rev": {"default": 200, "unit": "steps", "label": "Full steps per revolution (1.8 deg)", "min": 1, "max": 100000}, "steps": {"default": 0, "unit": "steps", "label": "Net steps commanded (set by apply_firmware_stepper)"}, "angle": {"default": 0, "unit": "deg", "label": "Shaft angle (set by apply_firmware_stepper)", "min": 0, "max": 360}},
       "model": {"shape": "nema17"},
       "mounting": "device",
-      "simulation_status": "visual",
-      "notes": "Modelled as two resistors (coils); step sequencing and torque are not simulated."
+      "simulation_status": "external",
+      "simulation_models": ["stepper-stepdir"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "notes": "Firmware-driven actuator through a STEP/DIR driver (A4988/DRV8825): the app counts the rising edges the sketch puts on the driver's STEP pin (taking the direction from DIR at each edge) and writes the net `steps` and the shaft `angle` (`run_firmware`'s `steppers`, `apply_firmware_stepper`). The solver does not model the motor electrically - the coil resistances in the 3D model are informational, and no current, holding torque, load, backlash or step loss is simulated. `steps_per_rev` is the motor's full-step rating; the microstepping comes from the driver's own parameter."
     },
     {
       "id": "stepper_28byj48",
@@ -124,8 +127,14 @@
       ],
       "model": {"shape": "stepper_driver_pololu"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["stepper-stepdir"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "microsteps": {"default": 1, "unit": "x", "label": "Microstepping (MS1..MS3 straps, not read)", "min": 1, "max": 64}
+      },
+      "notes": "Served by the firmware backend: the app counts the STEP rising edges the sketch drives (with DIR selecting the sign) and writes the move onto the stepper motor wired to this driver's coil outputs - `run_firmware(pin_map=...)` reports it in `steppers`, `apply_firmware_stepper` applies it. `microsteps` must match how MS1..MS3 are actually strapped (the straps are not read back), and it multiplies the motor's `steps_per_rev`. The driver's current limit, decay mode, ENABLE state and coil waveforms are not modelled; the driver draws no supply current from the solved circuit."
     },
     {
       "id": "drv8825_driver",
@@ -142,8 +151,14 @@
       ],
       "model": {"shape": "stepper_driver_pololu"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["stepper-stepdir"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "microsteps": {"default": 1, "unit": "x", "label": "Microstepping (M0..M2 straps, not read)", "min": 1, "max": 64}
+      },
+      "notes": "As `a4988_driver`: STEP/DIR pulses are counted from the pin transitions the firmware produces and applied to the motor on the coil outputs (`steppers`, `apply_firmware_stepper`); `microsteps` must match the M0..M2 straps (not read) and multiplies the motor's `steps_per_rev`. Current limit, decay/microstep waveforms and supply draw are not modelled."
     },
     {
       "id": "tb6600_driver",

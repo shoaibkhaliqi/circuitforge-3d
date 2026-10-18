@@ -479,6 +479,37 @@ and their drivers" item.
   holding current, the load moving the arm, and slew time (the angle is whatever the last
   pulse commanded). Servo power draw is not added to the circuit.
 
+## 11j. Thirteenth device: STEP/DIR stepper motor (travel read back)
+
+The servo's sibling: an **output** whose commanded travel is decoded from the MCU's own
+pulse train, this time through a driver. `stepper_nema17` becomes `external` (from
+`visual`) and `a4988_driver`/`drv8825_driver` become `external` (from `planned`).
+
+- **Model**: no bus device. `FirmwareBackend.stepper_steps(transitions, step_pin,
+  dir_pin)` counts every rising edge on STEP and takes the sign from the DIR level at that
+  instant (starting from the reset state, all pins low); `dir_pin = -1` counts everything
+  forward. `FirmwareBackend.stepper_angle(steps, steps_per_rev, microsteps)` maps the count
+  onto a shaft angle, wrapping once per `steps_per_rev × microsteps`.
+- **Path**: the caller maps the firmware pins driving the driver's STEP/DIR nets to the
+  components on those nets — usually the circuit's virtual `mcu_pin`s — and the app finds
+  the driver (by its STEP/DIR nets) and the motor (on the driver's **coil outputs** —
+  the `passive` pins — via `_coil_nets`). The driver itself cannot be mapped: its nets
+  carry no information about which firmware pin drives them, so `_net_pin` takes an
+  `exclude` for it. `run_firmware(pin_map=…)` reports the move in `steppers`;
+  `apply_firmware_stepper(hex_path, pin_map, microsteps=0)` writes the net `steps` and the
+  shaft `angle` onto the motor. Mechanical only: the solved circuit is unchanged.
+- **Verified**: `firmware/sketches/stepper_sweep` (hand-written pulse generator:
+  +200 then −100 then +50) is decoded to exactly 250 forward / 100 reverse / net +150 steps
+  by `verify_stepper.mjs`, which also asserts the STEP high pulse is wider than the A4988's
+  1 µs minimum and that flipping the DIR polarity flips the travel. The decoder and the
+  angle mapping (including wrap and the no-DIR case) are unit tested; the mapping by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B19.
+- **Limits (honest)**: `microsteps` must match how MS1..MS3 (or M0..M2) are actually
+  strapped — the straps are not read back. The driver's ENABLE state, current limit, decay
+  mode and coil waveforms are not modelled, no supply current is drawn from the solved
+  circuit, and there is no torque, holding torque, load, backlash or step loss: every
+  rising edge is assumed to move the motor exactly one (micro)step.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -505,8 +536,9 @@ and an I2C LCD together in one sketch, so the whole path — circuit, `pin_map`,
 feedback and bus decoding — is exercised at once, and the SHT31 (§11h) adds a
 command-driven, checksum-protected I2C part. The servo (§11i) adds the opposite
 direction — a firmware-driven *actuator* whose commanded position is read back out of the
-MCU's own pulse train — which is the first part of M8's "stepper and servo motors" gap.
-Remaining work: the stepper drivers (A4988/ULN2003), and a
+MCU's own pulse train — which is the first part of M8's "stepper and servo motors" gap, and
+the STEP/DIR stepper (§11j) applies the same idea to travel. Remaining work: the 4-phase
+`uln2003_driver`/`stepper_28byj48` pair, and a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

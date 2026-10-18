@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 713 / 713 passed
+RESULT: 733 / 733 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -44,7 +44,7 @@ STATUS: ALL TESTS PASSED
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
 | Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse), capability honesty | firmware backend    |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/encoder/DHT/SHT31/servo-pulse/stepper-stepdir), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -105,12 +105,12 @@ mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```
 
 ```
-RESULTS: 28 / 28 passed
+RESULTS: 29 / 29 passed
 ```
 
 | Test | Checks | Result |
 |------|--------|--------|
-| A. Server initialization | name `circuitforge-3d`, 42 tools present, valid input schemas | pass |
+| A. Server initialization | name `circuitforge-3d`, 43 tools present, valid input schemas | pass |
 | A2. Resources & prompts | 7 resources, 8 prompts discovered | pass |
 | B. Read-only discovery | simulator info, capabilities, ≥10 catalog entries, summary | pass |
 | B2. Catalog discovery | 243 entries, status facets/filters, I2C filter, 0 errors | pass |
@@ -130,6 +130,7 @@ RESULTS: 28 / 28 passed
 | B16. Firmware DHT22 (one-wire) | `dht22` attached as a one-wire pin device; missing-HEX `run_firmware` is a clean error | pass |
 | B17. Firmware SHT31 (I2C temp/humidity) | `sht31` attached as a CRC-protected I2C part; missing-HEX `run_firmware` is a clean error | pass |
 | B18. Firmware servo angle (pulse train) | `servo_sg90` mapped for `apply_firmware_servo`; missing-HEX run is a clean error and the tool is listed as reversible | pass |
+| B19. Firmware stepper move (STEP/DIR) | `a4988_driver` + `stepper_nema17` wired and mapped; missing-HEX `apply_firmware_stepper` is a clean error and the tool is listed as reversible | pass |
 | C. Create & inspect | build V/R/GND, 3 wires, node ids resolved | pass |
 | D. Simulate & measure | node `5.0000 V`, `I(R1)=5.0000 mA` | pass |
 | E. Parameter change | `1 kΩ→2 kΩ` gives `2.5000 mA` | pass |

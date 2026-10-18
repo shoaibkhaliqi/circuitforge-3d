@@ -67,13 +67,13 @@ CircuitForge 3D MCP adapter — selftest
   godot   = D:\tools\Godot_v4.7.2-stable_win64_console.exe
   project = D:\circutsimilator
   engine  = ok  app=CircuitForge 3D v=0.1.0 proto=circuitforge-local-api/1 port=127.0.0.1:51353
-  tools     = 32
+  tools     = 43
   resources = 7
   prompts   = 8
 selftest OK
 ```
 
-Run the end-to-end protocol suite (Tests A–J):
+Run the end-to-end protocol suite (Tests A–J plus the B-series firmware/device tests):
 ```powershell
 mcp_server\.venv\Scripts\python mcp_server\tests\test_mcp_integration.py
 ```

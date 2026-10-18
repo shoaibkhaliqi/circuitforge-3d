@@ -100,7 +100,8 @@ async def main() -> int:
                             "get_catalog_facets", "get_board_pinout",
                             "get_pin_states", "set_pin_levels",
                             "get_firmware_capabilities", "run_firmware", "apply_firmware_pins",
-                            "apply_firmware_device", "apply_firmware_pwm", "apply_firmware_servo"}
+                            "apply_firmware_device", "apply_firmware_pwm", "apply_firmware_servo",
+                            "apply_firmware_stepper"}
                 missing = required - names
                 schemas_ok = all(isinstance(t.input_schema, dict) for t in tools.tools)
                 record("A. Server initialization", init.server_info.name == "circuitforge-3d" and not missing and schemas_ok,
@@ -408,6 +409,31 @@ async def main() -> int:
                 record("B18. Firmware servo angle (pulse train)", ok, f"code={code}")
             except Exception as exc:
                 record("B18. Firmware servo angle (pulse train)", False, repr(exc))
+
+            # ---------------------------------------------------- Test B19
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-STEPPER"})
+                drv = (await call_ok(s, "add_component",
+                                     {"component_type": "a4988_driver",
+                                      "holes": ["a1", "a3", "a4", "a5", "a6", "a7", "a1", "a2",
+                                                "a8", "a9", "a10", "a11", "a12", "a13", "a14"],
+                                      "parameters": {"microsteps": 16}}))["component_id"]
+                await call_ok(s, "add_component",
+                              {"component_type": "stepper_nema17",
+                               "holes": ["a11", "a12", "a13", "a14"],
+                               "parameters": {"steps_per_rev": 200}})
+                await call_ok(s, "add_component",
+                              {"component_type": "mcu_pin", "holes": ["a1"]})
+                err = await call_err(s, "apply_firmware_stepper",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "pin_map": {"3": drv}})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                caps = await call_ok(s, "get_capabilities")
+                ok = ok and "apply_firmware_stepper" in caps["operations"]["edit_reversible"]
+                record("B19. Firmware stepper move (STEP/DIR)", ok, f"code={code}")
+            except Exception as exc:
+                record("B19. Firmware stepper move (STEP/DIR)", False, repr(exc))
 
             # ---------------------------------------------------- Test C
             try:
