@@ -224,6 +224,15 @@ follow [Semantic Versioning](https://semver.org/).
     the raw frames for 23.0/48.0, −5.5/99.9 and a DHT11 frame, plus an unwired-pin
     timeout. MCP integration 25 → **26** (Test B16); suite 682 → **686**; catalog
     `external` 42 → **44**, `planned` 102 → **100**.
+  - **Bundled firmware example — DHT22 + I2C LCD logger** (`data/examples/
+    15_firmware_env_logger.cf3d` + `firmware/sketches/env_logger`): the capstone that
+    demonstrates the whole path with a real circuit, not just a harness spike. One
+    hand-written sketch reads the DHT22 on D2 through the virtual pin `P1` and reports
+    through both the I2C LCD and serial; the app's `pin_map` resolves the sensor from that
+    net. `verify_env_logger.mjs` asserts the LCD text and serial agree (including a
+    missing-sensor case); `tests/integration/test_examples.gd` loads the project, checks
+    the sensor DATA net is the `mcu_pin` net, and that unmapped models are skipped with a
+    warning. Bundled examples 14 → **15**; suite 686 → **692**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

@@ -58,6 +58,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/encoder_read firmware/sketches/encoder_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/dht_read firmware/sketches/dht_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/env_logger firmware/sketches/env_logger
 
 # 2. execute + inspect
 cd firmware/harness
@@ -81,6 +83,7 @@ node verify_mpu6050.mjs ../build/mpu6050_read/mpu6050_read.ino.hex
 node verify_oled.mjs ../build/oled_fill/oled_fill.ino.hex
 node verify_encoder.mjs ../build/encoder_read/encoder_read.ino.hex
 node verify_dht.mjs ../build/dht_read/dht_read.ino.hex
+node verify_env_logger.mjs ../build/env_logger/env_logger.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -96,7 +99,11 @@ accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (409
 pixels and the exact per-page hex). `verify_encoder.mjs` asserts the incremental encoder
 decodes to exactly the emitted steps, forwards and backwards. `verify_dht.mjs` asserts a
 hand-written one-wire driver decodes DHT22 (including a negative temperature) and DHT11
-frames exactly, and that a missing sensor times out.
+frames exactly, and that a missing sensor times out. `verify_env_logger.mjs` is the
+capstone: one sketch reads a DHT22 and reports through both a 16x2 I2C LCD and serial,
+and the verifier asserts the LCD text and the serial report agree (and that a missing
+sensor is reported on the display). That sketch is also the bundled example
+`data/examples/15_firmware_env_logger.cf3d`.
 
 ## Devices on the bus (closed loop)
 
@@ -140,6 +147,10 @@ CF_DEVICES='[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]' \
 # DHT22 on D2 at 23 C / 48 % -> the one-wire frame reads back exactly
 CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]' \
   node run.mjs ../build/dht_read/dht_read.ino.hex 200
+
+# Capstone: a DHT22 and a 16x2 I2C LCD in one sketch -> LCD text and serial agree
+CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48},{"kind":"lcd1602","address":39,"cols":16,"rows":2}]' \
+  node run.mjs ../build/env_logger/env_logger.ino.hex 300
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,

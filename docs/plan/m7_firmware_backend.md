@@ -408,6 +408,22 @@ harness answers. `dht11` and `dht22` (`data/components/sensors.json`, both `exte
   for the whole frame (some libraries) is not modelled — the harness responds to the
   line, not to the library.
 
+## 11g. Capstone: a bundled firmware example (DHT22 + I2C LCD)
+
+The M7 work is now demonstrated end to end by a *bundled example circuit* rather than
+only by harness spikes: `data/examples/15_firmware_env_logger.cf3d` (Arduino + `dht22` +
+`i2c_lcd1602` + a virtual `mcu_pin` on the sensor's data net), paired with
+`firmware/sketches/env_logger`.
+
+- **One sketch, two device families**: it reads the DHT22 on D2 and reports through both
+  the I2C LCD ("T=23.0C H=48.0%" / "checksum ok") and serial — hand-written drivers, no
+  libraries.
+- **Verified**: `firmware/harness/verify_env_logger.mjs` asserts the decoded LCD text and
+  the serial report agree for 23.0 °C / 48.0 % and −5.5 °C / 99.9 %, and that an unwired
+  sensor is reported as "sensor error" on the display. `tests/integration/test_examples.gd`
+  loads the bundled project, checks that the sensor's DATA net really is the `mcu_pin` net
+  that `pin_map` resolves, and that the unmapped device models are skipped with a warning.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -429,7 +445,9 @@ so driver-style multi-register reads work, and the SSD1306 (§11d) adds a *frame
 so drawing code can be checked. The rotary encoder (§11e) adds a second pin device — an
 ideal quadrature pair — so input-decoding sketches can be checked without a library, and
 the DHT11/DHT22 (§11f) adds a *bidirectional, timing-sensitive* pin device, so one-wire
-protocol sketches work. Remaining work: a bundled firmware example project and a
+protocol sketches work. The capstone example (§11g, example 15 in the app) ties a DHT22
+and an I2C LCD together in one sketch, so the whole path — circuit, `pin_map`, device
+feedback and bus decoding — is exercised at once. Remaining work: a
 streaming/interactive mode if a blocking run proves too coarse. If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

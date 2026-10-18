@@ -342,6 +342,13 @@ catalog that replaces the hardcoded definition list.
   `verify_dht.mjs` assert the DHT22 frames (23.0/48.0 and −5.5/99.9, sign bit included),
   a DHT11 frame, and an unwired-pin timeout. Suite **686/686**; MCP **26/26** (new Test
   B16); catalog `external` 42 → 44, `planned` 102 → 100.
+- **Bundled firmware example — DHT22 + I2C LCD logger**: `data/examples/
+  15_firmware_env_logger.cf3d` (Arduino + DHT22 + I2C LCD + a virtual pin on the sensor's
+  data net) with `firmware/sketches/env_logger`. The single hand-written sketch reads the
+  sensor and reports through the LCD *and* serial, so circuit, `pin_map` resolution, device
+  feedback and bus decoding are demonstrated together. `verify_env_logger.mjs` asserts both
+  outputs agree; `test_examples.gd` loads the project and checks the DATA-net wiring.
+  Bundled examples 14 → 15; suite **692/692**.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

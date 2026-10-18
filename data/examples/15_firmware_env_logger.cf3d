@@ -1,0 +1,160 @@
+{
+	"breadboard": {
+		"rail_split": false,
+		"rows": 30
+	},
+	"components": [
+		{
+			"holes": [
+				"TM1"
+			],
+			"id": "GND1",
+			"params": {},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "ground"
+		},
+		{
+			"holes": [
+				"TP1",
+				"TM1"
+			],
+			"id": "V1",
+			"params": {
+				"v": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "vsource"
+		},
+		{
+			"holes": [
+				"a1",
+				"TM5"
+			],
+			"id": "P1",
+			"params": {
+				"level": -1.0,
+				"rout": 25.0,
+				"vlogic": 5.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "mcu_pin"
+		},
+		{
+			"holes": [
+				"TP5",
+				"c1",
+				"TM10"
+			],
+			"id": "DHT1",
+			"params": {
+				"humidity": 48.0,
+				"temp_c": 23.0
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "dht22"
+		},
+		{
+			"holes": [
+				"TP10",
+				"TM15",
+				"c10",
+				"c15"
+			],
+			"id": "LCD1",
+			"params": {
+				"address": 39,
+				"cols": 16,
+				"rows": 2
+			},
+			"position": [
+				0,
+				0,
+				0
+			],
+			"rotation": 0.0,
+			"type": "i2c_lcd1602"
+		}
+	],
+	"format": "circuitforge3d",
+	"instruments": {},
+	"metadata": {
+		"app_version": "0.1.0",
+		"created": "2026-10-18T12:00:00",
+		"description": "Firmware example: a DHT22 temperature/humidity sensor on D2 (through the virtual pin P1) and a 16x2 I2C LCD, both firmware-driven. The sketch firmware/sketches/env_logger reads the sensor and prints the reading to the LCD and serial.",
+		"measurement": "Compile firmware/sketches/env_logger for arduino:avr:uno, then run_firmware(hex_path, attach_devices=true, pin_map={\"2\": \"P1\"}). The DHT1 temp_c/humidity parameters are what the sensor reports and the LCD1 shows; firmware/sketches/env_logger writes \"T=23.0C H=48.0%\" to the LCD and serial. Only the sensor and the display are modelled: the two wires between the MCU and the modules are drawn as virtual pins.",
+		"modified": "2026-10-18T12:00:00",
+		"name": "Firmware Environment Logger (DHT22 + I2C LCD)"
+	},
+	"schema_version": 1,
+	"simulation": {
+		"dt": 0.001,
+		"mode": "dc",
+		"t_stop": 0.5
+	},
+	"wires": [
+		{
+			"a": {
+				"id": "TP1",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TP5",
+				"kind": "hole"
+			},
+			"id": "W1"
+		},
+		{
+			"a": {
+				"id": "TP5",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TP10",
+				"kind": "hole"
+			},
+			"id": "W2"
+		},
+		{
+			"a": {
+				"id": "TM1",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TM10",
+				"kind": "hole"
+			},
+			"id": "W3"
+		},
+		{
+			"a": {
+				"id": "TM10",
+				"kind": "hole"
+			},
+			"b": {
+				"id": "TM15",
+				"kind": "hole"
+			},
+			"id": "W4"
+		}
+	]
+}

@@ -25,7 +25,7 @@ func run(t) -> void:
 		fn = dir.get_next()
 	dir.list_dir_end()
 	files.sort()
-	t.check(files.size() >= 14, "at least 14 bundled examples present", "found %d" % files.size())
+	t.check(files.size() >= 15, "at least 15 bundled examples present", "found %d" % files.size())
 
 	var solver = CircuitSolver.new()
 	var builder = NetlistBuilder.new()
@@ -123,5 +123,22 @@ func run(t) -> void:
 		if t.check(r14.ok, "limit-switch/motor example solves"):
 			var i_m := absf(float(r14.element_currents.get("M1", 0.0)))
 			t.check(i_m > 0.9 and i_m < 1.1, "motor draws about 1 A", "I=" + str(i_m))
+
+	# Firmware example: the DHT22 DATA net is shared with the virtual MCU pin P1, which
+	# is exactly what run_firmware(pin_map={"2": "P1"}) resolves at run time.
+	t.section("Examples - firmware example wiring")
+	var lr15 = Persistence.load_from_file("%s/15_firmware_env_logger.cf3d" % EX_DIR)
+	if t.check(lr15.ok, "firmware example loads", lr15.get("error", "")):
+		var bb15 = Breadboard.new(30)
+		var b15 = builder.build(bb15, lr15.project.components, lr15.project.wires)
+		var dht_nets: Array = b15.pin_nets.get("DHT1", [])
+		var pin_nets: Array = b15.pin_nets.get("P1", [])
+		t.check(dht_nets.size() >= 2 and pin_nets.size() >= 1
+				and String(dht_nets[1]) == String(pin_nets[0]),
+			"DHT22 DATA shares the virtual pin P1 net",
+			"%s vs %s" % [str(dht_nets), str(pin_nets)])
+		var r15 = solver.solve_dc(b15.circuit)
+		if t.check(r15.ok, "firmware example solves"):
+			t.check(b15.get("warnings", []).size() > 0, "unmapped devices are skipped with a warning")
 
 	t.done()

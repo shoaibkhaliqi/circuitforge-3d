@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 686 / 686 passed
+RESULT: 692 / 692 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -49,7 +49,7 @@ STATUS: ALL TESTS PASSED
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
 | End-to-end — build, solve, edit, save, reload              | integration         |
-| Examples — load/validate/simulate all 11, documented values| integration         |
+| Examples — load/validate/simulate all 15, documented values, firmware wiring | integration         |
 
 ## Numerical validation (physical sanity)
 
