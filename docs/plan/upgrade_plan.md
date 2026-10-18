@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | spike done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); protocol/digital parts gated on plan M7 |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | in progress (pin-state tools + board pinouts/facets exposed; firmware gated) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | nearly done (examples + gmin fix + scale test + Windows screenshot evidence, suite 607/607; Linux runtime verification remains blocked on WSL) |
@@ -309,6 +309,15 @@ catalog that replaces the hardcoded definition list.
   `verify_ultrasonic.mjs` assert `echo 1735 dist 30` for a 30 cm target. Suite
   **676/676**; MCP **22/22** (new Test B12); catalog `external` 38 → 39,
   `planned` 106 → 105.
+- **MPU-6050 IMU — served I2C register file**: `mpu6050` promoted from `planned` to
+  `external`. The harness serves a register file (a write transaction's first byte
+  sets the register pointer, further bytes auto-increment; reads return and
+  auto-increment), with WHO_AM_I = 0x68 and the accel/temp/gyro counts filled from the
+  component's `ax`..`gz`/`temp_c` parameters (16384 LSB/g, 131 LSB/(deg/s),
+  340 LSB/degC). `run_firmware(..., attach_devices=true)` attaches it; a 14-byte burst
+  from 0x3B decodes exactly. Sketch `mpu6050_read` + `verify_mpu6050.mjs`. Suite
+  **678/678**; MCP **23/23** (new Test B13); catalog `external` 39 → 40,
+  `planned` 105 → 104.
 
 ### Milestone 8 — honest analog/digital parts (firmware-free subset complete)
 - **Resistive sensors** (two-terminal, resistance set by a stimulus parameter,

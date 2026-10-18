@@ -315,6 +315,21 @@ async def main() -> int:
             except Exception as exc:
                 record("B12. Firmware pin sensor (HC-SR04)", False, repr(exc))
 
+            # ---------------------------------------------------- Test B13
+            try:
+                await call_ok(s, "create_project", {"name": "MCP-IMU"})
+                await call_ok(s, "add_component",
+                              {"component_type": "mpu6050",
+                               "parameters": {"address": 104, "az": 1.0, "temp_c": 26.53}})
+                err = await call_err(s, "run_firmware",
+                                     {"hex_path": "does/not/exist.hex",
+                                      "attach_devices": True})
+                code = err["error"]["code"]
+                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
+                record("B13. Firmware IMU (MPU-6050)", ok, f"code={code}")
+            except Exception as exc:
+                record("B13. Firmware IMU (MPU-6050)", False, repr(exc))
+
             # ---------------------------------------------------- Test C
             try:
                 await call_ok(s, "create_project", {"name": "MCP-Integration"})

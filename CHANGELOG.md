@@ -182,6 +182,16 @@ follow [Semantic Versioning](https://semver.org/).
     Sketch `firmware/sketches/ultrasonic` + `verify_ultrasonic.mjs` assert
     `echo 1735 dist 30` for a 30 cm target. MCP integration 21 → **22** (Test B12);
     suite 674 → **676**; catalog `external` 38 → **39**, `planned` 106 → **105**.
+  - **MPU-6050 IMU — served I2C register file** (`data/components/sensors.json`,
+    `mpu6050`, `external`): the harness serves an MPU-6050 register file on the bus
+    while firmware runs. A write transaction's first byte sets the register pointer and
+    further bytes auto-increment; reads return and auto-increment, so a 14-byte burst
+    from 0x3B returns accel XYZ + temperature + gyro XYZ. WHO_AM_I (0x75) = 0x68 and the
+    sample counts come from the `ax`..`gz`/`temp_c` parameters (16384 LSB/g,
+    131 LSB/(deg/s), 340 LSB/degC). Sketch `firmware/sketches/mpu6050_read` +
+    `verify_mpu6050.mjs` decode the served values exactly. MCP integration 22 → **23**
+    (Test B13); suite 676 → **678**; catalog `external` 39 → **40**, `planned` 105 →
+    **104**.
 - **Firmware-backend spike (M7, Stage B open loop)** — `firmware/`: `arduino-cli`
   compiles `sketches/blink` for `arduino:avr:uno`; `harness/run.mjs` runs the HEX
   on **avr8js (MIT)** and streams digital pin transitions as JSON; `verify.mjs`

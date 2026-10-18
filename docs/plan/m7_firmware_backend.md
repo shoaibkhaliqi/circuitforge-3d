@@ -316,6 +316,30 @@ MCU **input** pin from within a run. `hcsr04` (`data/components/sensors.json`,
   minimum/maximum range, temperature dependence or the 60 ms measurement cycle;
   `pulseIn`'s own loop granularity makes the measured time run ~0.3–0.6% short.
 
+## 11c. Sixth device: MPU-6050 IMU (served I2C register file)
+
+The first **register-map** device: instead of a single value, the harness serves a
+register file, so firmware can use the same read/write pattern a real sensor driver
+does. `mpu6050` (`data/components/sensors.json`, `external`).
+
+- **Model**: a 0x80-byte register file. A write transaction's first byte sets the
+  register pointer and further bytes write + auto-increment; reads return the register
+  at the pointer and auto-increment — so a burst read of 0x3B..0x48 works, and both
+  stop and repeated-start transactions are handled. WHO_AM_I (0x75) = 0x68; the accel
+  (0x3B), temperature (0x41) and gyro (0x43) counts are filled from the component's
+  `ax`..`gz`/`temp_c` parameters at full-scale defaults (16384 LSB/g, 131 LSB/(deg/s),
+  340 LSB/degC).
+- **Path**: `run_firmware(..., attach_devices=true)` attaches the circuit's `mpu6050`
+  (`address`/`ax`..`gz`/`temp_c`); the response's `devices[]` reports `who_am_i`,
+  `accel_raw`, `gyro_raw` and `temp_c`.
+- **Verified**: `firmware/sketches/mpu6050_read` (WHO_AM_I + a 14-byte burst) +
+  `verify_mpu6050.mjs` decode the served values exactly (0.5/-0.25/1 g → 8192/-4096/16384,
+  10/-20/250 °/s → 1310/-2620/32750, 26.53 °C → 2653). Mapping is covered by
+  `tests/unit/test_netlist.gd`; the tool surface by MCP Test B13.
+- **Limits (honest)**: only the sample/output registers are modelled — configuration
+  registers (DMP, FIFO, filters, interrupts), the INT pin, timing, self-test and noise
+  are not. The register file is ideal: writes are stored but change no behaviour.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -332,8 +356,9 @@ the 24C02 EEPROM (§9b) and the PCF8591 ADC/DAC (§9c) — whose channels come f
 solved nodes, linking the analog surface to a specific device — and the I2C 16x2 LCD
 (§9d), which closes the display item. The HC-SR04 (§11b) adds the missing direction
 at the *pin* level: a part that drives an MCU input pin from inside a run, so
-`pulseIn()`/timing sketches work. Remaining work: more device models (OLED, DHT),
-an I2C register-map sensor (MPU/IMU) or a quadrature encoder, and a
-streaming/interactive mode if a blocking run proves too coarse. If the app-side
-integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
-separately-installed `simavr` and keep the feature capability-flagged.
+`pulseIn()`/timing sketches work. The MPU-6050 (§11c) adds a served *register map*,
+so driver-style multi-register reads work. Remaining work: more device models (OLED,
+DHT), a quadrature encoder, and a streaming/interactive mode if a blocking run proves
+too coarse. If the app-side integration ever cannot meet the gate (e.g. timing or
+packaging), fall back to a separately-installed `simavr` and keep the feature
+capability-flagged.

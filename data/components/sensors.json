@@ -337,8 +337,21 @@
       ],
       "model": {"shape": "breakout_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["i2c-register-file"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 104, "label": "I2C address (7-bit)"},
+        "ax": {"default": 0.0, "unit": "g", "label": "Accel X"},
+        "ay": {"default": 0.0, "unit": "g", "label": "Accel Y"},
+        "az": {"default": 1.0, "unit": "g", "label": "Accel Z"},
+        "gx": {"default": 0.0, "unit": "deg/s", "label": "Gyro X"},
+        "gy": {"default": 0.0, "unit": "deg/s", "label": "Gyro Y"},
+        "gz": {"default": 0.0, "unit": "deg/s", "label": "Gyro Z"},
+        "temp_c": {"default": 25.0, "unit": "C", "label": "Die temperature"}
+      },
+      "notes": "No breadboard electrical model: the harness serves an MPU-6050 register file on the I2C bus while firmware runs (attach_devices). A write transaction's first byte sets the register pointer and further bytes auto-increment; reads return and auto-increment, so a burst read of 0x3B..0x48 works. WHO_AM_I (0x75) is 0x68 and the sample accel/temp/gyro registers are filled from the `ax`..`gz` and `temp_c` parameters (full-scale defaults: 16384 LSB/g, 131 LSB/(deg/s), 340 LSB/degC). Configuration registers (DMP, FIFO, filters, interrupts, INT pin) and timing/self-test are not modelled."
     },
     {
       "id": "adxl345",

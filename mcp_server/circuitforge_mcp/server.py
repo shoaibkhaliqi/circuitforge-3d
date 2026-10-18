@@ -275,9 +275,10 @@ def run_firmware(
     With `attach_devices=True` the circuit's device components (the `pcf8574`, using
     its `state`/`inputs`/`address` parameters; the `eeprom_i2c`, using
     `address`/`size`; the `pcf8591`, whose analog channels come from the solved node
-    voltages; the `i2c_lcd1602`, whose decoded text is returned; and the `hcsr04`,
-    whose TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so
-    firmware can read/write them (device -> firmware feedback, e.g.
+    voltages; the `i2c_lcd1602`, whose decoded text is returned; the `mpu6050`, an I2C
+    register file whose sample values come from its `ax`..`gz`/`temp_c` parameters; and
+    the `hcsr04`, whose TRIG/ECHO are resolved from `pin_map`) are attached to the
+    emulated bus, so firmware can read/write them (device -> firmware feedback, e.g.
     `Wire.requestFrom`); the response adds `devices` and `attached_devices`. With no
     devices the harness only ACKs I2C and reads return 0xFF.
 

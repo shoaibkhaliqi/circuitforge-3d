@@ -98,6 +98,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"eeprom","address":80,"size":256,"init":[1,2,3]}]
 //   CF_DEVICES=[{"kind":"pcf8591","address":72,"ain":[2.5,0,0,0],"vref":5}]
 //   CF_DEVICES=[{"kind":"lcd1602","address":39,"cols":16,"rows":2}]
+//   CF_DEVICES=[{"kind":"mpu6050","address":104,"az":1,"temp_c":25}]
 //
 // `hc_sr04` is not an I2C device: it watches a TRIG pin and drives an ECHO input
 // pin (distance-proportional pulse), so it is listed separately as pin_devices.
@@ -231,6 +232,54 @@ function buildDevices() {
           }
           return { kind: 'lcd1602', address: addr, cols, rows, cursor, lines };
         },
+      });
+    } else if (s.kind === 'mpu6050') {
+      // MPU-6050 IMU register file: the first byte of a write transaction sets the
+      // register pointer, further bytes write and auto-increment; reads return the
+      // register at the pointer and auto-increment. Sample values come from params
+      // (AFS_SEL=0 -> 16384 LSB/g, FS_SEL=0 -> 131 LSB/(deg/s), temp 340 LSB/degC).
+      const regs = new Uint8Array(0x80);
+      const toI16 = (v) => {
+        const n = Math.max(-32768, Math.min(32767, Math.round(v)));
+        return n < 0 ? n + 0x10000 : n;
+      };
+      const put16 = (a, raw) => {
+        regs[a & 0x7f] = (raw >> 8) & 0xff;
+        regs[(a + 1) & 0x7f] = raw & 0xff;
+      };
+      const rd16 = (a) => {
+        const v = ((regs[a & 0x7f] << 8) | regs[(a + 1) & 0x7f]) & 0xffff;
+        return v >= 0x8000 ? v - 0x10000 : v;
+      };
+      put16(0x3b, toI16(Number(s.ax ?? 0) * 16384));
+      put16(0x3d, toI16(Number(s.ay ?? 0) * 16384));
+      put16(0x3f, toI16(Number(s.az ?? 0) * 16384));
+      put16(0x41, toI16((Number(s.temp_c ?? 25) - 36.53) * 340));
+      put16(0x43, toI16(Number(s.gx ?? 0) * 131));
+      put16(0x45, toI16(Number(s.gy ?? 0) * 131));
+      put16(0x47, toI16(Number(s.gz ?? 0) * 131));
+      regs[0x75] = Number(s.who_am_i ?? 0x68) & 0xff;
+      let ptr = 0;
+      let first = true;
+      map.set(addr, {
+        kind: 'mpu6050',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0x7f; first = false; }
+          else { regs[ptr & 0x7f] = b; ptr = (ptr + 1) & 0x7f; }
+        },
+        readByte() {
+          const v = regs[ptr & 0x7f];
+          ptr = (ptr + 1) & 0x7f;
+          return v;
+        },
+        summary: () => ({
+          kind: 'mpu6050', address: addr, who_am_i: regs[0x75], pointer: ptr,
+          accel_raw: [rd16(0x3b), rd16(0x3d), rd16(0x3f)],
+          gyro_raw: [rd16(0x43), rd16(0x45), rd16(0x47)],
+          temp_c: Math.round((rd16(0x41) / 340 + 36.53) * 1000) / 1000,
+        }),
       });
     }
   }

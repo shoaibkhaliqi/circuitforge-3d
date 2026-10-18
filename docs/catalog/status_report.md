@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 23 | rendered only, no electrical behaviour |
-| `external` | 39 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 105 | catalogued and placeable, not simulated yet |
+| `external` | 40 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 104 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -105,7 +105,9 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   breadboard electrical model and are served on the I2C bus only while firmware runs
   (the LCD's visible text comes back as `devices[].lines`). The `hcsr04` ultrasonic
   sensor is the first *pin* part backed by firmware: the harness watches its TRIG
-  pulse and drives its ECHO line (an MCU input) for a distance-proportional time.
+  pulse and drives its ECHO line (an MCU input) for a distance-proportional time. The
+  `mpu6050` IMU is the first *register-map* part: a served I2C register file (pointer
+  + auto-increment) whose accel/temp/gyro counts come from its parameters.
 - Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
   A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`
