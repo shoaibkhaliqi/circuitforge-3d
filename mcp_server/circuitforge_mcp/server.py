@@ -280,7 +280,10 @@ def run_firmware(
     `address`/`size`; the `pcf8591`, whose analog channels come from the solved node
     voltages; the `i2c_lcd1602`, whose decoded text is returned; the `oled_ssd1306`,
     whose decoded GDDRAM frame is returned; the `mpu6050`, an I2C register file whose
-    sample values come from its `ax`..`gz`/`temp_c` parameters; the `sht31`, whose 16-bit
+    sample values come from its `ax`..`gz`/`temp_c` parameters; the `adxl345`, a second
+    register file with its own map (DEVID `0xE5`, little-endian data registers) whose counts
+    follow the scale the firmware selected with `DATA_FORMAT` (FULL_RES or the range bits),
+    from its `ax`/`ay`/`az` parameters; the `sht31`, whose 16-bit
     temperature/humidity words and both CRC-8s come from its `temp_c`/`humidity`; the
     `oled_ssd1306_spi`, whose frame is decoded from the SPI peripheral once its DC and CS
     lines are resolved from `pin_map`; the `tft_ili9341` colour TFT, resolved the same way

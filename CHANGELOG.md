@@ -336,6 +336,22 @@ follow [Semantic Versioning](https://semver.org/).
     `deselected` = 0, plus a full-scale control and a *no-device* control where the bus idles
     at 0x00 so the same firmware must read zeros. Suite 771 → **788**; harness verifiers
     22 → **23**; catalog `external` 54 → **55**, `planned` 92 → **91**.
+  - **ADXL345 accelerometer** (`data/components/sensors.json`, `adxl345` `planned` →
+    `external`): a served I2C register file with the same pointer + auto-increment shape as
+    the MPU-6050 but the ADXL345's own map — DEVID (0x00) is `0xE5`, the data registers
+    (0x32..0x37) are little-endian 16-bit two's complement, and the samples come from the
+    part's `ax`/`ay`/`az` parameters. Unlike the MPU-6050's fixed full-scale the *scale* is
+    whatever the firmware selected: DATA_FORMAT (0x31) FULL_RES (bit 3) is 3.9 mg/LSB
+    (256 LSB/g) at every range, and in 10-bit mode it is `256 >> range` LSB/g, so writing
+    the register changes the counts a read returns. Sketch `firmware/sketches/adxl345_read`
+    (config write-back, then a 6-byte burst) and `verify_adxl345.mjs` check DEVID, the
+    DATA_FORMAT/POWER_CTL read-back, the axis counts and the milli-g conversion for the
+    scale the sketch selected, plus a positive control (different accelerations) and a
+    no-device control (the bus reads 0xFF, so the counts cannot have come from the sketch).
+    Suite 788 → **796**; harness verifiers 23 → **24**; catalog `external` 55 → **56**,
+    `planned` 91 → **90**. Honest limits: only I2C is served (not its SPI interface), and
+    FIFO, the tap/free-fall/activity interrupts, self-test, the offset registers and the
+    part's electrical loading are not modelled.
   - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
     ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
     the true length always reported in `spi_byte_count`; the decoded device summary is the

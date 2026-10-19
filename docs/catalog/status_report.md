@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 21 | rendered only, no electrical behaviour |
-| `external` | 55 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 91 | catalogued and placeable, not simulated yet |
+| `external` | 56 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 90 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -108,6 +108,10 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   pulse and drives its ECHO line (an MCU input) for a distance-proportional time. The
   `mpu6050` IMU is the first *register-map* part: a served I2C register file (pointer
   + auto-increment) whose accel/temp/gyro counts come from its parameters. The
+  `adxl345` accelerometer is the same pattern with a different map (DEVID `0xE5`,
+  little-endian data registers) and one property the IMU does not have: its scale is the
+  firmware's choice, so `DATA_FORMAT`'s range/FULL_RES bits decide the LSB/g and the counts
+  are recomputed from the live configuration at read time. The
   `oled_ssd1306` is the first *framebuffer* part: the harness decodes the SSD1306
   command/data stream into GDDRAM and returns the frame (`devices[].pages_hex`). Its
   `oled_ssd1306_spi` sibling is the first *SPI-peripheral* part: there is no address to

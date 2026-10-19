@@ -398,8 +398,17 @@
       ],
       "model": {"shape": "breakout_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["i2c-register-file"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 83, "label": "I2C address (7-bit)"},
+        "ax": {"default": 0.0, "unit": "g", "label": "Accel X"},
+        "ay": {"default": 0.0, "unit": "g", "label": "Accel Y"},
+        "az": {"default": 1.0, "unit": "g", "label": "Accel Z"}
+      },
+      "notes": "No breadboard electrical model: the harness serves an ADXL345 register file on the I2C bus while firmware runs (attach_devices), with the same pointer + auto-increment shape as the MPU-6050 but the ADXL345's own map. DEVID (0x00) is 0xE5 and the sample g values come from the `ax`/`ay`/`az` parameters, scaled by the scale the firmware itself selected: DATA_FORMAT (0x31) FULL_RES (bit 3) gives 3.9 mg/LSB (256 LSB/g) at every range, and in 10-bit mode it is 256 >> range LSB/g (so +/-4 g is 128 LSB/g). The DATA registers (0x32..0x37) are little-endian 16-bit two's complement and are computed from the live configuration, so a sketch that changes the range sees the counts change. Not modelled: the SPI interface (this part is I2C here), FIFO, tap/double-tap/free-fall/activity interrupts and the INT1/INT2 pins, self-test, offset registers, the 2 g/4 g/8 g output data rate and bandwidth corners, and the part's electrical loading."
     },
     {
       "id": "hx711",

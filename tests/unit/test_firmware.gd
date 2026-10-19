@@ -295,4 +295,21 @@ func run(t) -> void:
 	t.check(specs5.is_empty(), "unwired ADC CS => no spec (a conversion cannot be framed)",
 		str(specs5))
 
+	# The ADXL345 is an I2C register file like the MPU-6050: its address and the sample
+	# accelerations come from params, and no netlist is needed to serve it.
+	var app5 = AppService.new()
+	app5.session.add_component("ground", ["TM1"])
+	app5.session.add_component("adxl345",
+		["TP1", "TM1", "d2", "d3"], {"ax": 0.5, "ay": -0.25, "az": 1.0}, "A1")
+	var built5: Dictionary = app5.session.build_circuit()
+	var specs6: Array = app5._firmware_devices({}, built5.pin_nets, {})
+	t.check(specs6.size() == 1, "ADXL345 produces one device spec", str(specs6))
+	if specs6.size() == 1:
+		var sa: Dictionary = specs6[0]
+		t.check(String(sa.get("kind", "")) == "adxl345", "spec kind is adxl345")
+		t.check(int(sa.get("address", -1)) == 83, "default I2C address is 0x53", str(sa))
+		t.check(absf(float(sa.get("ax", 0.0)) - 0.5) < 1e-9, "ax comes from params", str(sa))
+		t.check(absf(float(sa.get("ay", 0.0)) + 0.25) < 1e-9, "ay comes from params", str(sa))
+		t.check(absf(float(sa.get("az", 0.0)) - 1.0) < 1e-9, "az comes from params", str(sa))
+
 	t.done()

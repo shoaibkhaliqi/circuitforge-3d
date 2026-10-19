@@ -667,6 +667,43 @@ through a device instead of through the MCU's own ADC.
   input's own loading on the source are not modelled; and, as for the panels, only the SPI
   peripheral is tapped, so a bit-banged bus is invisible.
 
+## 11o. Eighteenth device: ADXL345 accelerometer (a scale the firmware chooses)
+
+The `adxl345` (`planned` → `external`) is the second served *register file* (§11c was the
+first) and it exists to show that the register-file pattern is not an MPU-6050 special case:
+same plumbing, different map, and one property the MPU-6050 does not have.
+
+- **Model**: DEVID (`0x00`) is `0xE5`; a write transaction's first byte sets the pointer,
+  further bytes write and auto-increment, reads return and auto-increment, and the data
+  registers (`0x32`..`0x37`) are little-endian 16-bit two's complement. The sample
+  accelerations come from the part's `ax`/`ay`/`az` parameters (g), exactly as the MPU-6050's
+  do.
+- **The interesting part**: the ADXL345's *scale is the firmware's choice*, not a fixed
+  full-scale. `DATA_FORMAT` (`0x31`) bit 3 is FULL_RES — 3.9 mg/LSB (256 LSB/g) at every
+  range — and in 10-bit mode the scale is `256 >> range` LSB/g (so ±4 g is 128 LSB/g), while
+  the range itself is the register's bits 1:0. The data registers are therefore computed from
+  the *live* configuration at read time, so a sketch that changes the range sees the counts
+  change, and the app does not have to be told which mode the firmware will use.
+- **Path**: like the MPU-6050 it is an addressed I2C part, so `attach_devices` alone serves
+  it from the circuit's `adxl345` component — no `pin_map` and no netlist are needed.
+- **Verified**: `firmware/sketches/adxl345_read` reads DEVID, writes `BW_RATE`/
+  `DATA_FORMAT`/`POWER_CTL`, reads the configuration back and then bursts the six axis bytes,
+  reporting counts and milli-g at 128 LSB/g (10-bit mode, ±4 g). `verify_adxl345.mjs` checks
+  DEVID, the read-back, the counts and the milli-g conversion, and the device summary's
+  `data_format`/`full_res`/`range_g`/`lsb_per_g` — so if the model ignored the written
+  `DATA_FORMAT` and used full resolution, the counts would be wrong by 2× and the check would
+  fail. A **positive control** (different accelerations) shows the counts follow the spec, and
+  the **negative control** runs the same firmware with **no device attached**: the bus then
+  reads 0xFF, so DEVID is 0xFF and every axis is -1 — proving the readings came from the
+  device model and not from the sketch. The app-side spec builder and the part's
+  status/handles() pair are unit tested.
+- **Limits (honest)**: only the I2C interface is served (the part also speaks SPI, which is
+  not modelled — an SPI ADXL345 would need its own device kind); the FIFO, tap/double-tap,
+  free-fall and activity interrupts, the INT1/INT2 pins, self-test, the offset registers and
+  the output-data-rate/bandwidth corners are not modelled (the registers are stored, so a
+  driver that writes them still runs — it just gets no interrupt behaviour); and the part's
+  electrical loading is not modelled.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -703,8 +740,12 @@ ILI9341 colour TFT (§11m) — close the last named M7 gap by decoding a display
 peripheral, where the command/data split comes from a DC line the app resolves like a sensor
 pin. The MCP3008 (§11n) then runs that same bus the *other* way: it *answers* firmware's reads
 on MISO with codes derived from the solved node voltages, so an ADC front-end is part of the
-same loop and the SPI surface is no longer write-only. Remaining work: the gas/analog modules
-(which now have an ADC path to hang off, but no models of their own), and a
+same loop and the SPI surface is no longer write-only. The ADXL345 (§11o) then shows the
+byte-addressable register file (§11c) is a general pattern rather than one part's accident —
+and adds a twist: its scale is whatever `DATA_FORMAT` the firmware wrote, recomputed at read
+time. Remaining work: the gas/analog modules
+(which now have an ADC path to hang off, but no models of their own), a 1-Wire slave for parts
+like the DS18B20, and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

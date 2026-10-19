@@ -104,6 +104,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"ili9341","dc":9,"cs":10,"width":240,"height":320}]
 //   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
 //   CF_DEVICES=[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]
+//   CF_DEVICES=[{"kind":"adxl345","address":83,"ax":0.5,"ay":-0.25,"az":1}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
 // they are listed separately as pin_devices.
@@ -596,6 +597,59 @@ function buildDevices() {
           accel_raw: [rd16(0x3b), rd16(0x3d), rd16(0x3f)],
           gyro_raw: [rd16(0x43), rd16(0x45), rd16(0x47)],
           temp_c: Math.round((rd16(0x41) / 340 + 36.53) * 1000) / 1000,
+        }),
+      });
+    } else if (s.kind === 'adxl345') {
+      // ADXL345 register file (I2C): the same pointer + auto-increment shape as the
+      // MPU-6050 with the ADXL345's own map. DEVID (0x00) is 0xE5. The sample g values
+      // come from params, but their *scale* is whatever the firmware selected: DATA_FORMAT
+      // (0x31) bit 3 is FULL_RES (3.9 mg/LSB, i.e. 256 LSB/g, at every range) and in
+      // 10-bit mode the scale is 256 >> range LSB/g (so +/-4 g is 128 LSB/g). The DATA
+      // registers (0x32..0x37) are little-endian 16-bit two's complement and are computed
+      // from the live configuration, so writing DATA_FORMAT changes the counts a read
+      // returns.
+      const regs = new Uint8Array(0x40);
+      regs[0x00] = 0xe5; // DEVID
+      const ax = Number(s.ax ?? 0), ay = Number(s.ay ?? 0), az = Number(s.az ?? 1);
+      const toU16 = (v) => {
+        const n = Math.max(-32768, Math.min(32767, Math.round(v)));
+        return n < 0 ? n + 0x10000 : n;
+      };
+      const rangeBits = () => regs[0x31] & 0x03;
+      const lsbPerG = () => ((regs[0x31] & 0x08) ? 256 : (256 >> rangeBits()));
+      const dataByte = (a) => {
+        const g = a < 0x34 ? ax : (a < 0x36 ? ay : az);
+        const raw = toU16(g * lsbPerG()) & 0xffff;
+        return (a & 1) === 0 ? (raw & 0xff) : ((raw >> 8) & 0xff);
+      };
+      const rd16 = (a) => {
+        const v = (dataByte(a) | (dataByte(a + 1) << 8)) & 0xffff;
+        return v >= 0x8000 ? v - 0x10000 : v;
+      };
+      let ptr = 0;
+      let first = true;
+      map.set(addr, {
+        kind: 'adxl345',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0x3f; first = false; }
+          else { regs[ptr & 0x3f] = b; ptr = (ptr + 1) & 0x3f; }
+        },
+        readByte() {
+          const p = ptr & 0x3f;
+          const v = (p >= 0x32 && p <= 0x37) ? dataByte(p) : regs[p];
+          ptr = (ptr + 1) & 0x3f;
+          return v;
+        },
+        summary: () => ({
+          kind: 'adxl345', address: addr, devid: regs[0x00], pointer: ptr,
+          data_format: regs[0x31], full_res: (regs[0x31] & 0x08) !== 0,
+          range_g: [2, 4, 8, 16][rangeBits()], lsb_per_g: lsbPerG(),
+          data_rate: regs[0x2c], power_ctl: regs[0x2d],
+          accel_raw: [rd16(0x32), rd16(0x34), rd16(0x36)],
+          accel_g: [rd16(0x32), rd16(0x34), rd16(0x36)]
+            .map((raw) => Math.round((raw / lsbPerG()) * 1e6) / 1e6),
         }),
       });
     } else if (s.kind === 'ssd1306') {

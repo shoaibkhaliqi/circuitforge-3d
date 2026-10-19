@@ -77,6 +77,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/tft_fill firmware/sketches/tft_fill
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/spi_adc firmware/sketches/spi_adc
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/adxl345_read firmware/sketches/adxl345_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -109,6 +111,7 @@ node verify_motion.mjs ../build/motion_demo/motion_demo.ino.hex
 node verify_oled_spi.mjs ../build/oled_spi/oled_spi.ino.hex
 node verify_tft.mjs ../build/tft_fill/tft_fill.ino.hex
 node verify_spi_adc.mjs ../build/spi_adc/spi_adc.ino.hex
+node verify_adxl345.mjs ../build/adxl345_read/adxl345_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -189,6 +192,10 @@ CF_DEVICES='[{"kind":"hc_sr04","trig":9,"echo":10,"distance_cm":30}]' \
 CF_DEVICES='[{"kind":"mpu6050","address":104,"az":1,"temp_c":26.53}]' \
   node run.mjs ../build/mpu6050_read/mpu6050_read.ino.hex 400
 
+# ADXL345 at 0x53 with 0.5/-0.25/1 g -> DEVID 0xE5, counts at the scale the sketch writes
+CF_DEVICES='[{"kind":"adxl345","address":83,"ax":0.5,"ay":-0.25,"az":1}]' \
+  node run.mjs ../build/adxl345_read/adxl345_read.ino.hex 400
+
 # SSD1306 OLED at 0x3C -> the decoded 128x64 frame (top half lit)
 CF_DEVICES='[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]' \
   node run.mjs ../build/oled_fill/oled_fill.ino.hex 600
@@ -220,12 +227,18 @@ CF_DEVICES='[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]' \
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 `init`), `pcf8591` (`address`, `ain`, `vref`), `lcd1602` (`address`, `cols`, `rows`),
-`mpu6050` (`address`, `ax`..`gz`, `temp_c`), `ssd1306` (`address`, `cols`, `pages`) and
+`mpu6050` (`address`, `ax`..`gz`, `temp_c`), `adxl345` (`address`, `ax`, `ay`, `az`),
+`ssd1306` (`address`, `cols`, `pages`) and
 `sht31` (`address`, `temp_c`, `humidity`, `corrupt_crc`)
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
 `accel_raw`/`gyro_raw`/`temp_c`, the OLED summary the decoded `pages_hex` and the SHT31
-summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `crc_ok`).
+summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `crc_ok`). The
+ADXL345 is a register file too (`adxl345_read`), with its own map: DEVID `0xE5`, the data
+registers (0x32..0x37) little-endian, and — unlike the IMU's fixed full-scale — the counts
+come from the scale the firmware selected, so `DATA_FORMAT` FULL_RES gives 3.9 mg/LSB at
+every range and 10-bit mode gives `256 >> range` LSB/g; the summary reports the decoded
+`data_format`/`full_res`/`range_g`/`lsb_per_g` alongside `accel_raw`/`accel_g`.
 Other devices live on the SPI peripheral instead of the I2C bus. `ssd1306_spi` (`dc`, `cs`,
 `cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
 and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
@@ -248,7 +261,7 @@ Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_
 `dht` (`pin`, `model`, `temp_c`, `humidity`) answers a one-wire start signal with a
 datasheet-timed bit train. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
-`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050`, `sht31` and `mcp3008`
+`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050`, `adxl345`, `sht31` and `mcp3008`
 components (a `pcf8591`'s `ain` values come from the solved node voltages, and so do the
 MCP3008's eight channels, scaled to codes by its `vref` parameter), and `pin_map` resolves an
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B, a `dht11`/`dht22`'s DATA or an

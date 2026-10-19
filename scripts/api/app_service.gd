@@ -578,6 +578,17 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"gz": float(p.get("gz", 0.0)),
 				"temp_c": float(p.get("temp_c", 25.0)),
 			})
+		elif t == "adxl345":
+			# A served register file like the MPU-6050, but with the ADXL345's own map:
+			# the sample accelerations come from params and their counts follow the scale
+			# the firmware's DATA_FORMAT write selects.
+			out.append({
+				"kind": "adxl345",
+				"address": int(p.get("address", 83)) & 0x7F,
+				"ax": float(p.get("ax", 0.0)),
+				"ay": float(p.get("ay", 0.0)),
+				"az": float(p.get("az", 1.0)),
+			})
 		elif t == "sht31":
 			out.append({
 				"kind": "sht31",
