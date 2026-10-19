@@ -532,6 +532,14 @@
           "default": 100.0,
           "unit": "",
           "label": "Current gain (beta)"
+        },
+        "beta": {
+          "default": 100.0,
+          "label": "Current gain (beta)"
+        },
+        "is": {
+          "default": 1e-14,
+          "label": "Saturation current (A)"
         }
       },
       "model": {
@@ -573,6 +581,14 @@
           "default": 100.0,
           "unit": "",
           "label": "Current gain (beta)"
+        },
+        "beta": {
+          "default": 100.0,
+          "label": "Current gain (beta)"
+        },
+        "is": {
+          "default": 1e-14,
+          "label": "Saturation current (A)"
         }
       },
       "model": {

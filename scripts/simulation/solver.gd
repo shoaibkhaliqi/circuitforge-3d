@@ -232,6 +232,23 @@ func _update_ev(circuit, guess: Dictionary, ctx: Dictionary) -> float:
 	for el in circuit.elements:
 		if not _is_nonlinear(el.type):
 			continue
+		if el.type == "bjt":
+			var vb: float = guess.get(el.nets[0], 0.0)
+			var vc: float = guess.get(el.nets[1], 0.0)
+			var ve: float = guess.get(el.nets[2], 0.0)
+			var vbe_new: float = vb - ve
+			var vbc_new: float = vb - vc
+			var vte: float = V_T
+			var old_be: float = float(ctx.ev.get(el.id, 0.0))
+			var old_bc: float = float(ctx.ev.get(el.id + "_bc", 0.0))
+			var limited_be := _pnjlim(vbe_new, old_be, vte, 0.5)
+			var limited_bc := _pnjlim(vbc_new, old_bc, vte, 0.5)
+			ctx.ev[el.id] = limited_be
+			ctx.ev[el.id + "_bc"] = limited_bc
+			var delta_be: float = abs(limited_be - old_be)
+			var delta_bc: float = abs(limited_bc - old_bc)
+			max_delta = max(max_delta, max(delta_be, delta_bc))
+			continue
 		var vp: float = guess.get(el.nets[0], 0.0)
 		var vn: float = guess.get(el.nets[1], 0.0)
 		var vnew := vp - vn
@@ -371,7 +388,15 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 				mna.a[row][inp - 1] -= gain
 			if inn > 0:
 				mna.a[row][inn - 1] += gain
-			mna.z[row] = 0.0
+			# Output saturation to supply rails (if provided).
+			var vdd: float = float(el.params.get("vdd", el.params.get("vcc", 5.0)))
+			var vss: float = float(el.params.get("vss", el.params.get("gnd", 0.0)))
+			var g: Dictionary = ctx.get("guess", {})
+			var vplus: float = float(g.get(el.nets[2], 0.0))
+			var vminus: float = float(g.get(el.nets[3], 0.0))
+			var vout_ideal: float = gain * (vplus - vminus)
+			var vout_clamped: float = clampf(vout_ideal, vss, vdd)
+			mna.z[row] = vout_clamped
 		"comparator":
 			var row: int = branch_rows[el.id]
 			var out_net: String = String(el.nets[el.nets.size() - 1])
@@ -477,6 +502,44 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 				var row: int = branch_rows["%s#Q%d" % [el.id, qi]]
 				mna.add_branch(qidx, 0, row)
 				mna.branch_extra(row, -rout_ct, bitval)
+		"bjt":
+			var b: int = node_index.get(el.nets[0], -1)
+			var c: int = node_index.get(el.nets[1], -1)
+			var e: int = node_index.get(el.nets[2], -1)
+			if b < 0 or c < 0 or e < 0:
+				_warn("BJT '%s' has an unconnected terminal; ignored." % el.id)
+				return
+			var isat: float = float(el.params.get("is", 1e-14))
+			var beta: float = max(1.0, float(el.params.get("beta", 100.0)))
+			var vte: float = V_T
+			var vbe: float = float(ctx.ev.get(el.id, 0.0))
+			var vbc: float = float(ctx.ev.get(el.id + "_bc", 0.0))
+			var exp_be: float = exp(clamp(vbe / vte, -EXP_LIMIT, EXP_LIMIT))
+			var exp_bc: float = exp(clamp(vbc / vte, -EXP_LIMIT, EXP_LIMIT))
+			var ic: float = isat * (exp_be - exp_bc)
+			var ib: float = ic / beta
+			var gm: float = isat * exp_be / vte
+			var gbe: float = isat * exp_be / (beta * vte)
+			var gbc: float = isat * exp_bc / vte
+			# VCCS from E to C controlled by Vbe (collector current)
+			if c > 0:
+				mna.a[c - 1][b - 1] += gm if b > 0 else 0.0
+				mna.a[c - 1][e - 1] -= gm
+			if e > 0:
+				mna.a[e - 1][b - 1] -= gm if b > 0 else 0.0
+				mna.a[e - 1][e - 1] += gm
+			if c > 0:
+				mna.z[c - 1] += gm * vbe - ic
+			if e > 0:
+				mna.z[e - 1] -= gm * vbe - ic
+			# Base-emitter diode conductance (base current)
+			if b > 0 and e > 0:
+				mna.add_g(b, e, gbe)
+				mna.add_i(b, e, gbe * vbe - ib)
+			# Base-collector diode (reverse)
+			if b > 0 and c > 0:
+				mna.add_g(b, c, gbc)
+				mna.add_i(b, c, gbc * vbc - isat * (exp_bc - 1.0))
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -661,6 +724,14 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			if branch_rows.has(el.id + "#Q0"):
 				return x[branch_rows[el.id + "#Q0"]]
 			return 0.0
+		"bjt":
+			var vbe: float = float(ctx.ev.get(el.id, 0.0))
+			var vbc: float = float(ctx.ev.get(el.id + "_bc", 0.0))
+			var isat: float = float(el.params.get("is", 1e-14))
+			var vte: float = V_T
+			var exp_be: float = exp(clamp(vbe / vte, -EXP_LIMIT, EXP_LIMIT))
+			var exp_bc: float = exp(clamp(vbc / vte, -EXP_LIMIT, EXP_LIMIT))
+			return isat * (exp_be - exp_bc)
 		"vout":
 			var vset: float = float(el.params.get("voltage", 0.0))
 			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))
@@ -699,7 +770,7 @@ func _is_linear(circuit) -> bool:
 
 
 func _is_nonlinear(t: String) -> bool:
-	return t == "diode" or t == "led" or t == "zener" or t == "logic" or t == "comparator" or t == "flipflop" or t == "shiftreg" or t == "counter"
+	return t == "diode" or t == "led" or t == "zener" or t == "logic" or t == "comparator" or t == "flipflop" or t == "shiftreg" or t == "counter" or t == "bjt"
 
 
 func _warn(msg: String) -> void:

@@ -448,7 +448,15 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			out.append(_el(cid, "vsource", [nets[0], nets[1] if nets.size() > 1 else nets[0]], {"v": vreg}))
 		"buck_mp1584", "boost_mt3608", "buck_boost_xl6009", "tp4056_charger", "fuse_holder", "relay_module_5v":
 			out.append(_el(cid, "vsource", nets, {"v": float(params.get("vout", params.get("v", 5.0)))}))
-		"npn_transistor", "pnp_transistor", "nmos_transistor", "darlington_transistor":
+		"npn_transistor":
+			# NPN BJT: Ebers-Moll model (collector current follows Vbe).
+			if nets.size() >= 3:
+				out.append(_el(cid, "bjt", [String(nets[1]), String(nets[0]), String(nets[2])], {"is": float(params.get("is", 1e-14)), "beta": float(params.get("beta", 100.0))}))
+		"pnp_transistor":
+			# PNP BJT: same model with reversed polarity.
+			if nets.size() >= 3:
+				out.append(_el(cid, "bjt", [String(nets[1]), String(nets[0]), String(nets[2])], {"is": float(params.get("is", 1e-14)), "beta": float(params.get("beta", 100.0))}))
+		"nmos_transistor", "darlington_transistor":
 			out.append(_el(cid, "resistor", nets, {"r": 0.1 if bool(params.get("on", params.get("driven", false))) else 1e9}))
 		"tvs_diode", "photodiode":
 			out.append(_el(cid, "diode", nets, {"is": 1e-12, "n": 1.0}))
