@@ -362,4 +362,20 @@ func run(t) -> void:
 	var specs9: Array = app8._firmware_devices({}, built8.pin_nets, {})
 	t.check(specs9.is_empty(), "unmapped DQ => no spec (nothing to answer the bus)", str(specs9))
 
+	# E-paper panel: DC and CS resolved from pin_map like the OLED/TFT.
+	var app9 = AppService.new()
+	app9.session.add_component("ground", ["TM1"])
+	app9.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # DC
+	app9.session.add_component("mcu_pin", ["b3", "TM7"], {}, "P2")     # CS
+	app9.session.add_component("epaper_213",
+		["TM4", "TP4", "d5", "d6", "a3", "a2", "a4", "a5"], {}, "E1")
+	var built9: Dictionary = app9.session.build_circuit()
+	var specs10: Array = app9._firmware_devices({}, built9.pin_nets, {"9": "P1", "10": "P2"})
+	t.check(specs10.size() == 1, "e-paper produces one device spec", str(specs10))
+	if specs10.size() == 1:
+		var se: Dictionary = specs10[0]
+		t.check(String(se.get("kind", "")) == "epaper_spi", "spec kind is epaper_spi")
+		t.check(int(se.get("dc", -1)) == 9, "DC pin resolved from pin_map", str(se))
+		t.check(int(se.get("cs", -1)) == 10, "CS pin resolved from pin_map", str(se))
+
 	t.done()

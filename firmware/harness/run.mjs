@@ -304,6 +304,71 @@ function makeIli9341(width, height) {
   };
 }
 
+// E-paper (Waveshare 2.13") SPI frame: a monochrome panel addressed by a single RAM
+// write (command 0x10) followed by a refresh (0x12). DC low = command, DC high = data,
+// exactly like the SSD1306/ILI9341 panels; CS frames the transaction. The frame buffer
+// is row-major, one bit per pixel (0 = black, 1 = white). BUSY/RST are not electrically
+// modelled - the decoded frame and the byte count are what a driver's output can be
+// checked against.
+function makeEpaper(width, height) {
+  const bytesPerRow = Math.ceil(width / 8);
+  const totalBytes = bytesPerRow * height;
+  const fb = new Uint8Array(totalBytes);
+  let writeMode = false;
+  let idx = 0;
+  let dataBytes = 0;
+  let refreshed = false;
+  let displayOn = false;
+  const ARGC = { 0x10: 0, 0x11: 1, 0x12: 0, 0x13: 0, 0x20: 1, 0x21: 1, 0x22: 1,
+    0x24: 0, 0x26: 1, 0x32: 0, 0x3c: 1, 0x3f: 1, 0x44: 2, 0x45: 2, 0x4e: 1,
+    0x4f: 2 };
+  let cmd = -1;
+  let args = [];
+  const applyCmd = (c) => {
+    if (c === 0x10) writeMode = true;
+    else if (c === 0x12) { refreshed = true; writeMode = false; }
+    else if (c === 0x11) displayOn = true;
+  };
+  const writeCommand = (b) => {
+    writeMode = false;
+    cmd = -1;
+    args = [];
+    if (ARGC[b] > 0) { cmd = b; args = []; }
+    else applyCmd(b);
+  };
+  const writeData = (b) => {
+    dataBytes++;
+    b &= 0xff;
+    if (cmd >= 0) {
+      args.push(b);
+      if (args.length >= ARGC[cmd]) { applyCmd(cmd); cmd = -1; args = []; }
+      return;
+    }
+    if (!writeMode) return;
+    if (idx < totalBytes) fb[idx++] = b;
+  };
+  return {
+    writeCommand,
+    writeData,
+    fields: () => {
+      let set = 0;
+      for (let i = 0; i < totalBytes; i++) {
+        const v = fb[i];
+        for (let x = v; x; x >>= 1) set += x & 1;
+      }
+      let hash = 0x811c9dc5;
+      for (let i = 0; i < totalBytes; i++) {
+        hash ^= fb[i]; hash = Math.imul(hash, 0x01000193) >>> 0;
+      }
+      return {
+        width, height, data_bytes: dataBytes, bytes_written: idx,
+        pixels_set: set, frame_hash: hash.toString(16).padStart(8, '0'),
+        refreshed, display_on: displayOn,
+      };
+    },
+  };
+}
+
 // Level of a pin driven by the MCU right now (1 = high, 0 = low or input). Uses the same
 // UNO_PIN table as the transition recorder.
 function levelOfPin(pin) {
@@ -417,6 +482,36 @@ function buildDevices() {
         summary() {
           return {
             kind: this.kind, dc_pin: this.dc, cs_pin: this.cs,
+            bytes: this.bytes, deselected: this.deselected,
+            ...this.core.fields(),
+          };
+        },
+      });
+      continue;
+    }
+    if (s.kind === 'epaper_spi') {
+      // E-paper panel on the SPI peripheral: same DC/CS tagging as the OLED/TFT, but a
+      // monochrome frame buffer (one bit per pixel) and a refresh command (0x12) that
+      // latches the frame. BUSY/RST are not modelled electrically.
+      const core = makeEpaper(
+        Math.max(1, Math.min(400, Number(s.width ?? 250))),
+        Math.max(1, Math.min(400, Number(s.height ?? 122))));
+      spiDevices.push({
+        kind: 'epaper_spi',
+        dc: Number.isFinite(Number(s.dc)) ? Number(s.dc) : -1,
+        cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
+        bytes: 0,
+        deselected: 0,
+        selected: false,
+        core,
+        onByte(b) {
+          if (this.dc >= 0 && levelOfPin(this.dc) === 1) this.core.writeData(b);
+          else this.core.writeCommand(b);
+          return 0x00;
+        },
+        summary() {
+          return {
+            kind: 'epaper_spi', dc_pin: this.dc, cs_pin: this.cs,
             bytes: this.bytes, deselected: this.deselected,
             ...this.core.fields(),
           };

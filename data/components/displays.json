@@ -8,16 +8,86 @@
       "category": "Display",
       "subcategory": "Character LCD",
       "description": "HD44780-compatible 16x2 character LCD. 16-pin parallel interface.",
-      "keywords": ["lcd", "1602", "hd44780", "character", "16x2", "display"],
-      "interfaces": ["Parallel"],
-      "pins": [
-        {"name": "VSS", "type": "ground"}, {"name": "VDD", "type": "power"}, {"name": "V0", "type": "analog"},
-        {"name": "RS", "type": "input"}, {"name": "RW", "type": "input"}, {"name": "E", "type": "input"},
-        {"name": "D0", "type": "bidirectional"}, {"name": "D1", "type": "bidirectional"}, {"name": "D2", "type": "bidirectional"}, {"name": "D3", "type": "bidirectional"},
-        {"name": "D4", "type": "bidirectional"}, {"name": "D5", "type": "bidirectional"}, {"name": "D6", "type": "bidirectional"}, {"name": "D7", "type": "bidirectional"},
-        {"name": "A", "type": "power"}, {"name": "K", "type": "ground"}
+      "keywords": [
+        "lcd",
+        "1602",
+        "hd44780",
+        "character",
+        "16x2",
+        "display"
       ],
-      "model": {"shape": "lcd1602"},
+      "interfaces": [
+        "Parallel"
+      ],
+      "pins": [
+        {
+          "name": "VSS",
+          "type": "ground"
+        },
+        {
+          "name": "VDD",
+          "type": "power"
+        },
+        {
+          "name": "V0",
+          "type": "analog"
+        },
+        {
+          "name": "RS",
+          "type": "input"
+        },
+        {
+          "name": "RW",
+          "type": "input"
+        },
+        {
+          "name": "E",
+          "type": "input"
+        },
+        {
+          "name": "D0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A",
+          "type": "power"
+        },
+        {
+          "name": "K",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "lcd1602"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -29,23 +99,64 @@
       "category": "Display",
       "subcategory": "Character LCD",
       "description": "16x2 character LCD with a PCF8574 I2C backpack (4-pin header).",
-      "keywords": ["lcd", "1602", "i2c", "pcf8574", "display"],
-      "protocols": ["I2C"],
-      "interfaces": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      "keywords": [
+        "lcd",
+        "1602",
+        "i2c",
+        "pcf8574",
+        "display"
       ],
-      "model": {"shape": "lcd1602_i2c"},
+      "protocols": [
+        "I2C"
+      ],
+      "interfaces": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "lcd1602_i2c"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["hd44780-i2c"],
+      "simulation_models": [
+        "hd44780-i2c"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 39, "label": "I2C address (7-bit)"},
-        "cols": {"default": 16, "label": "Columns", "min": 1, "max": 40},
-        "rows": {"default": 2, "label": "Rows", "min": 1, "max": 4}
+        "address": {
+          "default": 39,
+          "label": "I2C address (7-bit)"
+        },
+        "cols": {
+          "default": 16,
+          "label": "Columns",
+          "min": 1,
+          "max": 40
+        },
+        "rows": {
+          "default": 2,
+          "label": "Rows",
+          "min": 1,
+          "max": 4
+        }
       },
       "notes": "No breadboard electrical model: the harness decodes the HD44780 4-bit protocol from the backpack's PCF8574 writes (RS/RW/E/backlight + D4..D7) and returns the visible text in run_firmware's devices[].lines. Commands (clear, home, set DDRAM/CGRAM address) and character writes are tracked; timing, busy flag, CGRAM custom glyphs and display shifting are not modelled."
     },
@@ -55,23 +166,64 @@
       "category": "Display",
       "subcategory": "OLED",
       "description": "Monochrome 0.96\" OLED display, I2C 4-pin interface.",
-      "keywords": ["oled", "ssd1306", "128x64", "i2c", "display"],
-      "protocols": ["I2C"],
-      "interfaces": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      "keywords": [
+        "oled",
+        "ssd1306",
+        "128x64",
+        "i2c",
+        "display"
       ],
-      "model": {"shape": "oled_i2c"},
+      "protocols": [
+        "I2C"
+      ],
+      "interfaces": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "oled_i2c"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["ssd1306-gddram"],
+      "simulation_models": [
+        "ssd1306-gddram"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 60, "label": "I2C address (7-bit)"},
-        "cols": {"default": 128, "label": "Columns", "min": 1, "max": 256},
-        "pages": {"default": 8, "label": "Pages (8 rows each)", "min": 1, "max": 16}
+        "address": {
+          "default": 60,
+          "label": "I2C address (7-bit)"
+        },
+        "cols": {
+          "default": 128,
+          "label": "Columns",
+          "min": 1,
+          "max": 256
+        },
+        "pages": {
+          "default": 8,
+          "label": "Pages (8 rows each)",
+          "min": 1,
+          "max": 16
+        }
       },
       "notes": "No breadboard electrical model: the harness decodes the SSD1306 command/data stream from I2C writes into the GDDRAM frame and returns it in run_firmware's devices[].pages_hex (plus pixels_set and display_on). Command/data are distinguished by the control byte (bit6 = D/C), and page/horizontal/vertical addressing with the 0x21/0x22 range commands is tracked, so a driver's frame writes land correctly. Not modelled: the panel optics, contrast/charge-pump effects, scrolling and the 0x2E/0x2F hardware scroll, and text (there is no font in the harness)."
     },
@@ -81,23 +233,72 @@
       "category": "Display",
       "subcategory": "OLED",
       "description": "Monochrome OLED display with a 7-pin SPI interface.",
-      "keywords": ["oled", "ssd1306", "spi", "128x64", "display"],
-      "protocols": ["SPI"],
-      "interfaces": ["SPI"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
-        {"name": "D0", "type": "clock"}, {"name": "D1", "type": "bidirectional"},
-        {"name": "RES", "type": "input"}, {"name": "DC", "type": "input"}, {"name": "CS", "type": "input"}
+      "keywords": [
+        "oled",
+        "ssd1306",
+        "spi",
+        "128x64",
+        "display"
       ],
-      "model": {"shape": "oled_spi"},
+      "protocols": [
+        "SPI"
+      ],
+      "interfaces": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "D0",
+          "type": "clock"
+        },
+        {
+          "name": "D1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "RES",
+          "type": "input"
+        },
+        {
+          "name": "DC",
+          "type": "input"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "oled_spi"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["ssd1306-spi-gddram"],
+      "simulation_models": [
+        "ssd1306-spi-gddram"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "cols": {"default": 128, "label": "Columns", "min": 1, "max": 256},
-        "pages": {"default": 8, "label": "Pages (8 rows each)", "min": 1, "max": 16}
+        "cols": {
+          "default": 128,
+          "label": "Columns",
+          "min": 1,
+          "max": 256
+        },
+        "pages": {
+          "default": 8,
+          "label": "Pages (8 rows each)",
+          "min": 1,
+          "max": 16
+        }
       },
       "notes": "No breadboard electrical model: the harness taps the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins, MOSI = D11 / SCK = D13 - a bit-banged bus is not visible to it) and decodes the SSD1306 command/data stream into the GDDRAM frame, returned in run_firmware's devices[].pages_hex (plus pixels_set and display_on). Command vs data comes from the panel's DC line and CS marks the selected transaction; wire DC and CS to virtual pins and map them with pin_map ({\"9\": \"P1\", ...}) exactly as for a sensor, since attach_devices resolves them from the netlist. Addressing (page/horizontal/vertical, 0x21/0x22 ranges, B0-B7 column set) is shared with the I2C variant. Not modelled: the panel optics, contrast/charge-pump effects, scrolling and text (there is no font in the harness)."
     },
@@ -107,24 +308,81 @@
       "category": "Display",
       "subcategory": "TFT",
       "description": "240x320 colour TFT display with SPI interface and optional touch controller.",
-      "keywords": ["tft", "ili9341", "spi", "colour", "display", "240x320"],
-      "protocols": ["SPI"],
-      "interfaces": ["SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "CS", "type": "input"}, {"name": "RESET", "type": "input"}, {"name": "DC", "type": "input"},
-        {"name": "MOSI", "type": "bidirectional"}, {"name": "SCK", "type": "clock"},
-        {"name": "LED", "type": "power"}, {"name": "MISO", "type": "bidirectional"}
+      "keywords": [
+        "tft",
+        "ili9341",
+        "spi",
+        "colour",
+        "display",
+        "240x320"
       ],
-      "model": {"shape": "tft_ili9341"},
+      "protocols": [
+        "SPI"
+      ],
+      "interfaces": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "RESET",
+          "type": "input"
+        },
+        {
+          "name": "DC",
+          "type": "input"
+        },
+        {
+          "name": "MOSI",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "LED",
+          "type": "power"
+        },
+        {
+          "name": "MISO",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "tft_ili9341"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["ili9341-rgb565"],
+      "simulation_models": [
+        "ili9341-rgb565"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "width": {"default": 240, "label": "Width (px)", "min": 1, "max": 1024},
-        "height": {"default": 320, "label": "Height (px)", "min": 1, "max": 1024}
+        "width": {
+          "default": 240,
+          "label": "Width (px)",
+          "min": 1,
+          "max": 1024
+        },
+        "height": {
+          "default": 320,
+          "label": "Height (px)",
+          "min": 1,
+          "max": 1024
+        }
       },
       "notes": "No breadboard electrical model: the harness taps the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins, MOSI = D11 / SCK = D13 - a bit-banged bus is not visible to it) and decodes the ILI9341 command stream into an RGB565 frame. A DC-low byte is a command; its parameters and the 0x2C pixel stream arrive DC-high, and CS marks the selected transaction - wire DC and CS to virtual pins and map them with pin_map ({\"9\": \"P1\", \"10\": \"P2\"}), since attach_devices resolves them from the netlist. Because a 240x320 frame is 153600 bytes, run_firmware returns a *summary* in devices[] instead of the frame: pixels_written, the distinct color count, an FNV-1a frame_hash over the RGB565 buffer, five probe pixels, the address window, MADCTL/COLMOD and display_on. The 0x2A/0x2B/0x2C commands and the usual init registers are decoded; MADCTL (rotation/orientation) is recorded but not applied, 18-bit COLMOD and the touch controller are not modelled, and an unrecognised command is assumed to take no arguments."
     },
@@ -134,18 +392,74 @@
       "category": "Display",
       "subcategory": "E-Paper",
       "description": "2.13\" black/white e-paper display with an SPI interface.",
-      "keywords": ["epaper", "e-ink", "waveshare", "spi", "display"],
-      "protocols": ["SPI"],
-      "interfaces": ["SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "DIN", "type": "bidirectional"}, {"name": "CLK", "type": "clock"},
-        {"name": "CS", "type": "input"}, {"name": "DC", "type": "input"}, {"name": "RST", "type": "input"}, {"name": "BUSY", "type": "output"}
+      "keywords": [
+        "epaper",
+        "e-ink",
+        "waveshare",
+        "spi",
+        "display"
       ],
-      "model": {"shape": "epaper_module"},
+      "protocols": [
+        "SPI"
+      ],
+      "interfaces": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "DIN",
+          "type": "bidirectional"
+        },
+        {
+          "name": "CLK",
+          "type": "clock"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "DC",
+          "type": "input"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        },
+        {
+          "name": "BUSY",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "epaper_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "epaper-spi"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "width": {
+          "default": 250,
+          "label": "Width (px)"
+        },
+        "height": {
+          "default": 122,
+          "label": "Height (px)"
+        }
+      },
+      "notes": "No breadboard electrical model: the harness decodes the SPI command/data stream (DC low = command, DC high = data) into a monochrome frame buffer (one bit per pixel), triggered by the 0x12 refresh command. DC and CS are resolved from pin_map like the OLED/TFT. BUSY/RST are not electrically modelled."
     },
     {
       "id": "seven_segment",
@@ -153,14 +467,65 @@
       "category": "Display",
       "subcategory": "LED",
       "description": "Single common-cathode 7-segment digit (8 LED segments including decimal point).",
-      "keywords": ["7 segment", "seven segment", "digit", "led", "display"],
-      "pins": [
-        {"name": "A", "type": "passive"}, {"name": "B", "type": "passive"}, {"name": "C", "type": "passive"}, {"name": "D", "type": "passive"},
-        {"name": "E", "type": "passive"}, {"name": "F", "type": "passive"}, {"name": "G", "type": "passive"}, {"name": "DP", "type": "passive"},
-        {"name": "COM", "type": "passive"}
+      "keywords": [
+        "7 segment",
+        "seven segment",
+        "digit",
+        "led",
+        "display"
       ],
-      "params": {"common": {"default": "cathode", "unit": "", "label": "Common pin", "options": ["anode", "cathode"]}},
-      "model": {"shape": "seven_segment"},
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "B",
+          "type": "passive"
+        },
+        {
+          "name": "C",
+          "type": "passive"
+        },
+        {
+          "name": "D",
+          "type": "passive"
+        },
+        {
+          "name": "E",
+          "type": "passive"
+        },
+        {
+          "name": "F",
+          "type": "passive"
+        },
+        {
+          "name": "G",
+          "type": "passive"
+        },
+        {
+          "name": "DP",
+          "type": "passive"
+        },
+        {
+          "name": "COM",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "common": {
+          "default": "cathode",
+          "unit": "",
+          "label": "Common pin",
+          "options": [
+            "anode",
+            "cathode"
+          ]
+        }
+      },
+      "model": {
+        "shape": "seven_segment"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Each segment is an LED (8 including the decimal point). Drive the segment pins with mcu_pins; multiplexing/brightness are not simulated.",
@@ -172,13 +537,42 @@
       "category": "Display",
       "subcategory": "LED Matrix",
       "description": "8x8 LED dot matrix with a MAX7219 SPI driver.",
-      "keywords": ["max7219", "matrix", "8x8", "led", "spi", "display"],
-      "protocols": ["SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "DIN", "type": "input"}, {"name": "CS", "type": "input"}, {"name": "CLK", "type": "clock"}
+      "keywords": [
+        "max7219",
+        "matrix",
+        "8x8",
+        "led",
+        "spi",
+        "display"
       ],
-      "model": {"shape": "max7219_module"},
+      "protocols": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "DIN",
+          "type": "input"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "CLK",
+          "type": "clock"
+        }
+      ],
+      "model": {
+        "shape": "max7219_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -189,12 +583,34 @@
       "category": "Display",
       "subcategory": "Addressable LED",
       "description": "Individually addressable RGB LED with an integrated controller (NeoPixel).",
-      "keywords": ["ws2812", "neopixel", "rgb", "addressable", "led"],
-      "pins": [
-        {"name": "VDD", "type": "power"}, {"name": "DOUT", "type": "output"},
-        {"name": "VSS", "type": "ground"}, {"name": "DIN", "type": "input"}
+      "keywords": [
+        "ws2812",
+        "neopixel",
+        "rgb",
+        "addressable",
+        "led"
       ],
-      "model": {"shape": "ws2812"},
+      "pins": [
+        {
+          "name": "VDD",
+          "type": "power"
+        },
+        {
+          "name": "DOUT",
+          "type": "output"
+        },
+        {
+          "name": "VSS",
+          "type": "ground"
+        },
+        {
+          "name": "DIN",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "ws2812"
+      },
       "mounting": "smd",
       "simulation_status": "planned",
       "arduino_compatible": true,

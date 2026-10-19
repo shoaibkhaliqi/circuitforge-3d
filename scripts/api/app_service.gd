@@ -532,6 +532,20 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"cols": clampi(int(p.get("cols", 128)), 1, 256),
 						"pages": clampi(int(p.get("pages", 8)), 1, 16),
 					})
+		elif t == "epaper_213":
+			# E-paper panel on SPI: DC/CS resolved from pin_map like the OLED/TFT.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 8:
+				var dc := _net_pin(String(nets[5]), pin_map, pin_nets)
+				var cs := _net_pin(String(nets[4]), pin_map, pin_nets)
+				if dc >= 0:
+					out.append({
+						"kind": "epaper_spi",
+						"dc": dc,
+						"cs": cs,
+						"width": 250,
+						"height": 122,
+					})
 		elif t == "tft_ili9341":
 			# The colour TFT, resolved exactly like the SPI OLED: no address to fall back
 			# on, so its DC (command/data, pin 4) and CS (selected, pin 2) lines come from
