@@ -177,7 +177,12 @@ needs its DC and CS lines wired to virtual pins and mapped (the panel has no add
 those two lines are how the run knows which byte is a command and which panel is selected —
 see `firmware/sketches/oled_spi`). The colour `tft_ili9341` works the same way as the SPI
 OLED (`firmware/sketches/tft_fill`); its frame is reported as a summary (lit-pixel count,
-colours, a frame hash and probe pixels) rather than the whole 240x320 buffer.
+colours, a frame hash and probe pixels) rather than the whole 240x320 buffer. The other
+direction on that bus is a `mcp3008` ADC: it needs its CS line mapped like the SPI panel's
+DC/CS, but it *answers* firmware's reads instead of listening — each conversion returns the
+10-bit code for that channel's solved node voltage over the part's `vref` parameter, so a
+sketch can `analogRead` the whole circuit through eight extra channels
+(`firmware/sketches/spi_adc`, and `devices[].reads` in the run response).
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

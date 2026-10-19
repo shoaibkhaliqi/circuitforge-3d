@@ -14,7 +14,8 @@ call it. It closes the loop in both directions — firmware reads the solved cir
    at a time and prints digital pin transitions (with a per-pin PWM duty summary),
    captured `Serial` output and I2C/SPI bus traces as JSON with emulated timestamps.
    By default the buses have **no device** (I2C is ACKed and recorded, SPI MISO
-   returns 0x00); with `CF_DEVICES` a PCF8574/EEPROM is served on the bus.
+   returns 0x00); with `CF_DEVICES` a device is served on the bus, including SPI
+   parts that answer firmware reads on MISO (the MCP3008).
 
 avr8js is **MIT**, so it can be shipped alongside the MIT app; `arduino-cli` and
 Node are treated as optional external tools, never bundled. See
@@ -74,6 +75,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/oled_spi firmware/sketches/oled_spi
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/tft_fill firmware/sketches/tft_fill
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/spi_adc firmware/sketches/spi_adc
 
 # 2. execute + inspect
 cd firmware/harness
@@ -105,6 +108,7 @@ node verify_4phase.mjs ../build/stepper_4phase/stepper_4phase.ino.hex
 node verify_motion.mjs ../build/motion_demo/motion_demo.ino.hex
 node verify_oled_spi.mjs ../build/oled_spi/oled_spi.ino.hex
 node verify_tft.mjs ../build/tft_fill/tft_fill.ino.hex
+node verify_spi_adc.mjs ../build/spi_adc/spi_adc.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -122,6 +126,11 @@ SPI panel plus a negative control with no DC line, so the check fails if DC is n
 what tags command vs data. `verify_tft.mjs` does the same for the ILI9341 colour TFT: it
 recomputes the FNV-1a hash from the expected red/blue pattern (so all 76800 pixels count),
 checks the byte accounting and probe geometry, and reruns the bytes with no DC line.
+`verify_spi_adc.mjs` is the *read* direction on that same peripheral: the MCP3008 answers
+on MISO, and the verifier asserts the 10-bit codes the sketch printed are the ones the spec
+implies (3.3 V → 675, 1.25 V → 256, 0 V → 0, 5 V → 1023 over a 5 V reference known as
+`vref`), the per-read volts and the raw trace, plus a full-scale control and a no-device
+control where the bus idles at 0x00 so the same firmware must read zeros.
 `verify_encoder.mjs` asserts the incremental encoder
 decodes to exactly the emitted steps, forwards and backwards. `verify_dht.mjs` asserts a
 hand-written one-wire driver decodes DHT22 (including a negative temperature) and DHT11
@@ -203,6 +212,10 @@ CF_DEVICES='[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]' \
 # Capstone: a DHT22 and a 16x2 I2C LCD in one sketch -> LCD text and serial agree
 CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48},{"kind":"lcd1602","address":39,"cols":16,"rows":2}]' \
   node run.mjs ../build/env_logger/env_logger.ino.hex 300
+
+# MCP3008 on the SPI peripheral (CS = D10): CH0..CH3 answer reads with 10-bit codes
+CF_DEVICES='[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]' \
+  node run.mjs ../build/spi_adc/spi_adc.ino.hex 900
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
@@ -213,7 +226,7 @@ are served on the I2C bus; the EEPROM summary also returns the memory image (`me
 LCD summary the decoded `lines`, the IMU summary the decoded
 `accel_raw`/`gyro_raw`/`temp_c`, the OLED summary the decoded `pages_hex` and the SHT31
 summary the raw 16-bit words plus both checksums (`temp_raw`/`humidity_raw`, `crc_ok`).
-One device lives on the SPI peripheral instead of the I2C bus: `ssd1306_spi` (`dc`, `cs`,
+Other devices live on the SPI peripheral instead of the I2C bus. `ssd1306_spi` (`dc`, `cs`,
 `cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
 and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
 `ili9341` (`dc`, `cs`, `width`, `height`) is the same idea with an RGB565 engine: DC low is a
@@ -222,19 +235,28 @@ is 153600 bytes it returns a *summary* (the bytes/data counts, `pixels_written`,
 FNV-1a `frame_hash` over the whole buffer, five `probes`, the address `window`, `madctl`,
 `colmod`, `display_on`, `sleeping`) instead of the buffer. Since a TFT frame makes the raw
 trace 150k+ bytes, `spi_bytes` is capped at 4096 (`CF_SPI_LIMIT`) with the true length in
-`spi_byte_count`.
+`spi_byte_count`. `mcp3008` (`cs`, `vref`, `ain`) is the first SPI device that firmware can
+*read*: it answers on MISO (each selected device returns the byte MISO carries; the two panels
+never do), and the CS high → low edge, not the byte values, frames a conversion. It serves the
+datasheet's three transfers (`0x01`, then `0x80 | channel << 4`, then a don't-care) and clocks
+out a leading zero bit plus the 10-bit code, so a driver's `((hi & 0x03) << 8) | lo` gets the
+value; every conversion is recorded (`reads[]` with channel/code/volts, `conversions`) and a
+differential request is answered with the channel's single-ended code and counted.
 Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_sr04`
 (`trig`, `echo`, `distance_cm`) watches TRIG and pulses ECHO; `encoder` (`a`, `b`,
 `counts`, `direction`, `step_us`) steps a quadrature A/B pair through a Gray cycle; and
 `dht` (`pin`, `model`, `temp_c`, `humidity`) answers a one-wire start signal with a
 datasheet-timed bit train. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
-`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050` and `sht31` components (a
-`pcf8591`'s `ain` values come from the solved node voltages), and `pin_map` resolves an
+`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050`, `sht31` and `mcp3008`
+components (a `pcf8591`'s `ain` values come from the solved node voltages, and so do the
+MCP3008's eight channels, scaled to codes by its `vref` parameter), and `pin_map` resolves an
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B, a `dht11`/`dht22`'s DATA or an
 `oled_ssd1306_spi`'s DC/CS from the
 netlist (the SPI panel has no address, so those two lines are how the app knows which pin
-tags a byte and which selects the panel); the `tft_ili9341` TFT resolves DC/CS the same way.
+tags a byte and which selects the panel); the `tft_ili9341` TFT resolves DC/CS the same way,
+and the `mcp3008` resolves its CS the same way (without it a conversion cannot be framed, so
+the part is skipped).
 A mapped `servo_sg90`/`servo_mg996r` needs no harness device at all — it is an
 *output*, so the app decodes the commanded angle from the pulse widths the sketch drove
 (`run_firmware`'s `servos`, or `apply_firmware_servo` to write it onto the part's `angle`;

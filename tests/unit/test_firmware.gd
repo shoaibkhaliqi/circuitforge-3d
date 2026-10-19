@@ -261,4 +261,38 @@ func run(t) -> void:
 		t.check(int(tp.get("cs", -1)) == 10, "TFT CS pin resolved from pin_map", str(tp))
 		t.check(int(tp.get("width", 0)) == 240 and int(tp.get("height", 0)) == 320, "TFT size from params")
 
+	# The SPI ADC answers reads: its CS comes from pin_map (pin 9) and its CH0..CH7 pins
+	# are probes on the solved nets, so a divider the circuit solves can be read by
+	# firmware. Without CS a conversion cannot be framed, so the part is skipped.
+	var app4 = AppService.new()
+	app4.session.add_component("ground", ["TM1"])
+	app4.session.add_component("mcu_pin", ["c2", "TM9"], {}, "P2")     # ADC CS
+	app4.session.add_component("mcp3008",
+		["a1", "a4", "a5", "a6", "a7", "a8", "a9", "a10",
+			"TM2", "a2", "d3", "d4", "d5", "TM3", "TP2", "TP3"],
+		{"vref": 3.3}, "M1")
+	var built4: Dictionary = app4.session.build_circuit()
+	var adc_nets: Array = (built4.pin_nets as Dictionary).get("M1", [])
+	t.check(adc_nets.size() == 16, "MCP3008 contributes 16 nets", str(adc_nets))
+	var volts := {}
+	if adc_nets.size() == 16:
+		volts[String(adc_nets[0])] = 2.5
+		volts[String(adc_nets[2])] = 1.0
+	var specs4: Array = app4._firmware_devices(volts, built4.pin_nets, {"9": "P2"})
+	t.check(specs4.size() == 1, "MCP3008 produces one device spec", str(specs4))
+	if specs4.size() == 1:
+		var sp: Dictionary = specs4[0]
+		t.check(String(sp.get("kind", "")) == "mcp3008", "spec kind is mcp3008")
+		t.check(int(sp.get("cs", -1)) == 9, "ADC CS pin resolved from pin_map", str(sp))
+		t.check(absf(float(sp.get("vref", 0.0)) - 3.3) < 1e-6, "ADC vref comes from params")
+		var ain: Array = sp.get("ain", [])
+		t.check(ain.size() == 8, "ADC spec carries eight channels", str(ain))
+		if ain.size() == 8:
+			t.check(absf(float(ain[0]) - 2.5) < 1e-6, "CH0 probes its solved net", str(ain))
+			t.check(absf(float(ain[2]) - 1.0) < 1e-6, "CH2 probes its solved net", str(ain))
+			t.check(absf(float(ain[1])) < 1e-9, "an unwired channel reads 0 V", str(ain))
+	var specs5: Array = app4._firmware_devices(volts, built4.pin_nets, {})
+	t.check(specs5.is_empty(), "unwired ADC CS => no spec (a conversion cannot be framed)",
+		str(specs5))
+
 	t.done()

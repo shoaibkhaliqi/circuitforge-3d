@@ -158,9 +158,14 @@
       ],
       "model": {"shape": "dip16"},
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "external",
+      "simulation_models": ["spi-adc-probe"],
+      "simulation_backend": "firmware",
       "arduino_compatible": true,
-      "notes": "SPI conversion requires a peripheral backend."
+      "params": {
+        "vref": {"default": 5.0, "unit": "V", "label": "Reference voltage"}
+      },
+      "notes": "No breadboard electrical model of its own: the harness serves it on the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins - DIN = D11, CLK = D13 - and a bit-banged bus is invisible), and the part *answers* on MISO, which makes it the first SPI device firmware can read. A conversion is the datasheet's three transfers inside one CS-low window (0x01, then 0x80 | channel << 4, then a don't-care) and the 10-bit code comes back in the low bits of the second byte and all of the third. CH0..CH7 are ADC probes on the solved nets: attach_devices feeds each channel its solved node voltage (the same closed loop as the PCF8591), scaled to a code by 'vref', so a divider or sensor output the circuit solves can be read by firmware. CS must be wired to a virtual pin and mapped with pin_map ({\"10\": \"P2\"}) - without it the harness cannot tell where a conversion begins, so the part is skipped rather than guessed at. Not modelled: differential mode (a differential request is answered with the channel's single-ended code and counted), the VREF *net* (the reference is the 'vref' parameter), conversion timing/throughput, and the analog input's own loading."
     },
     {
       "id": "ads1115",

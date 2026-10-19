@@ -264,7 +264,9 @@ def run_firmware(
 ) -> dict[str, Any]:
     """Run a compiled Arduino HEX and return its digital pin activity and UART output.
 
-    This is the open-loop (Stage B) workflow: no analog feedback yet. Compile a
+    This is the open-loop (Stage B) workflow unless `attach_devices`, `analog_map` or
+    `pin_map` is passed (those close a loop, described below): no analog feedback otherwise.
+    Compile a
     sketch first, e.g. `arduino-cli compile --fqbn arduino:avr:uno --output-dir
     build/blink firmware/sketches/blink`, then pass the `.hex` path. Returns the
     pin transitions (time in ms, level 0/1), the pins the firmware touched, any
@@ -284,7 +286,10 @@ def run_firmware(
     lines are resolved from `pin_map`; the `tft_ili9341` colour TFT, resolved the same way
     and summarised (a 240x320 RGB565 frame is 153600 bytes, so it returns `pixels_written`,
     `colors`, an FNV-1a `frame_hash`, probe pixels and the address window instead of the
-    buffer); and the
+    buffer); the `mcp3008` SPI ADC, resolved the same way through its CS line, which is the
+    first device that *answers* firmware reads: it serves the datasheet's three-transfer
+    conversion on MISO with a 10-bit code taken from that channel's solved node voltage over
+    its `vref` parameter, recorded in `devices[].reads` as `{channel, code, volts}`; and the
     `hcsr04`, whose
     TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so firmware
     can read/write them (device -> firmware feedback, e.g. `Wire.requestFrom`); the
@@ -314,7 +319,9 @@ def run_firmware(
     An `oled_ssd1306_spi` panel is decoded too: it has no address, so those components
     share its DC (command/data) and CS (selected) nets and the MOSI stream the sketch sent
     through the hardware SPI peripheral becomes the GDDRAM frame in `devices`. A
-    `tft_ili9341` colour panel is resolved the same way and summarised (see above).
+    `tft_ili9341` colour panel is resolved the same way and summarised (see above), and an
+    `mcp3008` SPI ADC is resolved the same way too - without its CS line a conversion cannot
+    be framed, so the part is skipped rather than guessed at (see above).
     The response adds `pin_devices`, `pin_inputs`, `servos` and `steppers`.
 
     Args:

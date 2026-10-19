@@ -338,7 +338,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	# `pin_map` also needs the netlist: it is how a firmware pin is drawn to the
 	# net of a servo (the pulse train's destination) as well as to a sensor's.
 	var need_netlist := not analog_map.is_empty() or attach_devices or not pin_map.is_empty()
-	var need_analog := not analog_map.is_empty() or (attach_devices and _has_type("pcf8591"))
+	var need_analog := not analog_map.is_empty() or (attach_devices and (_has_type("pcf8591") or _has_type("mcp3008")))
 	var built := {}
 	var volts_by_node := {}
 	if need_netlist:
@@ -398,7 +398,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	if attach_devices and not analog_map.is_empty():
 		note = "Closed loop: attached bus devices can be read/written, firmware ADC channels read the solved node voltages, and firmware-driven sensors (HC-SR04) can drive MCU input pins; no analog OUTPUT to the circuit."
 	elif attach_devices:
-		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware, and an SPI OLED's frame is decoded from the SPI trace plus its DC/CS lines; analog/ADC feedback still absent."
+		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware, an SPI OLED's frame is decoded from the SPI trace plus its DC/CS lines, and a mapped `mcp3008` ADC answers SPI reads with its channels' solved node voltages; the MCU's own ADC channels still need `analog_map`."
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
@@ -547,6 +547,24 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"cs": cs,
 						"width": clampi(int(p.get("width", 240)), 1, 1024),
 						"height": clampi(int(p.get("height", 320)), 1, 1024),
+					})
+		elif t == "mcp3008":
+			# The SPI ADC has no address either: CS comes from `pin_map`, and its eight
+			# channel pins are ADC probes on the solved nets (the same closed loop as the
+			# PCF8591's AIN0..AIN3). `vref` is a parameter rather than the VREF net.
+			# Without CS the harness cannot frame a conversion, so the part is skipped.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 16:
+				var cs := _net_pin(String(nets[9]), pin_map, pin_nets)
+				if cs >= 0:
+					var ain := []
+					for n in 8:
+						ain.append(clampf(float(node_voltages.get(String(nets[n]), 0.0)), 0.0, 100.0))
+					out.append({
+						"kind": "mcp3008",
+						"cs": cs,
+						"vref": maxf(0.001, float(p.get("vref", 5.0))),
+						"ain": ain,
 					})
 		elif t == "mpu6050":
 			out.append({

@@ -320,6 +320,22 @@ follow [Semantic Versioning](https://semver.org/).
     DC (pin 4) and CS (pin 2) from `pin_map` exactly like the OLED, and the spec builder is
     unit tested for it. Suite 764 → **771**; harness verifiers 21 → **22**; catalog
     `external` 53 → **54**, `planned` 93 → **92**.
+  - **MCP3008 8-channel SPI ADC** (`data/components/analog_ic.json`, `mcp3008` `planned` →
+    `external`): the third SPI device and the first one firmware can *read*. Both panels are
+    written to and never answer, so the monitor had ignored MISO (every transfer returned
+    `0x00`); now each selected device returns what MISO carries, and the monitor detects the
+    CS high → low edge that starts a transaction, because a conversion is framed by CS rather
+    than by byte values. The device serves the datasheet's three transfers inside one CS-low
+    window (`0x01`, then `0x80 | channel << 4`, then a don't-care) and clocks out a leading
+    zero bit and then the 10-bit code, so a driver's `((hi & 0x03) << 8) | lo` gets the value.
+    Its CH0..CH7 pins are probes on the solved nets (the same closed loop as the PCF8591),
+    coded by the part's `vref` parameter, and a conversion is recorded as
+    `reads[] = {channel, code, volts}`. Sketch `firmware/sketches/spi_adc` (hardware SPI,
+    answering on MISO) and `verify_spi_adc.mjs` check the codes the sketch printed against the
+    spec (3.3 V → 675, 1.25 V → 256, 0 V → 0, 5 V → 1023), the per-read volts, the trace and
+    `deselected` = 0, plus a full-scale control and a *no-device* control where the bus idles
+    at 0x00 so the same firmware must read zeros. Suite 771 → **788**; harness verifiers
+    22 → **23**; catalog `external` 54 → **55**, `planned` 92 → **91**.
   - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
     ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
     the true length always reported in `spi_byte_count`; the decoded device summary is the

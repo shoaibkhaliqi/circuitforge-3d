@@ -154,7 +154,9 @@ observable through the engine:
   transaction completes and reads return 0xFF. Verified with
   `firmware/sketches/i2c_write`: transactions to `0x27` with data `[0x00, 0x41]`,
   surfaced as `i2c` / `i2c_addresses` (`["0x27"]`).
-- **SPI**: MOSI bytes are recorded (`spi_bytes`); MISO returns 0x00 (no device).
+- **SPI**: MOSI bytes are recorded (`spi_bytes`) and MISO is driven by whichever served
+  device is selected — with no device attached it stays 0x00, and the MCP3008 (§11n) is the
+  part that answers reads on it.
   The trace is capped at 4096 bytes by default (`CF_SPI_LIMIT`) with the true length in
   `spi_byte_count`, because a full-screen frame is 150k+ bytes; a trimmed trace is never
   presented as the whole one.
@@ -580,7 +582,8 @@ than from an address another device answers.
 - **Limits (honest)**: the same list as the I2C variant (panel optics, charge pump, contrast,
   scrolling, no font), plus: only the SPI peripheral is tapped, so the sketch must use the
   hardware SPI pins (MOSI D11 / SCK D13); DC and CS are read but RES is not, so a sketch that
-  never resets the panel still decodes; and no MISO device is modelled (reads return 0x00).
+  never resets the panel still decodes; and the panel is write-only — MISO is left to a device
+  that answers it (the MCP3008, §11n), so reads from this one return 0x00.
 
 ## 11m. Sixteenth device: ILI9341 colour TFT on SPI
 
@@ -620,6 +623,50 @@ The `tft_ili9341` panel (`planned` → `external`) is the second SPI device and 
   modelled; RES is not read (a sketch that never resets still decodes); and, as for the OLED,
   only the SPI peripheral is tapped, so the sketch must use the hardware SPI pins.
 
+## 11n. Seventeenth device: MCP3008 8-channel ADC on SPI (the first read)
+
+The `mcp3008` (`planned` → `external`) is the third SPI device and the first one firmware can
+*read*: the two displays are written to and never answer, so until now the monitor ignored
+MISO (every transfer returned `0x00`). Answering a read is what makes a real sensor front-end
+possible — the ADC's channels are solved node voltages, so firmware reads the analog surface
+through a device instead of through the MCU's own ADC.
+
+- **Harness change**: the SPI monitor now hands each *selected* device the byte and lets it
+  return what MISO should carry (`miso |= d.onByte(b)`), and it detects the CS high → low edge
+  that starts a transaction (`d.select()`), because a conversion is framed by CS, not by the
+  byte values. The two panels keep their behaviour (their `onByte` returns 0), so their
+  summaries are unchanged.
+- **Model**: `{kind:'mcp3008', cs, vref, ain}` — three transfers inside one CS-low window:
+  `0x01` (start; nothing is clocked out), then `0x80 | (channel << 4)` (single-ended plus the
+  channel number in bits 6..4), then a don't-care. The 10-bit code is clocked out as a leading
+  zero bit followed by the result, so the second transfer returns `(code >> 8) & 0x03` and the
+  third `code & 0xff`, which is exactly what the datasheet's `((hi & 0x03) << 8) | lo` expects.
+  Codes are `round(clamp(v, 0, vref) / vref * 1023)` from the channel voltages, and every
+  conversion is recorded (`reads[]` with channel/code/volts, plus `conversions`).
+- **Path**: like the SPI panels there is no address, so the app resolves the ADC's CS (pin 9)
+  through `pin_map`, and its CH0..CH7 pins are probes on the solved nets (the same closed loop
+  as the PCF8591's AIN0..AIN3), with `vref` a parameter (default 5 V) rather than the VREF net.
+  Without a mapped CS a conversion cannot be framed, so the part is skipped rather than guessed
+  at. `run_firmware` asks for the DC solve when an `mcp3008` is in the circuit, exactly as for
+  the PCF8591.
+- **Verified**: `firmware/sketches/spi_adc` reads channels 0..3 twice with hand-written
+  datasheet transfers (hardware SPI: DIN D11 / CLK D13, answering on MISO D12) and prints the
+  raw codes. `verify_spi_adc.mjs` asserts the codes the sketch printed are the ones the spec
+  implies (3.3 V → 675, 1.25 V → 256, 0 V → 0, 5 V → 1023 over `vref` 5 V), the per-read volts,
+  the byte accounting and the raw trace, and `deselected` = 0 (every transfer sits inside a
+  CS-low window); a **full-scale control** (`ain` = 5 V) shows the codes follow the spec rather
+  than a constant, and the **negative control** runs the same firmware with **no device
+  attached** — the bus then idles at 0x00, so every channel must read 0, which proves the codes
+  came from the device model on the bus and not from the sketch. The app-side CS/vref/channel
+  resolution and the unwired-CS skip are unit tested, the part's status/handles() pair by
+  `tests/unit/test_netlist.gd`, and a divider the solver solves was read back end to end
+  (2.5 V → code 512) before the change was committed.
+- **Limits (honest)**: differential mode is not modelled (a differential request is answered
+  with the channel's single-ended code and counted in `differential_requests`); the reference is
+  the `vref` parameter, not the VREF net's solved voltage; conversion timing/throughput and the
+  input's own loading on the source are not modelled; and, as for the panels, only the SPI
+  peripheral is tapped, so a bit-banged bus is invisible.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -654,8 +701,10 @@ then puts both actuators in one project and one run, so the two output decoders 
 against a single transition record, and the SPI devices — the SSD1306 OLED (§11l) and the
 ILI9341 colour TFT (§11m) — close the last named M7 gap by decoding a display from the SPI
 peripheral, where the command/data split comes from a DC line the app resolves like a sensor
-pin. Remaining work: the gas/analog modules that need
-a real ADC path, and a
+pin. The MCP3008 (§11n) then runs that same bus the *other* way: it *answers* firmware's reads
+on MISO with codes derived from the solved node voltages, so an ADC front-end is part of the
+same loop and the SPI surface is no longer write-only. Remaining work: the gas/analog modules
+(which now have an ADC path to hang off, but no models of their own), and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
 integration ever cannot meet the gate (e.g. timing or packaging), fall back to a
 separately-installed `simavr` and keep the feature capability-flagged.

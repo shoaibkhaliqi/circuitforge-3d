@@ -103,6 +103,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"ssd1306_spi","dc":9,"cs":10,"cols":128,"pages":8}]
 //   CF_DEVICES=[{"kind":"ili9341","dc":9,"cs":10,"width":240,"height":320}]
 //   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
+//   CF_DEVICES=[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
 // they are listed separately as pin_devices.
@@ -112,7 +113,9 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 const pinDevices = [];
 // SPI-attached devices. Unlike I2C there is no address to hook: the AVR's own SPI
 // peripheral is the bus, so these are decoded from the transfers the monitor records,
-// with the DC (command/data) and CS (select) line levels sampled at each transfer.
+// with the DC (command/data) and CS (select) line levels sampled at each transfer. A
+// device may also *answer* on MISO (the monitor returns what its `onByte` gives back),
+// which is how a read-only part like the MCP3008 serves firmware reads.
 const spiDevices = [];
 
 // SSD1306 GDDRAM + command engine, shared by the I2C and SPI panels: both are fed the same
@@ -370,12 +373,71 @@ function buildDevices() {
         cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
         bytes: 0,
         deselected: 0,
+        selected: false,
         core,
+        onByte(b) {
+          if (this.dc >= 0 && levelOfPin(this.dc) === 1) this.core.writeData(b);
+          else this.core.writeCommand(b);
+          return 0x00; // a panel never drives MISO
+        },
         summary() {
           return {
             kind: this.kind, dc_pin: this.dc, cs_pin: this.cs,
             bytes: this.bytes, deselected: this.deselected,
             ...this.core.fields(),
+          };
+        },
+      });
+      continue;
+    }
+    if (s.kind === 'mcp3008') {
+      // MCP3008 8-channel 10-bit ADC, also on the SPI peripheral: one conversion is three
+      // transfers inside a single CS-low window - 0x01 (start), then 0x80 | channel << 4
+      // (single-ended + channel), then a don't-care. This is the first SPI device that
+      // *answers*: MISO returns a leading zero bit and then the 10-bit code, so a driver
+      // reading `((hi & 0x03) << 8) | lo` gets it. The channel voltages are the solved
+      // node voltages the app passes as `ain` (8 of them), scaled by `vref`; a channel
+      // with no voltage reads 0. Only single-ended mode is modelled - a differential
+      // request is answered with the channel's single-ended code and counted.
+      const vref = Math.max(0.001, Number(s.vref ?? 5));
+      const ain = Array.from({ length: 8 },
+        (_, i) => Number((Array.isArray(s.ain) ? s.ain : [])[i] ?? 0));
+      const reads = [];
+      let phase = 0;
+      let channel = 0;
+      let code = 0;
+      let differential = 0;
+      const codeFor = (ch) => Math.max(0, Math.min(1023,
+        Math.round((Math.max(0, Math.min(vref, ain[ch])) / vref) * 1023)));
+      spiDevices.push({
+        kind: 'mcp3008',
+        dc: -1,
+        cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
+        bytes: 0,
+        deselected: 0,
+        selected: false,
+        select() { phase = 0; }, // each CS-low window frames one conversion
+        onByte(b) {
+          const step = phase % 3;
+          phase++;
+          if (step === 0) return 0x00; // the start byte is clocked in, nothing is clocked out
+          if (step === 1) {
+            if ((b & 0x80) === 0) differential++;
+            channel = (b >> 4) & 0x07;
+            code = codeFor(channel);
+            return (code >> 8) & 0x03; // leading zero bit, then result bits 9 and 8
+          }
+          reads.push({
+            channel, code, volts: Math.round((code / 1023) * vref * 1e6) / 1e6,
+          });
+          return code & 0xff;
+        },
+        summary() {
+          return {
+            kind: 'mcp3008', cs_pin: this.cs, vref,
+            ain: ain.map((v) => Math.round(v * 1e6) / 1e6),
+            reads, conversions: reads.length, differential_requests: differential,
+            bytes: this.bytes, deselected: this.deselected,
           };
         },
       });
@@ -685,13 +747,23 @@ const spiDevice = new AVRSPI(cpu, spiConfig, F_CPU);
 spiDevice.onByte = (value) => {
   const b = value & 0xff;
   spi.push(b);
+  // MISO is shared: whichever device is selected drives it (an unselected one ignores
+  // the byte). The CS high -> low edge is where a device starts a fresh transaction.
+  let miso = 0x00;
   for (const d of spiDevices) {
-    if (d.cs >= 0 && levelOfPin(d.cs) === 1) { d.deselected++; continue; }
+    if (d.cs >= 0 && levelOfPin(d.cs) === 1) {
+      d.deselected++;
+      d.selected = false;
+      continue;
+    }
+    if (!d.selected) {
+      d.selected = true;
+      if (d.select) d.select();
+    }
     d.bytes++;
-    if (d.dc >= 0 && levelOfPin(d.dc) === 1) d.core.writeData(b);
-    else d.core.writeCommand(b);
+    miso |= d.onByte(b) & 0xff;
   }
-  spiDevice.completeTransfer(0x00);
+  spiDevice.completeTransfer(miso);
 };
 
 // ADC: analog inputs. `CF_ADC` is a JSON object mapping ADC channel -> volts, e.g.

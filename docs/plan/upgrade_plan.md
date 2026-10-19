@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | done (43 tools: `get_board_pinout`, `get_pin_states`, `set_pin_levels`, `get_catalog_facets` and the 7 firmware tools; integration suite 29/29) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
@@ -451,10 +451,25 @@ catalog that replaces the hardcoded definition list.
   verifiers **22**; catalog `external` 53 → **54**, `planned` 93 → **92**.
 - **SPI trace cap**: a full-screen frame produced a ~1.1 MB `spi_bytes` array, so the trace
   is capped at 4096 bytes (`CF_SPI_LIMIT`) with the true length in `spi_byte_count`.
-- Still planned/visual: the e-paper SPI display and the gas/analog
-  sensor modules that need a real ADC
-  path (the remaining `planned`/`visual` parts generally need a model the app does not have
-  yet — see `docs/catalog/status_report.md`). Servos, STEP/DIR steppers and the four-phase
+- **MCP3008 8-channel SPI ADC** (`mcp3008`, `planned` → `external`): the third SPI device and
+  the first one firmware can *read*. The two panels are written to and never answer, so the
+  monitor had ignored MISO (every transfer returned `0x00`); now each selected device returns
+  what MISO carries, and the SPI monitor detects the CS high → low edge that starts a
+  transaction, because a conversion is framed by CS rather than by byte values. The device
+  serves the datasheet's three-transfer conversion inside one CS-low window (`0x01`, then
+  `0x80 | channel << 4`, then a don't-care), clocking out a leading zero bit and then the
+  10-bit code, so a driver's `((hi & 0x03) << 8) | lo` gets the value. Its CH0..CH7 pins are
+  probes on the solved nets (the same closed loop as the PCF8591), coded by the `vref`
+  parameter. `spi_adc` reads channels 0..3 with hand-written transfers; `verify_spi_adc.mjs`
+  checks the codes the sketch printed against the spec (3.3 V → 675, 1.25 V → 256, 0 V → 0,
+  5 V → 1023), the per-read volts, the trace and `deselected` = 0, plus a full-scale control and
+  a **no-device control** (the bus then idles at 0x00, so the same firmware must read zeros —
+  proving the codes came from the device, not the sketch). Suite **788/788**; harness verifiers
+  **23**; catalog `external` 54 → **55**, `planned` 92 → **91**.
+- Still planned/visual: the e-paper SPI display, and the gas/analog
+  sensor modules (an SPI *ADC path* now exists — see the MCP3008 above — but those specific
+  modules are not modelled). The remaining `planned`/`visual` parts generally need a model the
+  app does not have yet — see `docs/catalog/status_report.md`. Servos, STEP/DIR steppers and the four-phase
   `uln2003_driver`/`stepper_28byj48` pair are done (above), and the LCD/OLED/I2C/DHT/
   ultrasonic/IMU parts are closed by the M7 device work above.
 
@@ -506,11 +521,13 @@ catalog that replaces the hardcoded definition list.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 776/776).
+   (currently 788/788).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
-   14/14.
+   29/29.
+5. `cd firmware/harness` and run each `verify_*.mjs` against its compiled sketch →
+   all pass (23 verifiers).
 
 ## 4. Component implementation status vocabulary
 
