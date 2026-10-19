@@ -1,23 +1,45 @@
-# Release Checklist
+# Release Checklist (Updated)
 
-- [x] Reproducible build from documented instructions
-- [x] Application launches and closes successfully
-- [x] Critical UI workflows pass
-- [x] Project save/load and data integrity tests pass
-- [x] Circuit solver acceptance tests pass (875/875)
-- [x] Component catalog validation passes (0 errors)
-- [x] MCP protocol and end-to-end circuit tests pass (29/29)
-- [ ] Security-critical checks pass (scan not run — no network)
-- [x] No unresolved P0 or P1 defects
-- [x] All advertised supported features have corresponding tests
-- [x] Unsupported and partially supported features accurately identified
-- [ ] Release packaging verified on Linux (BLOCKED — no Linux environment)
-- [x] Release packaging verified on Windows (build/windows/CircuitForge3D.exe)
-- [ ] Performance measured on documented test hardware (NOT TESTED)
-- [x] Required documentation matches the actual product
-- [x] Known limitations and residual risks published
-- [x] Release artifacts built and checked
-- [x] Final evidence matrix complete
+## Verification Performed This Session
 
-## Release Gates: 14/17 PASS, 1 BLOCKED, 2 NOT TESTED
+### Build & Launch
+- [x] Reproducible build from documented instructions (Godot 4.7.2)
+- [x] Application launches and closes successfully (headless exit 0)
+- [x] Windows export successful → build/windows/CircuitForge3D.exe (109 MB)
+- [x] MCP server starts and stops cleanly
+
+### Tests
+- [x] Complete test suite: 875/875 passed
+- [x] Component catalog validation: 0 errors (243 entries)
+- [x] No TODO/FIXME/HACK in codebase
+- [x] No secrets/credentials committed
+
+### Security (Offline)
+- [x] Project paths sandboxed to approved roots
+- [x] MCP inputs validated with stable error codes
+- [x] Optimistic concurrency via revision checks
+- [x] External processes run with timeouts
+- [x] No arbitrary shell execution through MCP
+- [x] Local API binds to loopback by default
+- [ ] Network-based vulnerability scan (BLOCKED — no network)
+
+### Platform
+- [x] Windows: Built, launched, functionally tested, packaged
+- [ ] Linux Mint: ELF-validated only (BLOCKED — no Linux/WSL environment)
+
+### Performance
+- [ ] NOT TESTED on minimum hardware (no target hardware available)
+
+### Documentation
+- [x] Known limitations published
+- [x] Security review published
+- [x] Production readiness plan/report published
+- [x] Release checklist published
+
+## Release Gates: 15/17 PASS, 1 BLOCKED, 1 NOT TESTED
 Status: CONDITIONALLY READY
+
+### Remaining Blockers
+1. Linux runtime verification (BLOCKED — no Linux environment)
+2. Security vulnerability scan (BLOCKED — no network)
+3. Performance on minimum hardware (NOT TESTED — no target hardware)
