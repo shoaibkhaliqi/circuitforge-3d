@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected, and the `ads1115` answers I2C conversion reads with codes from its A0..A3 solved nets at the MUX/PGA the firmware selects |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected, and the `ads1115` answers I2C conversion reads with codes from its A0..A3 solved nets at the MUX/PGA the firmware selects; the `mcp4725` closes the loop the other way — its 12-bit code becomes a VOUT Thevenin source (or a pull-down resistor in a power-down write) |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | done (43 tools: `get_board_pinout`, `get_pin_states`, `set_pin_levels`, `get_catalog_facets` and the 7 firmware tools; integration suite 29/29) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
@@ -497,6 +497,27 @@ catalog that replaces the hardcoded definition list.
   `planned` 90 → **89**. Honest limits: the ALERT/RDY comparator, the ADDR pin's address
   selection (the address is a parameter), the input loading and conversion timing are not
   modelled.
+- **MCP4725 12-bit DAC** (`mcp4725`, `planned` → `partial`): the write-only end of the bus,
+  and the first firmware part whose *output drives the circuit* through the netlist. There is
+  nothing to read back, so the harness decodes the writes: the first byte is the general write
+  command (0x40 = the DAC register, 0x60 = also the EEPROM, power-down in bits 1..0) and the
+  next two data bytes carry the 12-bit code in their top 12 bits. `apply_firmware_device`
+  serves the part, reads the decoded `code` from the device summary (one implementation of the
+  protocol, in the harness) and sets the part's `vout` = `code/4096 · vref` — so firmware's
+  code becomes a voltage the *next solve* sees. The netlist maps VOUT as a Thevenin source
+  (`vout` + `rout`), and a non-zero power-down code is carried into `power_down`, where the
+  netlist replaces the source with a 1 k/100 k/500 k resistor to GND (the real part only pulls
+  down then). `dac_out` writes 2.5/1/4.878 V, an EEPROM write, a power-down write and a final
+  normal write, then a fast-mode-style first byte; `verify_dac_out.mjs` recomputes every printed
+  code and milli-volt, checks the decoded write/EEPROM/power-down bits, a 3.3 V reference
+  control (only `volts` follows) and a wrong-address control (nothing is decoded), and a
+  no-device run (the trace still records the writes, but no code is decoded). A circuit was
+  driven end to end (code 3300 → `vout` 4.028 V → the solved load node at 3.930 V through the
+  25 Ω source). Suite **817/817**; harness verifiers **26**; catalog `partial` 51 → **52**,
+  `planned` 89 → **88**. Honest limits: the EEPROM is decoded and counted but nothing persists
+  (no memory survives a run), the fast-mode write encoding is not decoded (an unrecognised
+  command is counted), and the power-on-reset/MTP recall value, the `A` variant's internal
+  reference and the part's supply/electrical limits are not modelled.
 - Still planned/visual: the e-paper SPI display, and the gas/analog
   sensor modules (an SPI *ADC path* now exists — see the MCP3008 above — but those specific
   modules are not modelled). The remaining `planned`/`visual` parts generally need a model the
@@ -552,13 +573,13 @@ catalog that replaces the hardcoded definition list.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 796/796).
+   (currently 817/817).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
    29/29.
 5. `cd firmware/harness` and run each `verify_*.mjs` against its compiled sketch →
-   all pass (24 verifiers).
+   all pass (26 verifiers).
 
 ## 4. Component implementation status vocabulary
 

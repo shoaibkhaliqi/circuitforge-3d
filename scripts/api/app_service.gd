@@ -953,20 +953,29 @@ func apply_firmware_device(hex_path: String, component_id: String, ms: int = 200
 		return _err("UNKNOWN_COMPONENT", "No component '%s'." % component_id,
 			"Use list_components to find the id.")
 	var ctype := String(c.type)
-	if ctype != "pcf8574" and ctype != "pcf8591":
+	if ctype != "pcf8574" and ctype != "pcf8591" and ctype != "mcp4725":
 		return _err("UNSUPPORTED_DEVICE",
 			"Component '%s' is '%s', which has no firmware device model." % [component_id, ctype],
-			"Supported devices: 'pcf8574', 'pcf8591'.")
+			"Supported devices: 'pcf8574', 'pcf8591', 'mcp4725'.")
 	var cap := FirmwareBackend.capabilities()
 	if not bool(cap.get("available", false)):
 		return _err("FIRMWARE_UNAVAILABLE",
 			"Firmware execution is unavailable: " + ", ".join(PackedStringArray(cap.get("unavailable_reasons", []))),
 			"Install Node.js (or set CIRCUITFORGE_NODE) and keep firmware/harness/run.mjs.")
-	var r := FirmwareBackend.run_hex(hex_path, ms)
+	# Each device kind has its own default address (a PCF8574 backpack sits at 0x27, a
+	# PCF8591 at 0x48, an MCP4725 at 0x60), used when the instance has no `address` param.
+	var def_addr := 39 if ctype == "pcf8574" else (72 if ctype == "pcf8591" else 96)
+	var addr := int(c.get("params", {}).get("address", def_addr)) & 0x7F
+	# The MCP4725 is write-only, so the harness is asked to serve it (devices=...): the
+	# protocol is decoded once, in run.mjs, and the app reads the device summary.
+	var specs := []
+	if ctype == "mcp4725":
+		specs.append({"kind": "mcp4725", "address": addr,
+			"vref": float(c.get("params", {}).get("vref", 5.0))})
+	var r := FirmwareBackend.run_hex(hex_path, ms, specs)
 	if not bool(r.get("ok", false)):
 		return _err("FIRMWARE_ERROR", String(r.get("error", "firmware run failed")),
 			"Compile a sketch to Intel HEX (arduino-cli compile --fqbn arduino:avr:uno) and pass its path.")
-	var addr := int(c.get("params", {}).get("address", 39)) & 0x7F
 	var byte := FirmwareBackend.last_i2c_write_byte(r.get("i2c", []), addr)
 	if byte < 0:
 		return _err("NO_DEVICE_WRITE",
@@ -986,6 +995,35 @@ func apply_firmware_device(hex_path: String, component_id: String, ms: int = 200
 		if simulate:
 			out["simulation"] = run_dc_simulation()
 		return _ok(out)
+	if ctype == "mcp4725":
+		# A write-only 12-bit DAC: the decoded code comes from the served device (the
+		# protocol is implemented once, in the harness) rather than from re-parsing the
+		# trace here. The output is VDD-referenced, and a non-zero power-down code is
+		# carried through so the netlist stops treating VOUT as a driven source.
+		var dac := {}
+		for d in r.get("devices", []):
+			if typeof(d) == TYPE_DICTIONARY and String(d.get("kind", "")) == "mcp4725":
+				dac = d
+		if dac.is_empty():
+			return _err("NO_DEVICE_WRITE",
+				"The DAC did not see a write it could decode (only its general write command is modelled).",
+				"Write the DAC register (a 0x40/0x60 command byte) followed by two data bytes.")
+		var dac_code := clampi(int(dac.get("code", 0)), 0, 4095)
+		var dac_pd := clampi(int(dac.get("power_down", 0)), 0, 3)
+		var dac_vref := float(c.get("params", {}).get("vref", 5.0))
+		var vout := (float(dac_code) / 4096.0) * dac_vref
+		session.set_params(component_id, {"vout": vout, "power_down": dac_pd})
+		_bump()
+		var dac_out := {
+			"component_id": component_id, "type": ctype,
+			"address": "0x%02X" % addr, "code": dac_code, "vout": vout, "vref": dac_vref,
+			"power_down": dac_pd,
+			"eeprom_writes": int(dac.get("eeprom_writes", 0)),
+			"hex": hex_path, "revision": revision,
+		}
+		if simulate:
+			dac_out["simulation"] = run_dc_simulation()
+		return _ok(dac_out)
 	# pcf8591: the last byte written is the DAC value (control byte then data).
 	var vref := float(c.get("params", {}).get("vref", 5.0))
 	var aout := (float(byte) / 255.0) * vref

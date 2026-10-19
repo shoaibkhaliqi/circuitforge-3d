@@ -186,6 +186,11 @@ sketch can `analogRead` the whole circuit through eight extra channels
 `ads1115` does the same job with no pin map at all (it has an address, so `attach_devices`
 is enough): its A0..A3 channels come from their solved nets at whichever single-ended or
 differential MUX and gain the sketch configures, 16 bits (`firmware/sketches/ads1115_read`).
+The output direction on that bus is the `mcp4725` DAC: `apply_firmware_device` serves the
+write-only part, decodes the 12-bit code the sketch wrote and sets its `vout`
+(`code/4096 · vref`), so the code becomes a voltage in the *circuit* (a power-down write makes
+it load the node with 1 k/100 k/500 k instead of driving it) — see
+`firmware/sketches/dac_out`.
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

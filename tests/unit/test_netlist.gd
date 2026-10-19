@@ -149,6 +149,10 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("adxl345"), "adxl345 is not mapped by the solver (the harness serves it)")
 	t.check(ComponentDB.status_of("ads1115") == "external", "ads1115 status is 'external'")
 	t.check(not NetlistBuilder.handles("ads1115"), "ads1115 is not mapped by the solver (the harness serves it)")
+	# The MCP4725 is the one firmware part with a *netlist* model too: VOUT is a driven
+	# source, so it claims 'partial' (the harness supplies the code).
+	t.check(ComponentDB.status_of("mcp4725") == "partial", "mcp4725 status is 'partial'")
+	t.check(NetlistBuilder.handles("mcp4725"), "mcp4725 VOUT is mapped by the solver")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")
@@ -438,6 +442,46 @@ func run(t) -> void:
 	t.check(adc_res.ok, "PCF8591 circuit solves", adc_res.get("error", ""))
 	if adc_res.ok:
 		t.near(adc_res.node_voltages["a1"], 2.0, "AIN0 reads the divider midpoint", 1e-2)
+
+	# ---- I2C DAC: a driven output, and the power-down resistor ------------
+	t.section("Netlist - MCP4725 maps a DAC output (and its power-down modes)")
+	var dac_holes := ["TP1", "TM1", "a2", "a3", "a4"]
+	var dac_build = builder.build(bb, [
+		_place("D1", "mcp4725", dac_holes, {"address": 96, "vref": 5.0, "vout": 2.0, "rout": 25.0}),
+		_place("R3", "resistor", ["a4", "TM1"], {"r": 1000.0}),
+		_place("GND", "ground", ["TM1"]),
+	], [])
+	var dout = _by_id(dac_build, "D1#VOUT")
+	t.check(dout != null and dout.type == "vout", "MCP4725 emits a DAC output source")
+	if dout != null:
+		t.near(float(dout.params["voltage"]), 2.0, "DAC output voltage is carried through", 1e-9)
+		t.near(float(dout.params["rout"]), 25.0, "DAC output resistance is carried through", 1e-9)
+	var dac_res = CircuitSolver.new().solve_dc(dac_build.circuit)
+	t.check(dac_res.ok, "MCP4725 circuit solves", dac_res.get("error", ""))
+	if dac_res.ok:
+		# A 25 Ohm source into 1 kOhm: the load pulls it down by ~2.4%.
+		t.near(dac_res.node_voltages["a4"], 2.0 * 1000.0 / 1025.0,
+			"VOUT drives its net through the output resistance", 1e-2)
+	# In a power-down mode the part stops driving and only pulls down: a resistor to ground.
+	var dac_pd = builder.build(bb, [
+		_place("D1", "mcp4725", dac_holes,
+			{"address": 96, "vout": 2.0, "power_down": 1}),
+		_place("R3", "resistor", ["a4", "TP1"], {"r": 1000.0}),
+		_place("R4", "resistor", ["a4", "TM1"], {"r": 1000.0}),
+		_place("V1", "vsource", ["TP1", "TM1"], {"v": 4.0}),
+		_place("GND", "ground", ["TM1"]),
+	], [])
+	var pd_el = _by_id(dac_pd, "D1#VOUT")
+	t.check(pd_el != null and pd_el.type == "resistor",
+		"a power-down code replaces the source with a resistor")
+	if pd_el != null:
+		t.near(float(pd_el.params["r"]), 1000.0, "power-down mode 1 is 1 kOhm to ground", 1e-9)
+	var pd_res = CircuitSolver.new().solve_dc(dac_pd.circuit)
+	t.check(pd_res.ok, "power-down MCP4725 circuit solves", pd_res.get("error", ""))
+	if pd_res.ok:
+		# 4 V across 1 k + (1 k || 1 k) -> the node sits at 4 * 500/1500 = 1.333 V.
+		t.near(pd_res.node_voltages["a4"], 4.0 * 500.0 / 1500.0,
+			"a powered-down DAC loads the node instead of driving it", 1e-2)
 
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")

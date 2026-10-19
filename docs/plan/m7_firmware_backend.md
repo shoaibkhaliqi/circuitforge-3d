@@ -746,6 +746,49 @@ the driver's choice" idea again, over I2C.
   data-rate corner are not modelled, and the input's own loading and the device's
   supply/electrical limits are not modelled.
 
+## 11q. Twentieth device: MCP4725 12-bit DAC (the loop turned around)
+
+Every device so far either *serves* firmware (registers, frames, pulses) or is *observed* from
+its pins (servo, stepper). The `mcp4725` (`planned` → `partial`) is the first part whose output
+the *solver* consumes: firmware's code becomes a voltage stamped into the netlist, so a sketch
+can drive the analog half of the circuit.
+
+- **Model**: write-only — there is nothing to read back, so the harness decodes the *writes*
+  (a read returns `0x00`). A transaction's first byte is the general write command (`0x40` =
+  write the DAC register, `0x60` = also write the EEPROM, with the power-down mode in bits
+  1..0) and the next two data bytes carry the 12-bit code in their top 12 bits
+  (`code = (d1 << 4) | (d2 >> 4)`). The summary reports `code`, `volts` (`code/4096 · vref`),
+  `power_down` with the resistor it selects, and the `writes`/`eeprom_writes`/`unrecognised`
+  counts.
+- **Path**: the app asks the harness to serve the part (`apply_firmware_device` passes the
+  spec into `run_hex`), reads the decoded `code` from the device summary and sets the part's
+  `vout`; the netlist builder stamps VOUT as a `vout` Thevenin source (`vout` + `rout`). So
+  the protocol is implemented once, in `run.mjs`, and the app never re-parses it — the same
+  discipline every read device already follows, which is why this part can claim `partial`:
+  `NetlistBuilder.handles("mcp4725")` is true.
+- **Power-down is modelled, not ignored**: the command byte's power-down bits (`power_down`
+  1..3) name a 1 k/100 k/500 k pull-down, and the netlist replaces the driven source with that
+  resistor, because that is what the real part does — it stops driving. A sketch that powers
+  the DAC down therefore *loads* its node instead of holding it.
+- **Verified**: `firmware/sketches/dac_out` writes 2048, 819, 4095 and 1234 (one of them to the
+  EEPROM), a power-down write (code 0, mode 1) and a final normal write (3300), printing each
+  code and the milli-volts it should produce at the 5 V reference; the last transaction is a
+  deliberate fast-mode-style first byte. `verify_dac_out.mjs` recomputes every code and printed
+  milli-volt, checks the decoded write/EEPROM/power-down bits, and adds a **3.3 V reference
+  control** (only the decoded `volts` follows — the sketch's printed line still assumes 5 V) and
+  a **wrong-address control** (the device served at `0x61` sees no transaction, so `writes` 0,
+  `code` 0 — the codes come from the addressed device, not from the sketch); a **no-device run**
+  still records the bus trace but decodes nothing. A circuit was driven end to end before the
+  change was committed (code 3300 → `vout` 4.028 V → the solved node at the load 3.930 V through
+  the 25 Ω source). The netlist source, the power-down resistor and both solve paths are unit
+  tested, and the honesty sweep asserts `partial` ⇔ `handles()`.
+- **Limits (honest)**: the EEPROM write is decoded and counted but nothing persists (no memory
+  survives a run), the fast-mode write encoding is not decoded (an unrecognised first byte is
+  counted and changes nothing), the power-on-reset/MTP recall value is not modelled (a device
+  that has never been written sits at code 0, and the catalog's `vout` default is what a fresh
+  part is taken to output), the `A` variant's internal reference/gain settings are not
+  modelled, and the part's supply and electrical limits are not modelled.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -788,7 +831,10 @@ and adds a twist: its scale is whatever `DATA_FORMAT` the firmware wrote, recomp
 time. The ADS1115 (§11p) then closes the loop over I2C as well — an addressed register file
 *and* solved-voltage probes in one part, whose MUX/PGA the firmware selects, so differential
 measurement (which the MCP3008 could not model) comes out right because both members of each
-pair are resolved. Remaining work: the gas/analog modules
+pair are resolved. The MCP4725 (§11q) then turns the same loop around: its *output* is what
+the solver consumes — the firmware's code becomes VOUT's Thevenin source (or a pull-down
+resistor in a power-down write) — so a sketch can drive the analog half of a circuit, which is
+the first time a firmware part changes what the *next* solve sees. Remaining work: the gas/analog modules
 (which now have an ADC path to hang off, but no models of their own), a 1-Wire slave for parts
 like the DS18B20, and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side

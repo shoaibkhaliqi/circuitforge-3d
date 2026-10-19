@@ -23,7 +23,7 @@ does not reach `t.done()` (guards against silently skipped tests).
 ## Result
 
 ```
-RESULT: 806 / 806 passed
+RESULT: 817 / 817 passed
 STATUS: ALL TESTS PASSED
 ```
 
@@ -43,8 +43,8 @@ STATUS: ALL TESTS PASSED
 | Placement — default hole sets do not short a part          | breadboard layout   |
 | Factory — package shapes + terminal alignment              | 3D visuals          |
 | Boards — discovery, pin-map consistency, groups, provenance | board metadata      |
-| Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, analog probes/outputs, status↔solver honesty | simulation mapping  |
-| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/ADXL345/ADS1115/encoder/DHT/SHT31/servo-pulse/stepper-stepdir/stepper-4phase/servo+stepper-motion/spi-oled/spi-tft/spi-adc), capability honesty | firmware backend    |
+| Netlist — gpio driver, aliases, sensors/motors, PCF8574 port, PCF8591 ADC/DAC, MCP4725 DAC output + power-down, analog probes/outputs, status↔solver honesty | simulation mapping  |
+| Firmware — pin-key normalisation, sampling, serial/I2C decode, device + analog reads/writes, LCD text, sensor pulse + register-map + framebuffer + quadrature feedback (PWM, PCF8574/PCF8591/EEPROM/LCD/SSD1306/HC-SR04/MPU-6050/ADXL345/ADS1115/encoder/DHT/SHT31/servo-pulse/stepper-stepdir/stepper-4phase/servo+stepper-motion/spi-oled/spi-tft/spi-adc/dac-out), capability honesty | firmware backend    |
 | Persistence — validate, save/reload, corruption, migration | file format         |
 | Units — engineering notation parse/format                  | input handling      |
 | Camera — orbit / pan / zoom                                | view control        |
@@ -126,7 +126,7 @@ RESULTS: 29 / 29 passed
 | B7. Firmware analog inputs | `mcu_analog_in` + missing-HEX `run_firmware(analog_map)` is a clean error | pass |
 | B8. Firmware PWM output | `mcu_pwm_out` + missing-HEX `apply_firmware_pwm` is a clean error | pass |
 | B9. Firmware EEPROM device | `eeprom_i2c` attached; missing-HEX `run_firmware` is a clean error | pass |
-| B10. Firmware ADC/DAC (PCF8591) | missing-HEX `apply_firmware_device` on a `pcf8591` is a clean error | pass |
+| B10. Firmware ADC/DAC (PCF8591 + MCP4725) | missing-HEX `apply_firmware_device` on a `pcf8591`/`mcp4725` is a clean error; a `resistor` is `UNSUPPORTED_DEVICE` | pass |
 | B11. Firmware I2C LCD | `i2c_lcd1602` attached; missing-HEX `run_firmware` is a clean error | pass |
 | B12. Firmware pin sensor (HC-SR04) | `hcsr04` + `mcu_pin`s wired, `pin_map` accepted; missing-HEX `run_firmware` is a clean error | pass |
 | B13. Firmware IMU (MPU-6050) | `mpu6050` attached as an I2C register file; missing-HEX `run_firmware` is a clean error | pass |

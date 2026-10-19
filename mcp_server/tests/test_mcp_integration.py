@@ -264,19 +264,34 @@ async def main() -> int:
 
             # ---------------------------------------------------- Test B10
             try:
-                await call_ok(s, "create_project", {"name": "MCP-PCF8591"})
+                await call_ok(s, "create_project", {"name": "MCP-AnalogDevices"})
                 adc = (await call_ok(s, "add_component",
                                      {"component_type": "pcf8591",
                                       "parameters": {"address": 72, "vref": 5.0, "aout": 0.0,
                                                      "rout": 25.0}}))["component_id"]
+                dac = (await call_ok(s, "add_component",
+                                     {"component_type": "mcp4725",
+                                      "parameters": {"address": 96, "vref": 5.0, "vout": 0.0,
+                                                     "power_down": 0.0, "rout": 25.0}}))["component_id"]
+                res = (await call_ok(s, "add_component",
+                                     {"component_type": "resistor",
+                                      "parameters": {"r": 1000.0}}))["component_id"]
+                codes = []
+                for cid in (adc, dac):
+                    err = await call_err(s, "apply_firmware_device",
+                                         {"hex_path": "does/not/exist.hex",
+                                          "component_id": cid})
+                    codes.append(err["error"]["code"])
                 err = await call_err(s, "apply_firmware_device",
                                      {"hex_path": "does/not/exist.hex",
-                                      "component_id": adc})
-                code = err["error"]["code"]
-                ok = code in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE")
-                record("B10. Firmware ADC/DAC (PCF8591)", ok, f"code={code}")
+                                      "component_id": res})
+                unsupported = err["error"]["code"] == "UNSUPPORTED_DEVICE"
+                ok = (all(c in ("FIRMWARE_ERROR", "FIRMWARE_UNAVAILABLE") for c in codes)
+                      and unsupported)
+                record("B10. Firmware ADC/DAC (PCF8591 + MCP4725)", ok,
+                       f"codes={codes} unsupported={err['error']['code']}")
             except Exception as exc:
-                record("B10. Firmware ADC/DAC (PCF8591)", False, repr(exc))
+                record("B10. Firmware ADC/DAC (PCF8591 + MCP4725)", False, repr(exc))
 
             # ---------------------------------------------------- Test B11
             try:

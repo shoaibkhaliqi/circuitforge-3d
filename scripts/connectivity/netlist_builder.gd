@@ -47,7 +47,7 @@ const HANDLED_TYPES := [
 	"pir_hcsr501", "ir_obstacle", "hall_a3144", "flame_sensor", "sound_sensor",
 	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
 	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
-	"pcf8574", "mcu_analog_in", "mcu_pwm_out", "pcf8591",
+	"pcf8574", "mcu_analog_in", "mcu_pwm_out", "pcf8591", "mcp4725",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -263,6 +263,20 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 				"voltage": float(params.get("aout", 0.0)),
 				"rout": maxf(0.1, float(params.get("rout", 25.0))),
 			}))
+		"mcp4725":
+			# 12-bit I2C DAC: VOUT is an ideal Thevenin source at 'vout' (the firmware's
+			# code becomes that voltage via apply_firmware_device). In a power-down mode the
+			# real part stops driving and pulls VOUT to GND through 1k/100k/500k, so the
+			# source is replaced by that resistor.
+			var pd := clampi(int(params.get("power_down", 0)), 0, 3)
+			if pd == 0:
+				out.append(_el("%s#VOUT" % cid, "vout", [String(nets[4]), "0"], {
+					"voltage": float(params.get("vout", 0.0)),
+					"rout": maxf(0.1, float(params.get("rout", 25.0))),
+				}))
+			else:
+				out.append(_el("%s#VOUT" % cid, "resistor",
+					[String(nets[4]), "0"], {"r": float([0, 1000, 100000, 500000][pd])}))
 		"battery_aa", "battery_aaa", "battery_9v", "battery_18650", "coin_cell_cr2032", "battery_aa_holder", "lipo_1s", "usb_power_5v", "bench_psu":
 			var v_def: float = float(SOURCE_DEFAULTS.get(type, 5.0))
 			var v_val: float = float(params.get("v", params.get("voltage", v_def)))

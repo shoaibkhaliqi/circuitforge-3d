@@ -12,17 +12,17 @@ This report is deliberately blunt: it separates *what looks like a part* from
 |--------|-------|
 | Definitions | 243 |
 | Categories | 16 |
-| Simulatable (`full` + `partial`) | 76 |
+| Simulatable (`full` + `partial`) | 77 |
 
 ## By simulation status
 
 | status | count | meaning |
 |--------|------:|---------|
 | `full` | 25 | working solver model, covered by tests |
-| `partial` | 51 | real but approximate electrical model |
+| `partial` | 52 | real but approximate electrical model |
 | `visual` | 21 | rendered only, no electrical behaviour |
 | `external` | 57 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 89 | catalogued and placeable, not simulated yet |
+| `planned` | 88 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -84,7 +84,14 @@ can also read it back (`run_firmware(..., attach_devices=true)`), where `inputs`
 marks bits externally held low. The `pcf8591` I2C ADC/DAC exposes AIN0..AIN3 as
 ideal 1 GΩ ADC probes (firmware reads each solved node's 8-bit code) and AOUT as an
 ideal Thevenin DAC output driven by `aout` (or from firmware writes via
-`apply_firmware_device`).
+`apply_firmware_device`). The `mcp4725` 12-bit DAC is the same output shape with its own
+protocol, and the first firmware part whose output the *solver* consumes: firmware's
+general write command (a command byte then two data bytes) is decoded to a 12-bit code,
+`apply_firmware_device` turns it into the part's `vout` (`code/4096 · vref`), and the
+netlist stamps VOUT as a Thevenin source — or, when the command's power-down bits are set,
+as the 1 k/100 k/500 k resistor to GND the real part selects instead of driving. That is
+why it is `partial` rather than `external`: it has a real (if ideal) electrical model, so
+`NetlistBuilder.handles("mcp4725")` is true.
 
 ## Honest caveats
 

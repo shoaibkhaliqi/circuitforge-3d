@@ -529,14 +529,17 @@ def apply_firmware_device(
 ) -> dict[str, Any]:
     """Feed firmware I2C traffic into a peripheral device model.
 
-    Runs the firmware, takes the last byte it wrote to the device's I2C address and
-    applies it to the device: for a `pcf8574` it sets `state` (P0..P7 follow the
-    bits); for a `pcf8591` it sets the DAC `aout` (`byte/255 * vref`). Optionally
+    Runs the firmware and applies its traffic to the device: for a `pcf8574` the last
+    byte written becomes `state` (P0..P7 follow the bits); for a `pcf8591` it sets the
+    DAC `aout` (`byte/255 * vref`); for an `mcp4725` (a write-only 12-bit DAC) the part
+    is served to the harness, its decoded 12-bit `code` becomes `vout`
+    (`code/4096 * vref`) and the command's power-down bits become `power_down` - so a
+    sketch's DAC code drives the circuit's analog half on the next solve. Optionally
     re-solves DC.
 
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
-        component_id: Target device component id (`pcf8574` or `pcf8591`).
+        component_id: Target device component id (`pcf8574`, `pcf8591` or `mcp4725`).
         ms: Emulated run length in milliseconds (1..10000).
         simulate: Run a DC simulation after applying the device state.
         expected_revision: Optional optimistic-concurrency guard.

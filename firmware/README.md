@@ -81,6 +81,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/adxl345_read firmware/sketches/adxl345_read
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/ads1115_read firmware/sketches/ads1115_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/dac_out firmware/sketches/dac_out
 
 # 2. execute + inspect
 cd firmware/harness
@@ -115,6 +117,7 @@ node verify_tft.mjs ../build/tft_fill/tft_fill.ino.hex
 node verify_spi_adc.mjs ../build/spi_adc/spi_adc.ino.hex
 node verify_adxl345.mjs ../build/adxl345_read/adxl345_read.ino.hex
 node verify_ads1115.mjs ../build/ads1115_read/ads1115_read.ino.hex
+node verify_dac_out.mjs ../build/dac_out/dac_out.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -123,7 +126,10 @@ node verify_ads1115.mjs ../build/ads1115_read/ads1115_read.ino.hex
 `verify_i2c.mjs` asserts a Wire write to `0x27` with bytes `0x00,0x41` is recorded
 as an I2C bus trace. `sketches/expander` writes the port byte `0x55` to a PCF8574
 at `0x27`; the app's `apply_firmware_device` tool consumes that byte to set the
-device's `state` (P0..P7 = 1,0,1,0,1,0,1,0). `verify_ultrasonic.mjs` asserts a
+device's `state` (P0..P7 = 1,0,1,0,1,0,1,0). The same tool drives the two analog outputs
+instead: a `pcf8591`'s DAC from its last byte, and an `mcp4725`'s 12-bit code from the served
+device (so the firmware's code becomes the part's `vout`, and a power-down write becomes a
+pull-down resistor). `verify_ultrasonic.mjs` asserts a
 harness-driven HC-SR04 ECHO pulse makes `pulseIn()` measure ~1740 µs → ~30 cm.
 `verify_mpu6050.mjs` asserts the served MPU-6050 register file decodes to the exact
 accel/temp/gyro counts. `verify_oled.mjs` asserts the decoded SSD1306 frame (4096 lit
@@ -230,12 +236,17 @@ CF_DEVICES='[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48},{"
 # MCP3008 on the SPI peripheral (CS = D10): CH0..CH3 answer reads with 10-bit codes
 CF_DEVICES='[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]' \
   node run.mjs ../build/spi_adc/spi_adc.ino.hex 900
+
+# MCP4725 DAC at 0x60: the writes are decoded into codes, power-down and EEPROM bits
+CF_DEVICES='[{"kind":"mcp4725","address":96,"vref":5}]' \
+  node run.mjs ../build/dac_out/dac_out.ino.hex 400
 ```
 
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 `init`), `pcf8591` (`address`, `ain`, `vref`), `lcd1602` (`address`, `cols`, `rows`),
 `mpu6050` (`address`, `ax`..`gz`, `temp_c`), `adxl345` (`address`, `ax`, `ay`, `az`),
-`ads1115` (`address`, `ain`), `ssd1306` (`address`, `cols`, `pages`) and
+`ads1115` (`address`, `ain`), `ssd1306` (`address`, `cols`, `pages`), `mcp4725`
+(`address`, `vref`: a *write-only* DAC) and
 `sht31` (`address`, `temp_c`, `humidity`, `corrupt_crc`)
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
@@ -255,6 +266,17 @@ A0/A1 pair and a finer gain; the summary reports `config`/`mux`/`pga`/`full_scal
 and a `reads` log of every conversion word. Conversion timing is not modelled (the code is
 ready as soon as the config is written), and the ALERT/RDY comparator and the ADDR pin are
 not modelled either.
+
+The `mcp4725` is the write-only end of the bus: there is nothing to read back, so the model
+decodes the *writes*. A transaction's first byte is the general write command (0x40 = write
+the DAC register, 0x60 = also write the EEPROM, with the power-down mode in bits 1..0) and the
+next two data bytes carry the 12-bit code in their top 12 bits, so the summary reports the
+`code`, the decoded `volts` (`code/4096 * vref`), the `power_down` mode with the resistor it
+selects, and the `writes`/`eeprom_writes`/`unrecognised` counts. Only that general write
+command is decoded: `dac_out` ends with a fast-mode-style first byte on purpose, and the
+verifier asserts it is *counted* (`unrecognised` 1) without changing the code. The prototype
+reference is the `vref` parameter (the real part is VDD-referenced), so the verifier also
+reruns the firmware at 3.3 V and checks `volts` follows.
 Other devices live on the SPI peripheral instead of the I2C bus. `ssd1306_spi` (`dc`, `cs`,
 `cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
 and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
@@ -297,6 +319,9 @@ STEP/DIR nets to the components on those nets, and the net `steps` + shaft `angl
 back in `steppers` (`apply_firmware_stepper` writes them onto the motor). A four-phase
 driver (`uln2003_driver`) works through the same tool: map the IN1..IN4 pins and the phase
 sequence is measured instead of pulses (one unit is a half step).
+An I2C DAC is the same shape: `apply_firmware_device(hex_path, component_id=<mcp4725>)` serves
+the part, decodes the write and sets its `vout` (and `power_down`), so one call turns
+firmware's code into a voltage the next solve sees.
 
 ## Analog inputs (circuit → firmware)
 

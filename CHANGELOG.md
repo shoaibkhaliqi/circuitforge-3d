@@ -368,6 +368,27 @@ follow [Semantic Versioning](https://semver.org/).
     0xFF). A divider the solver solved was read back end to end (2.5 V → code 20000, and the
     same value differentially against a 0 V channel). Suite 796 → **806**; harness verifiers
     24 → **25**; catalog `external` 56 → **57**, `planned` 90 → **89**.
+  - **MCP4725 12-bit I2C DAC** (`data/components/analog_ic.json`, `mcp4725` `planned` →
+    `partial`): the write-only end of the bus, and the first firmware part whose *output drives
+    the circuit* through the netlist. There is nothing to read back, so the harness decodes the
+    writes — the general write command byte (0x40 = the DAC register, 0x60 = also the EEPROM,
+    power-down in bits 1..0) then two data bytes carrying the 12-bit code in their top 12 bits.
+    `apply_firmware_device` serves the part, takes the decoded `code` from the device summary
+    (the protocol is implemented once, in `run.mjs`) and sets the part's `vout` = `code/4096 ·
+    vref`, so firmware's code becomes a voltage the next solve sees. The netlist maps VOUT as a
+    Thevenin source (`vout`/`rout`), and a power-down write is carried into `power_down`, where
+    the netlist replaces the source with a 1 k/100 k/500 k resistor to GND because the real part
+    only pulls down. `dac_out` writes 2.5 V/1 V/4.878 V, an EEPROM write, a power-down write and
+    a final normal write, then a fast-mode-style first byte on purpose; `verify_dac_out.mjs`
+    recomputes every printed code and milli-volt, checks the decoded write/EEPROM/power-down
+    bits, a 3.3 V reference control (only `volts` follows), a wrong-address control (nothing is
+    decoded) and a no-device run (the trace records the writes but no code is decoded). A
+    circuit was driven end to end (code 3300 → `vout` 4.028 V → the solved load node at
+    3.930 V through the 25 Ω source). Suite 806 → **817**; harness verifiers 25 → **26**;
+    catalog `partial` 51 → **52**, `planned` 89 → **88**. Honest limits: the EEPROM is decoded
+    and counted but nothing persists, the fast-mode encoding is not decoded (an unrecognised
+    command is counted), and the power-on-reset/MTP value, the `A` variant's internal reference
+    and the supply/electrical limits are not modelled.
   - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
     ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
     the true length always reported in `spi_byte_count`; the decoded device summary is the

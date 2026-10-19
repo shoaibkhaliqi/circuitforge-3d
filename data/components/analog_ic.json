@@ -206,8 +206,18 @@
       ],
       "model": {"shape": "breakout_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "simulation_models": ["i2c-dac-output"],
+      "simulation_backend": "mna+firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 96, "label": "I2C address (7-bit)"},
+        "vref": {"default": 5.0, "unit": "V", "label": "Reference (VDD) voltage"},
+        "vout": {"default": 0.0, "unit": "V", "label": "DAC output voltage"},
+        "power_down": {"default": 0.0, "label": "Power-down mode (0 = normal, 1..3 = 1k/100k/500k to GND)"},
+        "rout": {"default": 25.0, "unit": "Ohm", "label": "Output resistance"}
+      },
+      "notes": "Partial: VOUT is an ideal Thevenin source at 'vout' with 'rout' (the real part has a buffered rail-to-rail output), so firmware can drive the analog part of the circuit. Firmware's code arrives via apply_firmware_device, which serves the DAC to the harness, decodes the write and sets 'vout' = code/4096 * 'vref' ('vref' models the VDD reference; the code is 12-bit, so 5 V / 4096 = 1.22 mV steps). A non-zero power-down code (the command byte's bits 1..0) is carried into 'power_down', and the netlist then replaces the driven source with a 1k/100k/500k resistor to GND because the real part stops driving and only pulls down. Not modelled: the EEPROM (a write to it is decoded and counted, but nothing persists - memory does not survive a run), the fast-mode write encoding (only the general write command is decoded; an unrecognised command is counted), the power-on reset / MTP recall value, the internal reference and gain settings of the 'A' variant, and the device's own supply/electrical limits. Pin order follows the breakout (VOUT last)."
     },
     {
       "id": "txs0108e",

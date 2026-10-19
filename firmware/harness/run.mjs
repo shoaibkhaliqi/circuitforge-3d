@@ -106,6 +106,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]
 //   CF_DEVICES=[{"kind":"adxl345","address":83,"ax":0.5,"ay":-0.25,"az":1}]
 //   CF_DEVICES=[{"kind":"ads1115","address":72,"ain":[2.5,1,0,3.3]}]
+//   CF_DEVICES=[{"kind":"mcp4725","address":96,"vref":5}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
 // they are listed separately as pin_devices.
@@ -502,6 +503,61 @@ function buildDevices() {
           ain: ain.map((v) => Math.round(v * 1e6) / 1e6),
           read: code8(ain[channel]), dac,
           aout: Math.round((dac / 255) * vref * 1e6) / 1e6,
+        }),
+      });
+    } else if (s.kind === 'mcp4725') {
+      // MCP4725 12-bit I2C DAC: write-only (nothing to read back, so a read returns 0x00).
+      // A write transaction carries the general write command in its first byte
+      // (0x40 = write the DAC register, 0x60 = the DAC register and its EEPROM, with the
+      // power-down mode in bits 1..0) followed by two data bytes carrying the 12-bit code
+      // in their top 12 bits, so code = (d1 << 4) | (d2 >> 4). The output is VDD-referenced:
+      // vout = vref * code / 4096, and the power-down code is reported rather than applied
+      // (the netlist models it, see the catalog notes). Only the general write command is
+      // decoded - the fast-mode encoding is not (an unrecognised first byte is counted).
+      const vref = Math.max(0.001, Number(s.vref ?? 5));
+      const PD_OHMS = [0, 1000, 100000, 500000];
+      let code = 0;
+      let powerDown = 0;
+      let command = 0;
+      let writes = 0;
+      let eepromWrites = 0;
+      let unrecognised = 0;
+      let first = true;
+      let pendingHi = 0;
+      let data = 0;
+      map.set(addr, {
+        kind: 'mcp4725',
+        onStart(write) { if (write) { first = true; data = 0; } },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) {
+            first = false;
+            if ((b & 0x60) === 0x40 || (b & 0x60) === 0x60) {
+              command = b;
+              powerDown = b & 0x03;
+              if ((b & 0x60) === 0x60) eepromWrites++;
+              return;
+            }
+            unrecognised++; // e.g. a fast-mode command byte: not decoded
+            data = 9;       // ignore the rest of this transaction
+            return;
+          }
+          if (data === 0) { pendingHi = b; data = 1; return; }
+          if (data === 1) {
+            code = ((pendingHi << 4) | (b >> 4)) & 0x0fff;
+            powerDown = command & 0x03;
+            writes++;
+            data = 2;
+            return;
+          }
+          // data === 2: the optional third data byte carries the EEPROM power-down bits.
+        },
+        readByte() { return 0x00; },
+        summary: () => ({
+          kind: 'mcp4725', address: addr, command, writes, eeprom_writes: eepromWrites,
+          unrecognised, code, power_down: powerDown,
+          power_down_ohms: PD_OHMS[powerDown] ?? 0, vref,
+          volts: Math.round((code / 4096) * vref * 1e6) / 1e6,
         }),
       });
     } else if (s.kind === 'lcd1602') {
