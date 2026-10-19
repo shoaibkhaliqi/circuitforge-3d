@@ -378,4 +378,18 @@ func run(t) -> void:
 		t.check(int(se.get("dc", -1)) == 9, "DC pin resolved from pin_map", str(se))
 		t.check(int(se.get("cs", -1)) == 10, "CS pin resolved from pin_map", str(se))
 
+	# MAX7219 LED matrix: CS resolved from pin_map (no DC line).
+	var app10 = AppService.new()
+	app10.session.add_component("ground", ["TM1"])
+	app10.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # CS
+	app10.session.add_component("max7219_matrix",
+		["TM4", "TP4", "d5", "a2", "d6"], {}, "M1")
+	var built10: Dictionary = app10.session.build_circuit()
+	var specs11: Array = app10._firmware_devices({}, built10.pin_nets, {"9": "P1"})
+	t.check(specs11.size() == 1, "MAX7219 produces one device spec", str(specs11))
+	if specs11.size() == 1:
+		var sm: Dictionary = specs11[0]
+		t.check(String(sm.get("kind", "")) == "max7219_spi", "spec kind is max7219_spi")
+		t.check(int(sm.get("cs", -1)) == 9, "CS pin resolved from pin_map", str(sm))
+
 	t.done()

@@ -574,8 +574,13 @@
         "shape": "max7219_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "max7219-spi"
+      ],
+      "simulation_backend": "firmware",
+      "notes": "No breadboard electrical model: the harness decodes the SPI 16-bit words (CS-framed, address high byte + data low byte) into the 8 digit rows. CS is resolved from pin_map. DIN/CLK use the AVR SPI peripheral, so a bit-banged bus is invisible."
     },
     {
       "id": "ws2812b",

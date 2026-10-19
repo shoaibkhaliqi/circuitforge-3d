@@ -369,6 +369,56 @@ function makeEpaper(width, height) {
   };
 }
 
+// MAX7219 8x8 LED matrix driver on SPI: no DC line. Each transaction is a 16-bit word
+// (address high byte, data low byte) framed by CS; address 1..8 selects a digit row (a
+// byte bitmask, bit 7 = column 0), and 0x09/0x0A/0x0B/0x0C/0x0F configure decode, intensity,
+// scan limit, shutdown and display test. BUSY/RST are not modelled.
+function makeMax7219() {
+  const rows = new Uint8Array(8);
+  let intensity = 0x0f;
+  let decode = 0x00;
+  let scanLimit = 0x07;
+  let shutdown = 0x00; // 0 = shutdown, 1 = normal
+  let displayTest = 0x00;
+  let dataBytes = 0;
+  let words = 0;
+  let pending = -1; // high byte of the current word
+  const writeWord = (addr, data) => {
+    addr &= 0x0f; data &= 0xff;
+    if (addr >= 0x01 && addr <= 0x08) rows[addr - 1] = data;
+    else if (addr === 0x09) decode = data;
+    else if (addr === 0x0a) intensity = data & 0x0f;
+    else if (addr === 0x0b) scanLimit = data & 0x07;
+    else if (addr === 0x0c) shutdown = data & 0x01;
+    else if (addr === 0x0f) displayTest = data & 0x01;
+    words++;
+  };
+  return {
+    // MAX7219 has no DC line: bytes are paired into 16-bit words by CS framing. The
+    // `onByte` callback in the SPI monitor drives this; here we expose byteIn for the
+    // device object.
+    byteIn(b) {
+      dataBytes++;
+      b &= 0xff;
+      if (pending < 0) { pending = b; return; }
+      writeWord(pending, b);
+      pending = -1;
+    },
+    fields: () => {
+      const rowsHex = Array.from(rows).map((v) => v.toString(16).padStart(2, '0'));
+      let set = 0;
+      for (let i = 0; i < 8; i++) for (let x = rows[i]; x; x >>= 1) set += x & 1;
+      return {
+        rows: rowsHex, intensity, decode, scan_limit: scanLimit,
+        shutdown: shutdown === 1, display_test: displayTest === 1,
+        data_bytes: dataBytes, words, pixels_set: set,
+      };
+    },
+    // flush a half-word at CS deassertion
+    flush() { pending = -1; },
+  };
+}
+
 // Level of a pin driven by the MCU right now (1 = high, 0 = low or input). Uses the same
 // UNO_PIN table as the transition recorder.
 function levelOfPin(pin) {
@@ -512,6 +562,31 @@ function buildDevices() {
         summary() {
           return {
             kind: 'epaper_spi', dc_pin: this.dc, cs_pin: this.cs,
+            bytes: this.bytes, deselected: this.deselected,
+            ...this.core.fields(),
+          };
+        },
+      });
+      continue;
+    }
+    if (s.kind === 'max7219_spi') {
+      const core = makeMax7219();
+      spiDevices.push({
+        kind: 'max7219_spi',
+        dc: -1,
+        cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
+        bytes: 0,
+        deselected: 0,
+        selected: false,
+        core,
+        select() { this.core.flush(); },
+        onByte(b) {
+          this.core.byteIn(b);
+          return 0x00;
+        },
+        summary() {
+          return {
+            kind: 'max7219_spi', cs_pin: this.cs,
             bytes: this.bytes, deselected: this.deselected,
             ...this.core.fields(),
           };

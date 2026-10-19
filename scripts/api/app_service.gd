@@ -546,6 +546,16 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"width": 250,
 						"height": 122,
 					})
+		elif t == "max7219_matrix":
+			# MAX7219 LED matrix on SPI: no DC line, CS frames 16-bit words.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 4:
+				var cs := _net_pin(String(nets[3]), pin_map, pin_nets)
+				if cs >= 0:
+					out.append({
+						"kind": "max7219_spi",
+						"cs": cs,
+					})
 		elif t == "tft_ili9341":
 			# The colour TFT, resolved exactly like the SPI OLED: no address to fall back
 			# on, so its DC (command/data, pin 4) and CS (selected, pin 2) lines come from

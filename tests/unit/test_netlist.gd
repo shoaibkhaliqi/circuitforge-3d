@@ -153,6 +153,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("ds18b20"), "ds18b20 is not mapped by the solver (the harness answers the 1-Wire bus)")
 	t.check(ComponentDB.status_of("epaper_213") == "external", "epaper_213 status is 'external'")
 	t.check(not NetlistBuilder.handles("epaper_213"), "epaper_213 is not mapped by the solver (the harness decodes the SPI stream)")
+	t.check(ComponentDB.status_of("max7219_matrix") == "external", "max7219_matrix status is 'external'")
+	t.check(not NetlistBuilder.handles("max7219_matrix"), "max7219_matrix is not mapped by the solver (the harness decodes the SPI stream)")
 	# The MCP4725 is the one firmware part with a *netlist* model too: VOUT is a driven
 	# source, so it claims 'partial' (the harness supplies the code).
 	t.check(ComponentDB.status_of("mcp4725") == "partial", "mcp4725 status is 'partial'")
