@@ -505,8 +505,8 @@ func run(t) -> void:
 
 	# ---- unhandled parts warn instead of pretending -----------------------
 	t.section("Netlist - unmapped parts are skipped with a warning")
-	r = builder.build(bb, [_place("J1", "barrel_jack", ["a1", "a9"], {})], [])
-	t.check(_by_id(r, "J1") == null, "visual-only barrel jack produces no element")
+	r = builder.build(bb, [_place("J1", "arduino_uno_r3", ["a1", "a9"], {})], [])
+	t.check(_by_id(r, "J1") == null, "planned board produces no element")
 	var warned := false
 	for w in r.warnings:
 		if String(w).contains("not yet simulatable"):

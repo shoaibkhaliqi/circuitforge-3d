@@ -60,6 +60,10 @@ const HANDLED_TYPES := [
 	"optocoupler", "thyristor", "triac",
 	"lm741", "lm358", "lm393", "ne555", "d_flip_flop", "lm386",
 	"shift_register_74hc595", "counter_74hc161",
+	"header_male_1x40", "header_female_1x8", "barrel_jack", "terminal_block_2",
+	"terminal_block_3", "jst_xh_2", "usb_a_receptacle", "usb_micro_b",
+	"usb_c_receptacle", "audio_jack_35", "rj45_jack", "db9_female",
+	"ic_socket_dip8", "ic_socket_dip16", "banana_plug", "alligator_clip",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -168,6 +172,11 @@ func build(breadboard, placements: Array, wires: Array) -> Dictionary:
 		pin_nets[cid] = pnets
 		if type == "ground":
 			continue  # Ground only defines the reference node.
+		if type in ["header_male_1x40", "header_female_1x8", "barrel_jack", "terminal_block_2",
+				"terminal_block_3", "jst_xh_2", "usb_a_receptacle", "usb_micro_b",
+				"usb_c_receptacle", "audio_jack_35", "rj45_jack", "db9_female",
+				"ic_socket_dip8", "ic_socket_dip16", "banana_plug", "alligator_clip"]:
+			continue  # Connectors are ideal terminals; no solver element.
 		var els := _make_elements(cid, type, nets, p.get("params", {}), warnings)
 		for e in els:
 			circuit.add_element(e)

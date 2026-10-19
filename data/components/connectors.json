@@ -53,8 +53,9 @@
         "shape": "header_male"
       },
       "mounting": "tht",
-      "simulation_status": "visual",
-      "notes": "Mechanical/visual part; pin count in the schematic is representative."
+      "simulation_status": "full",
+      "notes": "Mechanical/visual part; pin count in the schematic is representative. Ideal conductor: each pin is a terminal, no internal connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "header_female_1x8",
@@ -106,7 +107,9 @@
         "shape": "header_female"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "barrel_jack",
@@ -135,8 +138,9 @@
         "shape": "barrel_jack"
       },
       "mounting": "tht",
-      "simulation_status": "visual",
-      "notes": "Electrically a two-terminal connector; polarity depends on the mating plug."
+      "simulation_status": "full",
+      "notes": "Electrically a two-terminal connector; polarity depends on the mating plug. Ideal conductor: each pin is a terminal, no internal connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "terminal_block_2",
@@ -165,7 +169,9 @@
         "shape": "terminal_block_2"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "terminal_block_3",
@@ -198,7 +204,9 @@
         "shape": "terminal_block_3"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "jst_xh_2",
@@ -227,7 +235,9 @@
         "shape": "jst_xh"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "usb_a_receptacle",
@@ -266,8 +276,9 @@
         "shape": "usb_a"
       },
       "mounting": "tht",
-      "simulation_status": "external",
-      "notes": "USB signalling is handled by the host; not solved electrically."
+      "simulation_status": "full",
+      "notes": "USB signalling is handled by the host; not solved electrically. Ideal conductor: each pin is a terminal, no internal connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "usb_micro_b",
@@ -310,7 +321,9 @@
         "shape": "usb_micro"
       },
       "mounting": "smd",
-      "simulation_status": "external"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "usb_c_receptacle",
@@ -357,8 +370,9 @@
         "shape": "usb_c"
       },
       "mounting": "smd",
-      "simulation_status": "external",
-      "notes": "Role detection via CC requires a USB backend; not solved electrically."
+      "simulation_status": "full",
+      "notes": "Role detection via CC requires a USB backend; not solved electrically. Ideal conductor: each pin is a terminal, no internal connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "audio_jack_35",
@@ -395,7 +409,9 @@
         "shape": "audio_jack"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "rj45_jack",
@@ -451,7 +467,9 @@
         "shape": "rj45"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "db9_female",
@@ -511,7 +529,9 @@
         "shape": "db9"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "ic_socket_dip8",
@@ -562,8 +582,9 @@
         "shape": "dip_socket_8"
       },
       "mounting": "tht",
-      "simulation_status": "visual",
-      "notes": "Passes through electrically; pin count is fixed at 8."
+      "simulation_status": "full",
+      "notes": "Passes through electrically; pin count is fixed at 8. Ideal conductor: each pin is a terminal, no internal connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "ic_socket_dip16",
@@ -646,7 +667,9 @@
         "shape": "dip_socket_16"
       },
       "mounting": "tht",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "banana_plug",
@@ -670,7 +693,9 @@
         "shape": "banana_plug"
       },
       "mounting": "device",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     },
     {
       "id": "alligator_clip",
@@ -694,7 +719,9 @@
         "shape": "alligator_clip"
       },
       "mounting": "device",
-      "simulation_status": "visual"
+      "simulation_status": "full",
+      "simulation_backend": "mna",
+      "notes": " Ideal conductor: each pin is a terminal, no internal connection."
     }
   ]
 }

@@ -89,9 +89,10 @@
         "shape": "lcd1602"
       },
       "mounting": "module",
-      "simulation_status": "visual",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Display rendering requires a peripheral backend."
+      "notes": "Display rendering requires a peripheral backend. (Parallel interface; no firmware backend for parallel yet.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "i2c_lcd1602",
