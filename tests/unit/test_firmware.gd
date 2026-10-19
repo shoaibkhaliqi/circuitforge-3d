@@ -421,4 +421,19 @@ func run(t) -> void:
 		t.check(int(tof_spec2.get("address", -1)) == 41, "default I2C address is 0x29", str(tof_spec2))
 		t.check(absf(float(tof_spec2.get("distance_mm", 0.0)) - 500.0) < 1e-6, "distance comes from params", str(tof_spec2))
 
+	# CCS811: I2C register file, no pin_map needed.
+	var app13 = AppService.new()
+	app13.session.add_component("ground", ["TM1"])
+	app13.session.add_component("ccs811",
+		["TP1", "TM1", "d2", "d3", "d4"], {"eco2": 1000.0, "tvoc": 50.0}, "C1")
+	var built13: Dictionary = app13.session.build_circuit()
+	var specs14: Array = app13._firmware_devices({}, built13.pin_nets, {})
+	t.check(specs14.size() == 1, "CCS811 produces one device spec", str(specs14))
+	if specs14.size() == 1:
+		var cc: Dictionary = specs14[0]
+		t.check(String(cc.get("kind", "")) == "ccs811", "spec kind is ccs811")
+		t.check(int(cc.get("address", -1)) == 90, "default I2C address is 0x5A", str(cc))
+		t.check(absf(float(cc.get("eco2", 0.0)) - 1000.0) < 1e-6, "eco2 comes from params", str(cc))
+		t.check(absf(float(cc.get("tvoc", 0.0)) - 50.0) < 1e-6, "tvoc comes from params", str(cc))
+
 	t.done()

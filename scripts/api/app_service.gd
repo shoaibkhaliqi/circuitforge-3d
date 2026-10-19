@@ -546,6 +546,13 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"width": 250,
 						"height": 122,
 					})
+		elif t == "ccs811":
+			out.append({
+				"kind": "ccs811",
+				"address": int(p.get("address", 90)) & 0x7F,
+				"eco2": float(p.get("eco2", 400.0)),
+				"tvoc": float(p.get("tvoc", 0.0)),
+			})
 		elif t == "tof_vl53l0x":
 			out.append({
 				"kind": "tof_vl53l0x",

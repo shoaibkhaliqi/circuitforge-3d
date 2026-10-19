@@ -1401,9 +1401,33 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "eCO2 is an estimate from VOC data, not a true NDIR CO2 measurement."
+      "notes": "No breadboard electrical model: the harness serves a CCS811 register file on the I2C bus while firmware runs (attach_devices). Chip ID (0x81) at 0x20, status at 0x00, eCO2 (ppm) at 0x02..0x03 and TVOC (ppb) at 0x04..0x05, with a pointer + auto-increment shape. Baseline/compensation, the WAKE pin electrical behaviour, and the 48 h burn-in are not modelled.",
+      "simulation_models": [
+        "ccs811-i2c"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "address": {
+          "default": 90,
+          "label": "I2C address (7-bit)"
+        },
+        "eco2": {
+          "default": 400,
+          "label": "eCO2",
+          "unit": "ppm",
+          "min": 400,
+          "max": 8192
+        },
+        "tvoc": {
+          "default": 0,
+          "label": "TVOC",
+          "unit": "ppb",
+          "min": 0,
+          "max": 1187
+        }
+      }
     },
     {
       "id": "scd40",

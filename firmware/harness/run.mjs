@@ -1060,6 +1060,37 @@ function buildDevices() {
           distance_mm: dist, pointer: ptr,
         }),
       });
+    } else if (s.kind === 'ccs811') {
+      // CCS811 eCO2/TVOC: a small register file. Chip ID (0x81) at 0x20, status at 0x00,
+      // eCO2 (ppm) at 0x02..0x03 and TVOC (ppb) at 0x04..0x05 (both 16-bit MSB first).
+      // Pointer + auto-increment like the MPU-6050. Only these registers are modelled.
+      const eco2 = Math.max(400, Math.min(8192, Number(s.eco2 ?? 400)));
+      const tvoc = Math.max(0, Math.min(1187, Number(s.tvoc ?? 0)));
+      const regs = new Uint8Array(0x30);
+      regs[0x20] = 0x81;
+      regs[0x02] = (eco2 >> 8) & 0xff; regs[0x03] = eco2 & 0xff;
+      regs[0x04] = (tvoc >> 8) & 0xff; regs[0x05] = tvoc & 0xff;
+      regs[0x00] = 0x90; // APP_VALID + DATA_READY
+      let ptr = 0;
+      let first = true;
+      map.set(addr, {
+        kind: 'ccs811',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0xff; first = false; }
+          else { regs[ptr & 0xff] = b; ptr = (ptr + 1) & 0xff; }
+        },
+        readByte() {
+          const v = regs[ptr & 0xff];
+          ptr = (ptr + 1) & 0xff;
+          return v;
+        },
+        summary: () => ({
+          kind: 'ccs811', address: addr, chip_id: regs[0x20],
+          eco2, tvoc, status: regs[0x00], pointer: ptr,
+        }),
+      });
     } else if (s.kind === 'sht31') {
       // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
       // 0xf32d soft reset, 0x306d/0xe000 heater) and a 6-byte read of
