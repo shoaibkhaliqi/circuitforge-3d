@@ -8,14 +8,51 @@
       "category": "Analog IC",
       "subcategory": "Operational Amplifiers",
       "description": "Dual general-purpose operational amplifier, DIP-8. Two independent op-amps.",
-      "keywords": ["opamp", "op-amp", "lm358", "dual", "amplifier"],
+      "keywords": [
+        "opamp",
+        "op-amp",
+        "lm358",
+        "dual",
+        "amplifier"
+      ],
       "part_number": "LM358",
       "pins": [
-        {"name": "OUT1", "type": "output"}, {"name": "IN1-", "type": "input"}, {"name": "IN1+", "type": "input"},
-        {"name": "V-", "type": "power"}, {"name": "IN2+", "type": "input"}, {"name": "IN2-", "type": "input"},
-        {"name": "OUT2", "type": "output"}, {"name": "V+", "type": "power"}
+        {
+          "name": "OUT1",
+          "type": "output"
+        },
+        {
+          "name": "IN1-",
+          "type": "input"
+        },
+        {
+          "name": "IN1+",
+          "type": "input"
+        },
+        {
+          "name": "V-",
+          "type": "power"
+        },
+        {
+          "name": "IN2+",
+          "type": "input"
+        },
+        {
+          "name": "IN2-",
+          "type": "input"
+        },
+        {
+          "name": "OUT2",
+          "type": "output"
+        },
+        {
+          "name": "V+",
+          "type": "power"
+        }
       ],
-      "model": {"shape": "dip8"},
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -27,14 +64,50 @@
       "category": "Analog IC",
       "subcategory": "Operational Amplifiers",
       "description": "Classic single operational amplifier, DIP-8.",
-      "keywords": ["opamp", "lm741", "single", "amplifier"],
+      "keywords": [
+        "opamp",
+        "lm741",
+        "single",
+        "amplifier"
+      ],
       "part_number": "LM741",
       "pins": [
-        {"name": "OFFSET_N1", "type": "passive"}, {"name": "IN-", "type": "input"}, {"name": "IN+", "type": "input"},
-        {"name": "V-", "type": "power"}, {"name": "OFFSET_N2", "type": "passive"}, {"name": "OUT", "type": "output"},
-        {"name": "V+", "type": "power"}, {"name": "NC", "type": "nc"}
+        {
+          "name": "OFFSET_N1",
+          "type": "passive"
+        },
+        {
+          "name": "IN-",
+          "type": "input"
+        },
+        {
+          "name": "IN+",
+          "type": "input"
+        },
+        {
+          "name": "V-",
+          "type": "power"
+        },
+        {
+          "name": "OFFSET_N2",
+          "type": "passive"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "V+",
+          "type": "power"
+        },
+        {
+          "name": "NC",
+          "type": "nc"
+        }
       ],
-      "model": {"shape": "dip8"},
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "planned"
     },
@@ -44,14 +117,49 @@
       "category": "Analog IC",
       "subcategory": "Comparators",
       "description": "Dual differential comparator, DIP-8, open-collector outputs.",
-      "keywords": ["comparator", "lm393", "dual"],
+      "keywords": [
+        "comparator",
+        "lm393",
+        "dual"
+      ],
       "part_number": "LM393",
       "pins": [
-        {"name": "OUT1", "type": "output"}, {"name": "IN1-", "type": "input"}, {"name": "IN1+", "type": "input"},
-        {"name": "GND", "type": "ground"}, {"name": "IN2+", "type": "input"}, {"name": "IN2-", "type": "input"},
-        {"name": "OUT2", "type": "output"}, {"name": "VCC", "type": "power"}
+        {
+          "name": "OUT1",
+          "type": "output"
+        },
+        {
+          "name": "IN1-",
+          "type": "input"
+        },
+        {
+          "name": "IN1+",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "IN2+",
+          "type": "input"
+        },
+        {
+          "name": "IN2-",
+          "type": "input"
+        },
+        {
+          "name": "OUT2",
+          "type": "output"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        }
       ],
-      "model": {"shape": "dip8"},
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -62,14 +170,53 @@
       "category": "Analog IC",
       "subcategory": "Timers",
       "description": "Versatile timer IC for oscillators, one-shots and PWM. DIP-8.",
-      "keywords": ["555", "ne555", "timer", "oscillator", "pwm", "astable", "monostable"],
+      "keywords": [
+        "555",
+        "ne555",
+        "timer",
+        "oscillator",
+        "pwm",
+        "astable",
+        "monostable"
+      ],
       "part_number": "NE555",
       "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "TRIG", "type": "input"}, {"name": "OUT", "type": "output"},
-        {"name": "RESET", "type": "input"}, {"name": "CTRL", "type": "input"}, {"name": "THR", "type": "input"},
-        {"name": "DISCH", "type": "passive"}, {"name": "VCC", "type": "power"}
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TRIG",
+          "type": "input"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "RESET",
+          "type": "input"
+        },
+        {
+          "name": "CTRL",
+          "type": "input"
+        },
+        {
+          "name": "THR",
+          "type": "input"
+        },
+        {
+          "name": "DISCH",
+          "type": "passive"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        }
       ],
-      "model": {"shape": "dip8"},
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -80,14 +227,50 @@
       "category": "Analog IC",
       "subcategory": "Audio",
       "description": "Low-voltage audio power amplifier, DIP-8.",
-      "keywords": ["audio", "amplifier", "lm386", "speaker"],
+      "keywords": [
+        "audio",
+        "amplifier",
+        "lm386",
+        "speaker"
+      ],
       "part_number": "LM386",
       "pins": [
-        {"name": "GAIN", "type": "passive"}, {"name": "IN-", "type": "input"}, {"name": "IN+", "type": "input"},
-        {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "output"}, {"name": "VS", "type": "power"},
-        {"name": "BYPASS", "type": "passive"}, {"name": "GAIN2", "type": "passive"}
+        {
+          "name": "GAIN",
+          "type": "passive"
+        },
+        {
+          "name": "IN-",
+          "type": "input"
+        },
+        {
+          "name": "IN+",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "VS",
+          "type": "power"
+        },
+        {
+          "name": "BYPASS",
+          "type": "passive"
+        },
+        {
+          "name": "GAIN2",
+          "type": "passive"
+        }
       ],
-      "model": {"shape": "dip8"},
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -98,14 +281,41 @@
       "category": "Analog IC",
       "subcategory": "Voltage References",
       "description": "Adjustable linear voltage regulator, TO-220. Pins: ADJ, OUT, IN.",
-      "keywords": ["lm317", "adjustable", "regulator", "vref"],
+      "keywords": [
+        "lm317",
+        "adjustable",
+        "regulator",
+        "vref"
+      ],
       "part_number": "LM317",
-      "pins": [{"name": "ADJ", "type": "input"}, {"name": "OUT", "type": "power"}, {"name": "IN", "type": "power"}],
-      "params": {"vref": {"default": 1.25, "unit": "V", "label": "Reference voltage"}},
-      "model": {"shape": "to220"},
+      "pins": [
+        {
+          "name": "ADJ",
+          "type": "input"
+        },
+        {
+          "name": "OUT",
+          "type": "power"
+        },
+        {
+          "name": "IN",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "vref": {
+          "default": 1.25,
+          "unit": "V",
+          "label": "Reference voltage"
+        }
+      },
+      "model": {
+        "shape": "to220"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "tl431",
@@ -113,13 +323,40 @@
       "category": "Analog IC",
       "subcategory": "Voltage References",
       "description": "Adjustable precision shunt regulator / reference.",
-      "keywords": ["tl431", "reference", "shunt regulator", "vref"],
+      "keywords": [
+        "tl431",
+        "reference",
+        "shunt regulator",
+        "vref"
+      ],
       "part_number": "TL431",
-      "pins": [{"name": "REF", "type": "input"}, {"name": "ANODE", "type": "passive"}, {"name": "CATHODE", "type": "passive"}],
-      "params": {"vref": {"default": 2.495, "unit": "V", "label": "Reference voltage"}},
-      "model": {"shape": "to92"},
+      "pins": [
+        {
+          "name": "REF",
+          "type": "input"
+        },
+        {
+          "name": "ANODE",
+          "type": "passive"
+        },
+        {
+          "name": "CATHODE",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "vref": {
+          "default": 2.495,
+          "unit": "V",
+          "label": "Reference voltage"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
-      "simulation_status": "planned"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "ina219",
@@ -127,14 +364,46 @@
       "category": "Analog IC",
       "subcategory": "Current Sense",
       "description": "I2C current, voltage and power monitor module with a shunt resistor.",
-      "keywords": ["ina219", "current", "power", "i2c", "monitor", "shunt"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"},
-        {"name": "VIN+", "type": "power"}, {"name": "VIN-", "type": "power"}
+      "keywords": [
+        "ina219",
+        "current",
+        "power",
+        "i2c",
+        "monitor",
+        "shunt"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "VIN+",
+          "type": "power"
+        },
+        {
+          "name": "VIN-",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -146,24 +415,99 @@
       "category": "Analog IC",
       "subcategory": "ADCs",
       "description": "10-bit, 8-channel SPI analog-to-digital converter, DIP-16.",
-      "keywords": ["mcp3008", "adc", "spi", "10-bit", "8 channel"],
-      "protocols": ["SPI"],
+      "keywords": [
+        "mcp3008",
+        "adc",
+        "spi",
+        "10-bit",
+        "8 channel"
+      ],
+      "protocols": [
+        "SPI"
+      ],
       "part_number": "MCP3008",
       "pins": [
-        {"name": "CH0", "type": "analog"}, {"name": "CH1", "type": "analog"}, {"name": "CH2", "type": "analog"}, {"name": "CH3", "type": "analog"},
-        {"name": "CH4", "type": "analog"}, {"name": "CH5", "type": "analog"}, {"name": "CH6", "type": "analog"}, {"name": "CH7", "type": "analog"},
-        {"name": "DGND", "type": "ground"}, {"name": "CS", "type": "input"}, {"name": "DIN", "type": "input"},
-        {"name": "DOUT", "type": "output"}, {"name": "CLK", "type": "clock"}, {"name": "AGND", "type": "ground"},
-        {"name": "VREF", "type": "power"}, {"name": "VDD", "type": "power"}
+        {
+          "name": "CH0",
+          "type": "analog"
+        },
+        {
+          "name": "CH1",
+          "type": "analog"
+        },
+        {
+          "name": "CH2",
+          "type": "analog"
+        },
+        {
+          "name": "CH3",
+          "type": "analog"
+        },
+        {
+          "name": "CH4",
+          "type": "analog"
+        },
+        {
+          "name": "CH5",
+          "type": "analog"
+        },
+        {
+          "name": "CH6",
+          "type": "analog"
+        },
+        {
+          "name": "CH7",
+          "type": "analog"
+        },
+        {
+          "name": "DGND",
+          "type": "ground"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "DIN",
+          "type": "input"
+        },
+        {
+          "name": "DOUT",
+          "type": "output"
+        },
+        {
+          "name": "CLK",
+          "type": "clock"
+        },
+        {
+          "name": "AGND",
+          "type": "ground"
+        },
+        {
+          "name": "VREF",
+          "type": "power"
+        },
+        {
+          "name": "VDD",
+          "type": "power"
+        }
       ],
-      "model": {"shape": "dip16"},
+      "model": {
+        "shape": "dip16"
+      },
       "mounting": "tht",
       "simulation_status": "external",
-      "simulation_models": ["spi-adc-probe"],
+      "simulation_models": [
+        "spi-adc-probe"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "vref": {"default": 5.0, "unit": "V", "label": "Reference voltage"}
+        "vref": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Reference voltage"
+        }
       },
       "notes": "No breadboard electrical model of its own: the harness serves it on the ATmega's SPI peripheral (so a sketch must use the hardware SPI pins - DIN = D11, CLK = D13 - and a bit-banged bus is invisible), and the part *answers* on MISO, which makes it the first SPI device firmware can read. A conversion is the datasheet's three transfers inside one CS-low window (0x01, then 0x80 | channel << 4, then a don't-care) and the 10-bit code comes back in the low bits of the second byte and all of the third. CH0..CH7 are ADC probes on the solved nets: attach_devices feeds each channel its solved node voltage (the same closed loop as the PCF8591), scaled to a code by 'vref', so a divider or sensor output the circuit solves can be read by firmware. CS must be wired to a virtual pin and mapped with pin_map ({\"10\": \"P2\"}) - without it the harness cannot tell where a conversion begins, so the part is skipped rather than guessed at. Not modelled: differential mode (a differential request is answered with the channel's single-ended code and counted), the VREF *net* (the reference is the 'vref' parameter), conversion timing/throughput, and the analog input's own loading."
     },
@@ -173,22 +517,73 @@
       "category": "Analog IC",
       "subcategory": "ADCs",
       "description": "16-bit I2C ADC breakout with 4 single-ended / 2 differential inputs.",
-      "keywords": ["ads1115", "adc", "i2c", "16-bit"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VDD", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"},
-        {"name": "ADDR", "type": "input"}, {"name": "ALRT", "type": "output"},
-        {"name": "A0", "type": "analog"}, {"name": "A1", "type": "analog"}, {"name": "A2", "type": "analog"}, {"name": "A3", "type": "analog"}
+      "keywords": [
+        "ads1115",
+        "adc",
+        "i2c",
+        "16-bit"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VDD",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "ADDR",
+          "type": "input"
+        },
+        {
+          "name": "ALRT",
+          "type": "output"
+        },
+        {
+          "name": "A0",
+          "type": "analog"
+        },
+        {
+          "name": "A1",
+          "type": "analog"
+        },
+        {
+          "name": "A2",
+          "type": "analog"
+        },
+        {
+          "name": "A3",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["i2c-register-file", "i2c-adc-probe"],
+      "simulation_models": [
+        "i2c-register-file",
+        "i2c-adc-probe"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 72, "label": "I2C address (7-bit)"}
+        "address": {
+          "default": 72,
+          "label": "I2C address (7-bit)"
+        }
       },
       "notes": "No breadboard electrical model of its own: the harness serves its register file on the I2C bus while firmware runs (attach_devices) - four 16-bit registers selected by a pointer (0x00 conversion, 0x01 config, 0x02/0x03 thresholds), each read and written MSB first. The conversion is computed from the solved node voltages of the A0..A3 nets (the same closed loop as the PCF8591 and the MCP3008) and from the configuration the *firmware* writes: the MUX bits choose single-ended A0..A3 against GND (MUX 4..7) or one of the differential pairs (MUX 0..3, A0/A1, A0/A3, A1/A3, A2/A3), and the PGA bits give +/-6.144/4.096/2.048/1.024/0.512/0.256 V full scale as a 16-bit two's complement code (reserved PGA codes are treated as 0.256 V). Conversion timing is not modelled - the code is ready as soon as the config is written - so a single-shot or continuous-mode driver both work, and the ALERT/RDY comparator, the ADDR pin's address selection (the address is a parameter), the input's own loading and the device's supply/electrical limits are not modelled. Pin order follows the breakout (A0..A3 last)."
     },
@@ -198,24 +593,71 @@
       "category": "Analog IC",
       "subcategory": "DACs",
       "description": "Single-channel 12-bit I2C digital-to-analog converter breakout.",
-      "keywords": ["mcp4725", "dac", "i2c", "12-bit"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}, {"name": "VOUT", "type": "analog"}
+      "keywords": [
+        "mcp4725",
+        "dac",
+        "i2c",
+        "12-bit"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "VOUT",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "partial",
-      "simulation_models": ["i2c-dac-output"],
+      "simulation_models": [
+        "i2c-dac-output"
+      ],
       "simulation_backend": "mna+firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 96, "label": "I2C address (7-bit)"},
-        "vref": {"default": 5.0, "unit": "V", "label": "Reference (VDD) voltage"},
-        "vout": {"default": 0.0, "unit": "V", "label": "DAC output voltage"},
-        "power_down": {"default": 0.0, "label": "Power-down mode (0 = normal, 1..3 = 1k/100k/500k to GND)"},
-        "rout": {"default": 25.0, "unit": "Ohm", "label": "Output resistance"}
+        "address": {
+          "default": 96,
+          "label": "I2C address (7-bit)"
+        },
+        "vref": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Reference (VDD) voltage"
+        },
+        "vout": {
+          "default": 0.0,
+          "unit": "V",
+          "label": "DAC output voltage"
+        },
+        "power_down": {
+          "default": 0.0,
+          "label": "Power-down mode (0 = normal, 1..3 = 1k/100k/500k to GND)"
+        },
+        "rout": {
+          "default": 25.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
       "notes": "Partial: VOUT is an ideal Thevenin source at 'vout' with 'rout' (the real part has a buffered rail-to-rail output), so firmware can drive the analog part of the circuit. Firmware's code arrives via apply_firmware_device, which serves the DAC to the harness, decodes the write and sets 'vout' = code/4096 * 'vref' ('vref' models the VDD reference; the code is 12-bit, so 5 V / 4096 = 1.22 mV steps). A non-zero power-down code (the command byte's bits 1..0) is carried into 'power_down', and the netlist then replaces the driven source with a 1k/100k/500k resistor to GND because the real part stops driving and only pulls down. Not modelled: the EEPROM (a write to it is decoded and counted, but nothing persists - memory does not survive a run), the fast-mode write encoding (only the general write command is decoded; an unrecognised command is counted), the power-on reset / MTP recall value, the internal reference and gain settings of the 'A' variant, and the device's own supply/electrical limits. Pin order follows the breakout (VOUT last)."
     },
@@ -225,13 +667,62 @@
       "category": "Analog IC",
       "subcategory": "Interface",
       "description": "8-channel bidirectional level translator (3.3 V <-> 5 V).",
-      "keywords": ["level translator", "txs0108e", "3.3v", "5v", "bidirectional"],
-      "pins": [
-        {"name": "A1", "type": "bidirectional"}, {"name": "A2", "type": "bidirectional"}, {"name": "A3", "type": "bidirectional"}, {"name": "A4", "type": "bidirectional"},
-        {"name": "A5", "type": "bidirectional"}, {"name": "A6", "type": "bidirectional"}, {"name": "A7", "type": "bidirectional"}, {"name": "A8", "type": "bidirectional"},
-        {"name": "VCCA", "type": "power"}, {"name": "VCCB", "type": "power"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "level translator",
+        "txs0108e",
+        "3.3v",
+        "5v",
+        "bidirectional"
       ],
-      "model": {"shape": "dip20"},
+      "pins": [
+        {
+          "name": "A1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "A8",
+          "type": "bidirectional"
+        },
+        {
+          "name": "VCCA",
+          "type": "power"
+        },
+        {
+          "name": "VCCB",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dip20"
+      },
       "mounting": "smd",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -242,29 +733,117 @@
       "category": "Analog IC",
       "subcategory": "Interface",
       "description": "8-bit I2C I/O expander (DIP-16). Firmware writes a byte to its address and P0..P7 follow.",
-      "keywords": ["i2c", "expander", "pcf8574", "gpio", "io expander", "port"],
-      "part_number": "PCF8574",
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
-        {"name": "P0", "type": "bidirectional"}, {"name": "P1", "type": "bidirectional"},
-        {"name": "P2", "type": "bidirectional"}, {"name": "P3", "type": "bidirectional"},
-        {"name": "VSS", "type": "ground"},
-        {"name": "P4", "type": "bidirectional"}, {"name": "P5", "type": "bidirectional"},
-        {"name": "P6", "type": "bidirectional"}, {"name": "P7", "type": "bidirectional"},
-        {"name": "INT", "type": "output"}, {"name": "SCL", "type": "input"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "VDD", "type": "power"}
+      "keywords": [
+        "i2c",
+        "expander",
+        "pcf8574",
+        "gpio",
+        "io expander",
+        "port"
       ],
-      "model": {"shape": "dip16"},
+      "part_number": "PCF8574",
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "A0",
+          "type": "input"
+        },
+        {
+          "name": "A1",
+          "type": "input"
+        },
+        {
+          "name": "A2",
+          "type": "input"
+        },
+        {
+          "name": "P0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P3",
+          "type": "bidirectional"
+        },
+        {
+          "name": "VSS",
+          "type": "ground"
+        },
+        {
+          "name": "P4",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P5",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P6",
+          "type": "bidirectional"
+        },
+        {
+          "name": "P7",
+          "type": "bidirectional"
+        },
+        {
+          "name": "INT",
+          "type": "output"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "VDD",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "dip16"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "arduino_compatible": true,
       "params": {
-        "state": {"default": 0, "label": "Port byte", "min": 0, "max": 255},
-        "address": {"default": 39, "label": "I2C address (7-bit)"},
-        "inputs": {"default": 0, "label": "Inputs held low", "min": 0, "max": 255},
-        "vcc": {"default": 5.0, "unit": "V", "label": "Logic voltage"},
-        "rout": {"default": 1000.0, "unit": "Ohm", "label": "Output resistance"}
+        "state": {
+          "default": 0,
+          "label": "Port byte",
+          "min": 0,
+          "max": 255
+        },
+        "address": {
+          "default": 39,
+          "label": "I2C address (7-bit)"
+        },
+        "inputs": {
+          "default": 0,
+          "label": "Inputs held low",
+          "min": 0,
+          "max": 255
+        },
+        "vcc": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        },
+        "rout": {
+          "default": 1000.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
       "notes": "P0..P7 are ideal quasi-bidirectional outputs (Thevenin level, default 1 kOhm, approximating the part's weak pull-up). Set 'state' directly, or use apply_firmware_pins for a driven value; apply_firmware_device sets 'state' from the byte firmware writes. 'inputs' marks bits externally held low: firmware reading the port (run_firmware with attach_devices) sees state & ~inputs. Pin order follows DIP-16 (pin 1 = A0, pin 8 = VSS, pin 16 = VDD)."
     },
@@ -274,23 +853,76 @@
       "category": "Analog IC",
       "subcategory": "Memory",
       "description": "2 kbit (256 byte) I2C serial EEPROM (DIP-8). Firmware stores and reads back bytes on the bus during a run.",
-      "keywords": ["i2c", "eeprom", "memory", "24c02", "24lc02", "at24c02", "nonvolatile", "nvram", "storage"],
-      "part_number": "24C02",
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
-        {"name": "VSS", "type": "ground"}, {"name": "SDA", "type": "bidirectional"},
-        {"name": "SCL", "type": "input"}, {"name": "WP", "type": "input"}, {"name": "VCC", "type": "power"}
+      "keywords": [
+        "i2c",
+        "eeprom",
+        "memory",
+        "24c02",
+        "24lc02",
+        "at24c02",
+        "nonvolatile",
+        "nvram",
+        "storage"
       ],
-      "model": {"shape": "dip8"},
+      "part_number": "24C02",
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "A0",
+          "type": "input"
+        },
+        {
+          "name": "A1",
+          "type": "input"
+        },
+        {
+          "name": "A2",
+          "type": "input"
+        },
+        {
+          "name": "VSS",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "WP",
+          "type": "input"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
       "simulation_status": "external",
-      "simulation_models": ["i2c-memory"],
+      "simulation_models": [
+        "i2c-memory"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 80, "label": "I2C address (7-bit)"},
-        "size": {"default": 256, "label": "Memory size (bytes)", "min": 1, "max": 32768}
+        "address": {
+          "default": 80,
+          "label": "I2C address (7-bit)"
+        },
+        "size": {
+          "default": 256,
+          "label": "Memory size (bytes)",
+          "min": 1,
+          "max": 32768
+        }
       },
       "notes": "No electrical model on the breadboard: the part answers on the I2C bus in the firmware harness (run_firmware with attach_devices). Firmware uses the standard two-byte address then data, auto-incrementing pointer, and reads back what it wrote. Timing, write-cycle delay, page boundaries, WP pin, ACK polling, endurance and data retention across separate runs are not modelled (the memory lives only for the duration of one run). Pin order follows DIP-8 (pin 1 = A0, pin 4 = VSS, pin 8 = VCC). 'size' must be a power of two for real parts."
     },
@@ -300,30 +932,115 @@
       "category": "Analog IC",
       "subcategory": "Interface",
       "description": "4-channel 8-bit I2C ADC with one 8-bit DAC (DIP-16). Firmware reads channel codes from the solved analog inputs and drives the analog output.",
-      "keywords": ["i2c", "adc", "dac", "pcf8591", "analog converter", "8-bit"],
-      "part_number": "PCF8591",
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "AIN0", "type": "analog"}, {"name": "AIN1", "type": "analog"},
-        {"name": "AIN2", "type": "analog"}, {"name": "AIN3", "type": "analog"},
-        {"name": "A0", "type": "input"}, {"name": "A1", "type": "input"}, {"name": "A2", "type": "input"},
-        {"name": "VSS", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"},
-        {"name": "EXT", "type": "input"}, {"name": "AOUT", "type": "analog"},
-        {"name": "VREF", "type": "input"}, {"name": "AGND", "type": "ground"},
-        {"name": "OSC", "type": "input"}, {"name": "VDD", "type": "power"}
+      "keywords": [
+        "i2c",
+        "adc",
+        "dac",
+        "pcf8591",
+        "analog converter",
+        "8-bit"
       ],
-      "model": {"shape": "dip16"},
+      "part_number": "PCF8591",
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "AIN0",
+          "type": "analog"
+        },
+        {
+          "name": "AIN1",
+          "type": "analog"
+        },
+        {
+          "name": "AIN2",
+          "type": "analog"
+        },
+        {
+          "name": "AIN3",
+          "type": "analog"
+        },
+        {
+          "name": "A0",
+          "type": "input"
+        },
+        {
+          "name": "A1",
+          "type": "input"
+        },
+        {
+          "name": "A2",
+          "type": "input"
+        },
+        {
+          "name": "VSS",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "EXT",
+          "type": "input"
+        },
+        {
+          "name": "AOUT",
+          "type": "analog"
+        },
+        {
+          "name": "VREF",
+          "type": "input"
+        },
+        {
+          "name": "AGND",
+          "type": "ground"
+        },
+        {
+          "name": "OSC",
+          "type": "input"
+        },
+        {
+          "name": "VDD",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "dip16"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["high-z-probe", "dac-output"],
+      "simulation_models": [
+        "high-z-probe",
+        "dac-output"
+      ],
       "simulation_backend": "mna+firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 72, "label": "I2C address (7-bit)"},
-        "vref": {"default": 5.0, "unit": "V", "label": "Reference voltage"},
-        "aout": {"default": 0.0, "unit": "V", "label": "DAC output voltage"},
-        "rout": {"default": 25.0, "unit": "Ohm", "label": "DAC output resistance"}
+        "address": {
+          "default": 72,
+          "label": "I2C address (7-bit)"
+        },
+        "vref": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Reference voltage"
+        },
+        "aout": {
+          "default": 0.0,
+          "unit": "V",
+          "label": "DAC output voltage"
+        },
+        "rout": {
+          "default": 25.0,
+          "unit": "Ohm",
+          "label": "DAC output resistance"
+        }
       },
       "notes": "Partial: AIN0..AIN3 are ideal high-impedance (1 GOhm) ADC probes, so firmware can read the solved node voltage of each (run_firmware with attach_devices feeds the codes; 8-bit over 'vref'). AOUT is an ideal Thevenin source at 'aout' with 'rout' (the real part has a buffered output). Set 'aout' directly, or via apply_firmware_device from the bytes firmware writes (control byte then data, DAC enabled). The read pipeline (the PCF8591 returns the previous conversion first), auto-increment timing, conversion delay, EXT/OSC and the digital bus itself are not modelled. Pin order follows DIP-16 (pin 1 = AIN0, pin 8 = VSS, pin 16 = VDD)."
     }

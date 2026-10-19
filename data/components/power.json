@@ -8,10 +8,33 @@
       "category": "Power",
       "subcategory": "Battery",
       "description": "4-cell AA holder providing 6 V nominal.",
-      "keywords": ["battery", "aa", "holder", "6v", "power"],
-      "pins": [{"name": "+", "type": "power"}, {"name": "-", "type": "ground"}],
-      "params": {"v": {"default": 6.0, "unit": "V", "label": "Voltage"}},
-      "model": {"shape": "battery_holder"},
+      "keywords": [
+        "battery",
+        "aa",
+        "holder",
+        "6v",
+        "power"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "power"
+        },
+        {
+          "name": "-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "v": {
+          "default": 6.0,
+          "unit": "V",
+          "label": "Voltage"
+        }
+      },
+      "model": {
+        "shape": "battery_holder"
+      },
       "mounting": "device",
       "simulation_status": "partial"
     },
@@ -21,13 +44,46 @@
       "category": "Power",
       "subcategory": "Bench Supply",
       "description": "MB102 breadboard power module offering selectable 5 V / 3.3 V rails.",
-      "keywords": ["power supply", "mb102", "breadboard", "5v", "3.3v", "regulator"],
-      "pins": [
-        {"name": "VIN", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "5V", "type": "power"}, {"name": "3V3", "type": "power"}
+      "keywords": [
+        "power supply",
+        "mb102",
+        "breadboard",
+        "5v",
+        "3.3v",
+        "regulator"
       ],
-      "params": {"vout": {"default": 5.0, "unit": "V", "label": "Output voltage", "options": [3.3, 5.0]}},
-      "model": {"shape": "mb102_module"},
+      "pins": [
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage",
+          "options": [
+            3.3,
+            5.0
+          ]
+        }
+      },
+      "model": {
+        "shape": "mb102_module"
+      },
       "mounting": "module",
       "simulation_status": "partial",
       "notes": "Modelled as an ideal regulator output; dropout and current limits not simulated."
@@ -38,12 +94,39 @@
       "category": "Power",
       "subcategory": "Linear Regulator",
       "description": "3.3 V low-dropout linear regulator, SOT-223 / TO-220.",
-      "keywords": ["lm1117", "ldo", "3.3v", "regulator"],
-      "pins": [{"name": "GND", "type": "ground"}, {"name": "VOUT", "type": "power"}, {"name": "VIN", "type": "power"}],
-      "params": {"vout": {"default": 3.3, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "sot223"},
+      "keywords": [
+        "lm1117",
+        "ldo",
+        "3.3v",
+        "regulator"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VOUT",
+          "type": "power"
+        },
+        {
+          "name": "VIN",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 3.3,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "sot223"
+      },
       "mounting": "smd",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "ams1117_50",
@@ -51,12 +134,40 @@
       "category": "Power",
       "subcategory": "Linear Regulator",
       "description": "5 V LDO regulator breakout board.",
-      "keywords": ["ams1117", "ldo", "5v", "regulator", "module"],
-      "pins": [{"name": "VIN", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "VOUT", "type": "power"}],
-      "params": {"vout": {"default": 5.0, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "breakout_module"},
+      "keywords": [
+        "ams1117",
+        "ldo",
+        "5v",
+        "regulator",
+        "module"
+      ],
+      "pins": [
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VOUT",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "buck_mp1584",
@@ -64,13 +175,55 @@
       "category": "Power",
       "subcategory": "DC-DC",
       "description": "Adjustable step-down (buck) DC-DC converter module, up to 3 A.",
-      "keywords": ["buck", "mp1584", "step down", "dc-dc", "converter"],
-      "pins": [{"name": "IN+", "type": "power"}, {"name": "IN-", "type": "ground"}, {"name": "OUT+", "type": "power"}, {"name": "OUT-", "type": "ground"}],
-      "params": {"vout": {"default": 5.0, "unit": "V", "label": "Output voltage"}, "v_min": {"default": 4.5, "unit": "V", "label": "Input minimum"}, "v_max": {"default": 28.0, "unit": "V", "label": "Input maximum"}},
-      "model": {"shape": "buck_module"},
+      "keywords": [
+        "buck",
+        "mp1584",
+        "step down",
+        "dc-dc",
+        "converter"
+      ],
+      "pins": [
+        {
+          "name": "IN+",
+          "type": "power"
+        },
+        {
+          "name": "IN-",
+          "type": "ground"
+        },
+        {
+          "name": "OUT+",
+          "type": "power"
+        },
+        {
+          "name": "OUT-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage"
+        },
+        "v_min": {
+          "default": 4.5,
+          "unit": "V",
+          "label": "Input minimum"
+        },
+        "v_max": {
+          "default": 28.0,
+          "unit": "V",
+          "label": "Input maximum"
+        }
+      },
+      "model": {
+        "shape": "buck_module"
+      },
       "mounting": "module",
-      "simulation_status": "visual",
-      "notes": "Modelled as an ideal regulated output; switching behaviour and efficiency not simulated."
+      "simulation_status": "partial",
+      "notes": "Modelled as an ideal regulated output; switching behaviour and efficiency not simulated.",
+      "simulation_backend": "mna"
     },
     {
       "id": "boost_mt3608",
@@ -78,12 +231,49 @@
       "category": "Power",
       "subcategory": "DC-DC",
       "description": "Adjustable step-up (boost) DC-DC converter module, up to 2 A.",
-      "keywords": ["boost", "mt3608", "step up", "dc-dc", "converter"],
-      "pins": [{"name": "VIN+", "type": "power"}, {"name": "VIN-", "type": "ground"}, {"name": "VOUT+", "type": "power"}, {"name": "VOUT-", "type": "ground"}],
-      "params": {"vout": {"default": 12.0, "unit": "V", "label": "Output voltage"}, "v_in_max": {"default": 24.0, "unit": "V", "label": "Input maximum"}},
-      "model": {"shape": "boost_module"},
+      "keywords": [
+        "boost",
+        "mt3608",
+        "step up",
+        "dc-dc",
+        "converter"
+      ],
+      "pins": [
+        {
+          "name": "VIN+",
+          "type": "power"
+        },
+        {
+          "name": "VIN-",
+          "type": "ground"
+        },
+        {
+          "name": "VOUT+",
+          "type": "power"
+        },
+        {
+          "name": "VOUT-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 12.0,
+          "unit": "V",
+          "label": "Output voltage"
+        },
+        "v_in_max": {
+          "default": 24.0,
+          "unit": "V",
+          "label": "Input maximum"
+        }
+      },
+      "model": {
+        "shape": "boost_module"
+      },
       "mounting": "module",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "buck_boost_xl6009",
@@ -91,12 +281,43 @@
       "category": "Power",
       "subcategory": "DC-DC",
       "description": "Adjustable step-up/step-down DC-DC converter module.",
-      "keywords": ["buck-boost", "xl6009", "converter", "dc-dc"],
-      "pins": [{"name": "IN+", "type": "power"}, {"name": "IN-", "type": "ground"}, {"name": "OUT+", "type": "power"}, {"name": "OUT-", "type": "ground"}],
-      "params": {"vout": {"default": 12.0, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "boost_module"},
+      "keywords": [
+        "buck-boost",
+        "xl6009",
+        "converter",
+        "dc-dc"
+      ],
+      "pins": [
+        {
+          "name": "IN+",
+          "type": "power"
+        },
+        {
+          "name": "IN-",
+          "type": "ground"
+        },
+        {
+          "name": "OUT+",
+          "type": "power"
+        },
+        {
+          "name": "OUT-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 12.0,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "boost_module"
+      },
       "mounting": "module",
-      "simulation_status": "visual"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "lipo_1s",
@@ -104,11 +325,43 @@
       "category": "Power",
       "subcategory": "Battery",
       "description": "Single-cell lithium battery, 3.7 V nominal, modelled as an ideal source.",
-      "keywords": ["lipo", "li-ion", "lithium", "battery", "1s", "3.7v"],
-      "pins": [{"name": "+", "type": "power"}, {"name": "-", "type": "ground"}],
-      "params": {"v": {"default": 3.7, "unit": "V", "label": "Nominal voltage"}, "r_int": {"default": 0.05, "unit": "ohm", "label": "Internal resistance"}},
-      "max_ratings": {"charge_max": 4.2, "discharge_min": 3.0},
-      "model": {"shape": "lipo_cell"},
+      "keywords": [
+        "lipo",
+        "li-ion",
+        "lithium",
+        "battery",
+        "1s",
+        "3.7v"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "power"
+        },
+        {
+          "name": "-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "v": {
+          "default": 3.7,
+          "unit": "V",
+          "label": "Nominal voltage"
+        },
+        "r_int": {
+          "default": 0.05,
+          "unit": "ohm",
+          "label": "Internal resistance"
+        }
+      },
+      "max_ratings": {
+        "charge_max": 4.2,
+        "discharge_min": 3.0
+      },
+      "model": {
+        "shape": "lipo_cell"
+      },
       "mounting": "device",
       "simulation_status": "partial",
       "notes": "Modelled as an ideal source; charging current and protection are not simulated."
@@ -119,12 +372,38 @@
       "category": "Power",
       "subcategory": "Charger",
       "description": "Single-cell Li-Ion linear charger module with protection (DW01).",
-      "keywords": ["tp4056", "charger", "li-ion", "lipo", "battery"],
-      "pins": [{"name": "IN+", "type": "power"}, {"name": "IN-", "type": "ground"}, {"name": "B+", "type": "power"}, {"name": "B-", "type": "ground"}],
-      "model": {"shape": "breakout_module"},
+      "keywords": [
+        "tp4056",
+        "charger",
+        "li-ion",
+        "lipo",
+        "battery"
+      ],
+      "pins": [
+        {
+          "name": "IN+",
+          "type": "power"
+        },
+        {
+          "name": "IN-",
+          "type": "ground"
+        },
+        {
+          "name": "B+",
+          "type": "power"
+        },
+        {
+          "name": "B-",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "notes": "Charge algorithm (CC/CV) requires a dedicated model; not simulated."
+      "simulation_status": "partial",
+      "notes": "Charge algorithm (CC/CV) requires a dedicated model; not simulated.",
+      "simulation_backend": "mna"
     },
     {
       "id": "fuse_holder",
@@ -132,13 +411,36 @@
       "category": "Power",
       "subcategory": "Protection",
       "description": "Inline fuse holder for 5x20 mm fuses.",
-      "keywords": ["fuse", "holder", "protection", "5x20"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"rating": {"default": 1.0, "unit": "A", "label": "Fuse rating"}},
-      "model": {"shape": "fuse_holder"},
+      "keywords": [
+        "fuse",
+        "holder",
+        "protection",
+        "5x20"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "rating": {
+          "default": 1.0,
+          "unit": "A",
+          "label": "Fuse rating"
+        }
+      },
+      "model": {
+        "shape": "fuse_holder"
+      },
       "mounting": "device",
-      "simulation_status": "planned",
-      "notes": "Fusing behaviour requires a switch/overcurrent model, not yet implemented."
+      "simulation_status": "partial",
+      "notes": "Fusing behaviour requires a switch/overcurrent model, not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "polyfuse",
@@ -146,10 +448,37 @@
       "category": "Power",
       "subcategory": "Protection",
       "description": "Resettable PTC overcurrent protection device.",
-      "keywords": ["polyfuse", "ptc", "resettable fuse", "protection"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"ihold": {"default": 0.5, "unit": "A", "label": "Hold current"}, "r": {"default": 0.5, "unit": "ohm", "label": "Resistance"}},
-      "model": {"shape": "disc"},
+      "keywords": [
+        "polyfuse",
+        "ptc",
+        "resettable fuse",
+        "protection"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "ihold": {
+          "default": 0.5,
+          "unit": "A",
+          "label": "Hold current"
+        },
+        "r": {
+          "default": 0.5,
+          "unit": "ohm",
+          "label": "Resistance"
+        }
+      },
+      "model": {
+        "shape": "disc"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Modelled as a resistor when cold; trip behaviour not simulated."
@@ -160,15 +489,46 @@
       "category": "Power",
       "subcategory": "Relay",
       "description": "Single-channel 5 V relay module with an opto-isolated trigger input.",
-      "keywords": ["relay", "srd-05vdc", "module", "switch", "optoisolated"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "IN", "type": "input"},
-        {"name": "COM", "type": "passive"}, {"name": "NO", "type": "passive"}, {"name": "NC", "type": "passive"}
+      "keywords": [
+        "relay",
+        "srd-05vdc",
+        "module",
+        "switch",
+        "optoisolated"
       ],
-      "model": {"shape": "relay_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "IN",
+          "type": "input"
+        },
+        {
+          "name": "COM",
+          "type": "passive"
+        },
+        {
+          "name": "NO",
+          "type": "passive"
+        },
+        {
+          "name": "NC",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "relay_module"
+      },
       "mounting": "module",
-      "simulation_status": "visual",
-      "notes": "Coil side modelled as a driven switch; contact arc/EMI not simulated."
+      "simulation_status": "partial",
+      "notes": "Coil side modelled as a driven switch; contact arc/EMI not simulated.",
+      "simulation_backend": "mna"
     }
   ]
 }

@@ -436,7 +436,8 @@
       "arduino_compatible": true,
       "references": [
         "Arduino Nano - Arduino official hardware documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "arduino_mega2560",
@@ -780,7 +781,8 @@
       "arduino_compatible": true,
       "references": [
         "Arduino Mega 2560 Rev3 - Arduino official hardware documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "arduino_leonardo",
@@ -924,7 +926,8 @@
       "arduino_compatible": true,
       "references": [
         "Arduino Leonardo - Arduino official hardware documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "arduino_micro",
@@ -1052,7 +1055,8 @@
       "arduino_compatible": true,
       "references": [
         "Arduino Micro - Arduino official hardware documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "arduino_pro_mini",
@@ -1188,7 +1192,8 @@
       "arduino_compatible": true,
       "references": [
         "Arduino Pro Mini - Arduino official hardware documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "esp8266_nodemcu",
@@ -1311,7 +1316,8 @@
       "arduino_compatible": true,
       "references": [
         "NodeMCU ESP8266 - Espressif ESP8266 documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "esp32_devkit_v1",
@@ -1569,7 +1575,8 @@
       "arduino_compatible": true,
       "references": [
         "ESP32-C3-DevKitM-1 - Espressif ESP32-C3 documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "rp2040_pico",
@@ -1752,7 +1759,8 @@
       "arduino_compatible": true,
       "references": [
         "Raspberry Pi Pico - RP2040 datasheet"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "rp2350_pico2",
@@ -1935,7 +1943,8 @@
       "arduino_compatible": true,
       "references": [
         "Raspberry Pi Pico 2 - RP2350 datasheet"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "raspberry_pi_4b",
@@ -2296,7 +2305,8 @@
       "simulation_status": "planned",
       "references": [
         "Raspberry Pi Zero 2 W - Raspberry Pi 40-pin GPIO documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "raspberry_pi_5",
@@ -2472,7 +2482,8 @@
       "simulation_status": "planned",
       "references": [
         "Raspberry Pi 5 - Raspberry Pi 40-pin GPIO documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "stm32_bluepill_f103",
@@ -2665,7 +2676,8 @@
       "arduino_compatible": true,
       "references": [
         "STM32F103C8T6 (Blue Pill) - STMicroelectronics reference manual"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "stm32_blackpill_f411",
@@ -2850,7 +2862,8 @@
       "arduino_compatible": true,
       "references": [
         "STM32F411CEU6 (Black Pill) - STMicroelectronics reference manual"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "teensy_4_1",
@@ -3034,7 +3047,8 @@
       "arduino_compatible": true,
       "references": [
         "Teensy 4.1 - PJRC Teensy documentation"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "seeeduino_xiao",
@@ -3118,7 +3132,8 @@
       "arduino_compatible": true,
       "references": [
         "Seeed Studio XIAO - Seeed Studio wiki"
-      ]
+      ],
+      "notes": ""
     },
     {
       "id": "digispark_attiny85",
@@ -3177,7 +3192,8 @@
       "arduino_compatible": true,
       "references": [
         "Digispark ATtiny85 - original Digistump documentation"
-      ]
+      ],
+      "notes": ""
     }
   ]
 }

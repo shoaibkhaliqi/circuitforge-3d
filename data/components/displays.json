@@ -89,7 +89,7 @@
         "shape": "lcd1602"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "visual",
       "arduino_compatible": true,
       "notes": "Display rendering requires a peripheral backend."
     },

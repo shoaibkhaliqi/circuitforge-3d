@@ -649,8 +649,9 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "visual",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "water_flow_yfs201",
@@ -683,8 +684,9 @@
         "shape": "flow_sensor"
       },
       "mounting": "device",
-      "simulation_status": "visual",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "hcsr04",
@@ -1665,9 +1667,10 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "visual",
+      "simulation_status": "partial",
       "arduino_compatible": true,
-      "notes": "Probes require regular two-point calibration; results are not temperature-compensated by default."
+      "notes": "Probes require regular two-point calibration; results are not temperature-compensated by default.",
+      "simulation_backend": "mna"
     },
     {
       "id": "ec_sensor_module",
@@ -1700,8 +1703,9 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "visual",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "rtd_pt100",

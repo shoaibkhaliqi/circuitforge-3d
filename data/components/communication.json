@@ -8,18 +8,59 @@
       "category": "Communication",
       "subcategory": "RF",
       "description": "Low-power 2.4 GHz transceiver module, SPI interface, 8-pin header.",
-      "keywords": ["nrf24l01", "radio", "2.4ghz", "spi", "wireless", "transceiver"],
-      "protocols": ["SPI"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
-        {"name": "CE", "type": "input"}, {"name": "CSN", "type": "input"},
-        {"name": "SCK", "type": "clock"}, {"name": "MOSI", "type": "bidirectional"},
-        {"name": "MISO", "type": "bidirectional"}, {"name": "IRQ", "type": "output"}
+      "keywords": [
+        "nrf24l01",
+        "radio",
+        "2.4ghz",
+        "spi",
+        "wireless",
+        "transceiver"
       ],
-      "model": {"shape": "nrf24_module"},
+      "protocols": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "CE",
+          "type": "input"
+        },
+        {
+          "name": "CSN",
+          "type": "input"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "MOSI",
+          "type": "bidirectional"
+        },
+        {
+          "name": "MISO",
+          "type": "bidirectional"
+        },
+        {
+          "name": "IRQ",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "nrf24_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "hc05_bluetooth",
@@ -27,17 +68,52 @@
       "category": "Communication",
       "subcategory": "Bluetooth",
       "description": "Bluetooth Classic serial module (SPP), 3.3 V logic, UART interface.",
-      "keywords": ["hc-05", "hc05", "bluetooth", "serial", "uart", "spp"],
-      "protocols": ["UART", "Bluetooth"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "TXD", "type": "output"}, {"name": "RXD", "type": "input"}, {"name": "KEY", "type": "input"}, {"name": "STATE", "type": "output"}
+      "keywords": [
+        "hc-05",
+        "hc05",
+        "bluetooth",
+        "serial",
+        "uart",
+        "spp"
       ],
-      "model": {"shape": "hc05_module"},
+      "protocols": [
+        "UART",
+        "Bluetooth"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "KEY",
+          "type": "input"
+        },
+        {
+          "name": "STATE",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "hc05_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "RXD is 3.3 V; use a divider when driving it from a 5 V MCU."
+      "notes": "RXD is 3.3 V; use a divider when driving it from a 5 V MCU. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "hm10_ble",
@@ -45,16 +121,51 @@
       "category": "Communication",
       "subcategory": "Bluetooth",
       "description": "Bluetooth Low Energy (BLE 4.0) serial module, UART interface.",
-      "keywords": ["hm-10", "hm10", "ble", "bluetooth low energy", "uart"],
-      "protocols": ["UART", "Bluetooth"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "TXD", "type": "output"}, {"name": "RXD", "type": "input"}, {"name": "STATE", "type": "output"}, {"name": "BRK", "type": "input"}
+      "keywords": [
+        "hm-10",
+        "hm10",
+        "ble",
+        "bluetooth low energy",
+        "uart"
       ],
-      "model": {"shape": "hc05_module"},
+      "protocols": [
+        "UART",
+        "Bluetooth"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "STATE",
+          "type": "output"
+        },
+        {
+          "name": "BRK",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "hc05_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "esp01_wifi",
@@ -62,20 +173,67 @@
       "category": "Communication",
       "subcategory": "WiFi",
       "description": "ESP8266-based WiFi module with a UART AT-command interface, 8-pin header.",
-      "keywords": ["esp-01", "esp01", "esp8266", "wifi", "at command", "uart"],
-      "protocols": ["UART", "WiFi"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "GPIO2", "type": "bidirectional"},
-        {"name": "GPIO0", "type": "bidirectional"}, {"name": "RXD", "type": "input"},
-        {"name": "TXD", "type": "output"}, {"name": "CH_PD", "type": "input"},
-        {"name": "RST", "type": "input"}, {"name": "VCC", "type": "power"}
+      "keywords": [
+        "esp-01",
+        "esp01",
+        "esp8266",
+        "wifi",
+        "at command",
+        "uart"
       ],
-      "params": {"vcc": {"default": 3.3, "unit": "V", "label": "Supply voltage"}},
-      "model": {"shape": "esp01_module"},
+      "protocols": [
+        "UART",
+        "WiFi"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "GPIO2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GPIO0",
+          "type": "bidirectional"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "CH_PD",
+          "type": "input"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "vcc": {
+          "default": 3.3,
+          "unit": "V",
+          "label": "Supply voltage"
+        }
+      },
+      "model": {
+        "shape": "esp01_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Strictly 3.3 V; the 5 V Arduino serial must be level-shifted."
+      "notes": "Strictly 3.3 V; the 5 V Arduino serial must be level-shifted. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "sim800l_gsm",
@@ -83,18 +241,55 @@
       "category": "Communication",
       "subcategory": "Cellular",
       "description": "Quad-band GSM/GPRS module with UART AT-command interface.",
-      "keywords": ["sim800l", "gsm", "gprs", "cellular", "sms", "uart"],
-      "protocols": ["UART", "GSM"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "TXD", "type": "output"}, {"name": "RXD", "type": "input"}, {"name": "RST", "type": "input"}
+      "keywords": [
+        "sim800l",
+        "gsm",
+        "gprs",
+        "cellular",
+        "sms",
+        "uart"
       ],
-      "params": {"vcc": {"default": 4.0, "unit": "V", "label": "Supply voltage (3.4-4.4 V)"}},
-      "model": {"shape": "sim800_module"},
+      "protocols": [
+        "UART",
+        "GSM"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "params": {
+        "vcc": {
+          "default": 4.0,
+          "unit": "V",
+          "label": "Supply voltage (3.4-4.4 V)"
+        }
+      },
+      "model": {
+        "shape": "sim800_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Needs a high-current 4 V supply; logic is 3.3 V tolerant."
+      "notes": "Needs a high-current 4 V supply; logic is 3.3 V tolerant. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "lora_sx1278",
@@ -102,18 +297,59 @@
       "category": "Communication",
       "subcategory": "LoRa",
       "description": "Long-range 433 MHz LoRa transceiver module, SPI interface.",
-      "keywords": ["lora", "sx1278", "433mhz", "long range", "spi", "radio"],
-      "protocols": ["SPI"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
-        {"name": "MOSI", "type": "bidirectional"}, {"name": "MISO", "type": "bidirectional"},
-        {"name": "SCK", "type": "clock"}, {"name": "NSS", "type": "input"},
-        {"name": "RESET", "type": "input"}, {"name": "DIO0", "type": "output"}
+      "keywords": [
+        "lora",
+        "sx1278",
+        "433mhz",
+        "long range",
+        "spi",
+        "radio"
       ],
-      "model": {"shape": "lora_module"},
+      "protocols": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "MOSI",
+          "type": "bidirectional"
+        },
+        {
+          "name": "MISO",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "NSS",
+          "type": "input"
+        },
+        {
+          "name": "RESET",
+          "type": "input"
+        },
+        {
+          "name": "DIO0",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "lora_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "rs485_max485",
@@ -121,16 +357,59 @@
       "category": "Communication",
       "subcategory": "Industrial",
       "description": "Half-duplex RS-485 transceiver, DIP-8, differential A/B bus.",
-      "keywords": ["max485", "rs485", "half duplex", "modbus", "differential"],
-      "protocols": ["RS-485", "UART"],
-      "pins": [
-        {"name": "RO", "type": "output"}, {"name": "RE", "type": "input"}, {"name": "DE", "type": "input"}, {"name": "DI", "type": "input"},
-        {"name": "GND", "type": "ground"}, {"name": "A", "type": "bidirectional"}, {"name": "B", "type": "bidirectional"}, {"name": "VCC", "type": "power"}
+      "keywords": [
+        "max485",
+        "rs485",
+        "half duplex",
+        "modbus",
+        "differential"
       ],
-      "model": {"shape": "dip8"},
+      "protocols": [
+        "RS-485",
+        "UART"
+      ],
+      "pins": [
+        {
+          "name": "RO",
+          "type": "output"
+        },
+        {
+          "name": "RE",
+          "type": "input"
+        },
+        {
+          "name": "DE",
+          "type": "input"
+        },
+        {
+          "name": "DI",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "A",
+          "type": "bidirectional"
+        },
+        {
+          "name": "B",
+          "type": "bidirectional"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "dip8"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "can_mcp2515",
@@ -138,16 +417,55 @@
       "category": "Communication",
       "subcategory": "Automotive",
       "description": "CAN bus controller with an SPI interface and onboard transceiver.",
-      "keywords": ["mcp2515", "can", "automotive", "spi", "bus"],
-      "protocols": ["SPI", "CAN"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "CS", "type": "input"}, {"name": "SCK", "type": "clock"}, {"name": "SI", "type": "input"}, {"name": "SO", "type": "output"}, {"name": "INT", "type": "output"}
+      "keywords": [
+        "mcp2515",
+        "can",
+        "automotive",
+        "spi",
+        "bus"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "SPI",
+        "CAN"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "SI",
+          "type": "input"
+        },
+        {
+          "name": "SO",
+          "type": "output"
+        },
+        {
+          "name": "INT",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "ch340_usb_serial",
@@ -155,14 +473,46 @@
       "category": "Communication",
       "subcategory": "USB",
       "description": "USB-to-UART bridge adapter (CH340), 5 V and 3.3 V outputs.",
-      "keywords": ["ch340", "usb serial", "uart", "adapter", "bridge"],
-      "protocols": ["USB", "UART"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "TXD", "type": "output"}, {"name": "RXD", "type": "input"},
-        {"name": "3V3", "type": "power"}, {"name": "5V", "type": "power"}
+      "keywords": [
+        "ch340",
+        "usb serial",
+        "uart",
+        "adapter",
+        "bridge"
       ],
-      "model": {"shape": "usb_serial_adapter"},
+      "protocols": [
+        "USB",
+        "UART"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "5V",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "usb_serial_adapter"
+      },
       "mounting": "module",
       "simulation_status": "external",
       "notes": "Handled by the host serial stack; not solved electrically."
@@ -173,14 +523,46 @@
       "category": "Communication",
       "subcategory": "USB",
       "description": "FTDI FT232 USB-to-UART bridge adapter.",
-      "keywords": ["ft232", "ftdi", "usb serial", "uart", "adapter"],
-      "protocols": ["USB", "UART"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "CTS", "type": "input"},
-        {"name": "VCC", "type": "power"}, {"name": "TXD", "type": "output"},
-        {"name": "RXD", "type": "input"}, {"name": "DTR", "type": "output"}
+      "keywords": [
+        "ft232",
+        "ftdi",
+        "usb serial",
+        "uart",
+        "adapter"
       ],
-      "model": {"shape": "usb_serial_adapter"},
+      "protocols": [
+        "USB",
+        "UART"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "CTS",
+          "type": "input"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "TXD",
+          "type": "output"
+        },
+        {
+          "name": "RXD",
+          "type": "input"
+        },
+        {
+          "name": "DTR",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "usb_serial_adapter"
+      },
       "mounting": "module",
       "simulation_status": "external",
       "notes": "Handled by the host serial stack; not solved electrically."
@@ -191,16 +573,51 @@
       "category": "Communication",
       "subcategory": "Interface",
       "description": "2-channel bidirectional I2C level shifter module for 3.3 V / 5 V buses.",
-      "keywords": ["level shifter", "i2c", "3.3v", "5v", "bidirectional"],
-      "pins": [
-        {"name": "LV", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "LV1", "type": "bidirectional"}, {"name": "LV2", "type": "bidirectional"},
-        {"name": "HV1", "type": "bidirectional"}, {"name": "HV2", "type": "bidirectional"}, {"name": "HV", "type": "power"}
+      "keywords": [
+        "level shifter",
+        "i2c",
+        "3.3v",
+        "5v",
+        "bidirectional"
       ],
-      "model": {"shape": "breakout_module"},
+      "pins": [
+        {
+          "name": "LV",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "LV1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "LV2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "HV1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "HV2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "HV",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     }
   ]
 }

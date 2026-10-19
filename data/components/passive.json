@@ -8,13 +8,38 @@
       "category": "Passive",
       "subcategory": "Resistors",
       "description": "Fixed resistor. Limits current; V = I x R.",
-      "keywords": ["res", "ohm", "resistance", "r"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 1000.0, "unit": "Ohm", "label": "Resistance", "min": 0.001}},
-      "model": {"shape": "axial_resistor"},
+      "keywords": [
+        "res",
+        "ohm",
+        "resistance",
+        "r"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "r": {
+          "default": 1000.0,
+          "unit": "Ohm",
+          "label": "Resistance",
+          "min": 0.001
+        }
+      },
+      "model": {
+        "shape": "axial_resistor"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["ohmic"],
+      "simulation_models": [
+        "ohmic"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -24,13 +49,38 @@
       "category": "Passive",
       "subcategory": "Capacitors",
       "description": "Non-polarised ceramic capacitor. Blocks DC, passes AC.",
-      "keywords": ["cap", "ceramic", "farad", "decoupling"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"c": {"default": 1e-7, "unit": "F", "label": "Capacitance", "min": 1e-15}},
-      "model": {"shape": "ceramic_disc"},
+      "keywords": [
+        "cap",
+        "ceramic",
+        "farad",
+        "decoupling"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "c": {
+          "default": 1e-07,
+          "unit": "F",
+          "label": "Capacitance",
+          "min": 1e-15
+        }
+      },
+      "model": {
+        "shape": "ceramic_disc"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["capacitive"],
+      "simulation_models": [
+        "capacitive"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -40,13 +90,38 @@
       "category": "Passive",
       "subcategory": "Capacitors",
       "description": "Polarised electrolytic capacitor for larger values. Anode is pin 1 (positive); observe polarity.",
-      "keywords": ["electrolytic", "polarised", "bulk", "smoothing"],
-      "pins": [{"name": "+", "type": "passive"}, {"name": "-", "type": "passive"}],
-      "params": {"c": {"default": 0.00047, "unit": "F", "label": "Capacitance", "min": 1e-6}},
-      "model": {"shape": "electrolytic_can"},
+      "keywords": [
+        "electrolytic",
+        "polarised",
+        "bulk",
+        "smoothing"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "passive"
+        },
+        {
+          "name": "-",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "c": {
+          "default": 0.00047,
+          "unit": "F",
+          "label": "Capacitance",
+          "min": 1e-06
+        }
+      },
+      "model": {
+        "shape": "electrolytic_can"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["capacitive"],
+      "simulation_models": [
+        "capacitive"
+      ],
       "simulation_backend": "mna",
       "notes": "Modelled as an ideal capacitor; leakage and ESR are not currently represented.",
       "arduino_compatible": true
@@ -57,13 +132,36 @@
       "category": "Passive",
       "subcategory": "Capacitors",
       "description": "Non-polarised film capacitor, typically used for filtering and coupling.",
-      "keywords": ["film", "polyester", "box cap"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"c": {"default": 1e-7, "unit": "F", "label": "Capacitance"}},
-      "model": {"shape": "film_box"},
+      "keywords": [
+        "film",
+        "polyester",
+        "box cap"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "c": {
+          "default": 1e-07,
+          "unit": "F",
+          "label": "Capacitance"
+        }
+      },
+      "model": {
+        "shape": "film_box"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["capacitive"],
+      "simulation_models": [
+        "capacitive"
+      ],
       "simulation_backend": "mna",
       "notes": "Modelled as an ideal capacitor; ESR and dielectric absorption are not represented."
     },
@@ -73,13 +171,36 @@
       "category": "Passive",
       "subcategory": "Capacitors",
       "description": "Polarised tantalum capacitor. Anode is pin 1 (positive).",
-      "keywords": ["tantalum", "polarised", "smd"],
-      "pins": [{"name": "+", "type": "passive"}, {"name": "-", "type": "passive"}],
-      "params": {"c": {"default": 1e-5, "unit": "F", "label": "Capacitance"}},
-      "model": {"shape": "tantalum_drop"},
+      "keywords": [
+        "tantalum",
+        "polarised",
+        "smd"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "passive"
+        },
+        {
+          "name": "-",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "c": {
+          "default": 1e-05,
+          "unit": "F",
+          "label": "Capacitance"
+        }
+      },
+      "model": {
+        "shape": "tantalum_drop"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["capacitive"],
+      "simulation_models": [
+        "capacitive"
+      ],
       "simulation_backend": "mna",
       "notes": "Modelled as an ideal capacitor."
     },
@@ -89,13 +210,36 @@
       "category": "Passive",
       "subcategory": "Capacitors",
       "description": "Very high capacitance energy-storage capacitor.",
-      "keywords": ["supercap", "edlc", "energy storage"],
-      "pins": [{"name": "+", "type": "passive"}, {"name": "-", "type": "passive"}],
-      "params": {"c": {"default": 1.0, "unit": "F", "label": "Capacitance"}},
-      "model": {"shape": "supercap_can"},
+      "keywords": [
+        "supercap",
+        "edlc",
+        "energy storage"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "passive"
+        },
+        {
+          "name": "-",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "c": {
+          "default": 1.0,
+          "unit": "F",
+          "label": "Capacitance"
+        }
+      },
+      "model": {
+        "shape": "supercap_can"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["capacitive"],
+      "simulation_models": [
+        "capacitive"
+      ],
       "simulation_backend": "mna",
       "notes": "Modelled as an ideal capacitor; equivalent series resistance is not represented."
     },
@@ -105,13 +249,38 @@
       "category": "Passive",
       "subcategory": "Inductors",
       "description": "Fixed inductor. Stores energy in a magnetic field; opposes current change.",
-      "keywords": ["inductor", "coil", "henry", "choke"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"l": {"default": 0.01, "unit": "H", "label": "Inductance", "min": 1e-9}},
-      "model": {"shape": "axial_inductor"},
+      "keywords": [
+        "inductor",
+        "coil",
+        "henry",
+        "choke"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "l": {
+          "default": 0.01,
+          "unit": "H",
+          "label": "Inductance",
+          "min": 1e-09
+        }
+      },
+      "model": {
+        "shape": "axial_inductor"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["inductive"],
+      "simulation_models": [
+        "inductive"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -121,13 +290,37 @@
       "category": "Passive",
       "subcategory": "Inductors",
       "description": "Suppresses high-frequency noise. Modelled as a small inductor.",
-      "keywords": ["ferrite", "bead", "emi", "noise"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"l": {"default": 1e-6, "unit": "H", "label": "Inductance"}},
-      "model": {"shape": "ferrite_bead"},
+      "keywords": [
+        "ferrite",
+        "bead",
+        "emi",
+        "noise"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "l": {
+          "default": 1e-06,
+          "unit": "H",
+          "label": "Inductance"
+        }
+      },
+      "model": {
+        "shape": "ferrite_bead"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["inductive"],
+      "simulation_models": [
+        "inductive"
+      ],
       "simulation_backend": "mna",
       "notes": "A ferrite bead is a frequency-dependent loss; only an inductive approximation is modelled."
     },
@@ -137,13 +330,37 @@
       "category": "Passive",
       "subcategory": "Timing",
       "description": "Quartz crystal resonator used as a clock reference.",
-      "keywords": ["crystal", "xtal", "quartz", "clock", "resonator"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"frequency": {"default": 16000000.0, "unit": "Hz", "label": "Frequency"}},
-      "model": {"shape": "hc49_crystal"},
+      "keywords": [
+        "crystal",
+        "xtal",
+        "quartz",
+        "clock",
+        "resonator"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "frequency": {
+          "default": 16000000.0,
+          "unit": "Hz",
+          "label": "Frequency"
+        }
+      },
+      "model": {
+        "shape": "hc49_crystal"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "Metadata only; a resonator model is not implemented. Clock behaviour requires an MCU backend."
+      "simulation_status": "partial",
+      "notes": "Metadata only; a resonator model is not implemented. Clock behaviour requires an MCU backend.",
+      "simulation_backend": "mna"
     },
     {
       "id": "potentiometer",
@@ -151,16 +368,46 @@
       "category": "Passive",
       "subcategory": "Variable",
       "description": "Variable resistor with a wiper between the two ends.",
-      "keywords": ["pot", "variable", "wiper", "trimmer"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "W", "type": "passive"}, {"name": "3", "type": "passive"}],
+      "keywords": [
+        "pot",
+        "variable",
+        "wiper",
+        "trimmer"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "W",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "r": {"default": 10000.0, "unit": "Ohm", "label": "Total resistance"},
-        "position": {"default": 0.5, "unit": "", "label": "Wiper position (0-1)"}
+        "r": {
+          "default": 10000.0,
+          "unit": "Ohm",
+          "label": "Total resistance"
+        },
+        "position": {
+          "default": 0.5,
+          "unit": "",
+          "label": "Wiper position (0-1)"
+        }
       },
-      "model": {"shape": "trim_pot"},
+      "model": {
+        "shape": "trim_pot"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["ohmic"],
+      "simulation_models": [
+        "ohmic"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -170,16 +417,45 @@
       "category": "Passive",
       "subcategory": "Variable",
       "description": "Small adjustable potentiometer for calibration.",
-      "keywords": ["trimmer", "trimpot", "calibration"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "W", "type": "passive"}, {"name": "3", "type": "passive"}],
+      "keywords": [
+        "trimmer",
+        "trimpot",
+        "calibration"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "W",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "r": {"default": 10000.0, "unit": "Ohm", "label": "Total resistance"},
-        "position": {"default": 0.5, "unit": "", "label": "Wiper position (0-1)"}
+        "r": {
+          "default": 10000.0,
+          "unit": "Ohm",
+          "label": "Total resistance"
+        },
+        "position": {
+          "default": 0.5,
+          "unit": "",
+          "label": "Wiper position (0-1)"
+        }
       },
-      "model": {"shape": "trim_pot"},
+      "model": {
+        "shape": "trim_pot"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["ohmic"],
+      "simulation_models": [
+        "ohmic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -188,14 +464,42 @@
       "category": "Passive",
       "subcategory": "Sensing",
       "description": "Resistance decreases as temperature rises. Used for temperature sensing.",
-      "keywords": ["ntc", "thermistor", "temperature", "10k"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "keywords": [
+        "ntc",
+        "thermistor",
+        "temperature",
+        "10k"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "r25": {"default": 10000.0, "unit": "Ohm", "label": "Resistance at 25 C"},
-        "beta": {"default": 3950.0, "unit": "K", "label": "Beta coefficient"},
-        "temperature": {"default": 25.0, "unit": "C", "label": "Temperature"}
+        "r25": {
+          "default": 10000.0,
+          "unit": "Ohm",
+          "label": "Resistance at 25 C"
+        },
+        "beta": {
+          "default": 3950.0,
+          "unit": "K",
+          "label": "Beta coefficient"
+        },
+        "temperature": {
+          "default": 25.0,
+          "unit": "C",
+          "label": "Temperature"
+        }
       },
-      "model": {"shape": "bead_thermistor"},
+      "model": {
+        "shape": "bead_thermistor"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Beta-equation model R = R25*exp(B*(1/T - 1/T25)); the resistance is set by the temperature parameter. Self-heating is not simulated."
@@ -206,14 +510,42 @@
       "category": "Passive",
       "subcategory": "Sensing",
       "description": "Light-dependent resistor; resistance falls with increasing light.",
-      "keywords": ["ldr", "photoresistor", "light", "gl5528"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
+      "keywords": [
+        "ldr",
+        "photoresistor",
+        "light",
+        "gl5528"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "r_light": {"default": 1000.0, "unit": "Ohm", "label": "Resistance (bright)"},
-        "r_dark": {"default": 1000000.0, "unit": "Ohm", "label": "Resistance (dark)"},
-        "light": {"default": 0.5, "unit": "", "label": "Light level (0-1)"}
+        "r_light": {
+          "default": 1000.0,
+          "unit": "Ohm",
+          "label": "Resistance (bright)"
+        },
+        "r_dark": {
+          "default": 1000000.0,
+          "unit": "Ohm",
+          "label": "Resistance (dark)"
+        },
+        "light": {
+          "default": 0.5,
+          "unit": "",
+          "label": "Light level (0-1)"
+        }
       },
-      "model": {"shape": "ldr_disc"},
+      "model": {
+        "shape": "ldr_disc"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Log-linear interpolation R = R_dark*(R_light/R_dark)^light, driven by the light-level parameter (0 dark to 1 bright)."
@@ -224,13 +556,36 @@
       "category": "Passive",
       "subcategory": "Sensing",
       "description": "Low-value precision resistor used to measure current.",
-      "keywords": ["shunt", "current sense", "milliohm"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"r": {"default": 0.1, "unit": "Ohm", "label": "Resistance"}},
-      "model": {"shape": "axial_resistor"},
+      "keywords": [
+        "shunt",
+        "current sense",
+        "milliohm"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "r": {
+          "default": 0.1,
+          "unit": "Ohm",
+          "label": "Resistance"
+        }
+      },
+      "model": {
+        "shape": "axial_resistor"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["ohmic"],
+      "simulation_models": [
+        "ohmic"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -240,13 +595,36 @@
       "category": "Passive",
       "subcategory": "Switches",
       "description": "Ideal single-pole single-throw switch. Closed = low resistance.",
-      "keywords": ["switch", "spst", "toggle"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"closed": {"default": false, "unit": "", "label": "Closed"}},
-      "model": {"shape": "slide_switch"},
+      "keywords": [
+        "switch",
+        "spst",
+        "toggle"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "closed": {
+          "default": false,
+          "unit": "",
+          "label": "Closed"
+        }
+      },
+      "model": {
+        "shape": "slide_switch"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["switch"],
+      "simulation_models": [
+        "switch"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -256,13 +634,37 @@
       "category": "Passive",
       "subcategory": "Switches",
       "description": "Momentary push button. Pressed = closed.",
-      "keywords": ["button", "push", "tact", "momentary"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"closed": {"default": false, "unit": "", "label": "Pressed"}},
-      "model": {"shape": "tact_button"},
+      "keywords": [
+        "button",
+        "push",
+        "tact",
+        "momentary"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "closed": {
+          "default": false,
+          "unit": "",
+          "label": "Pressed"
+        }
+      },
+      "model": {
+        "shape": "tact_button"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["switch"],
+      "simulation_models": [
+        "switch"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -272,10 +674,35 @@
       "category": "Passive",
       "subcategory": "Switches",
       "description": "Single-pole double-throw toggle switch.",
-      "keywords": ["toggle", "spdt", "switch"],
-      "pins": [{"name": "COM", "type": "passive"}, {"name": "NO", "type": "passive"}, {"name": "NC", "type": "passive"}],
-      "params": {"position": {"default": 0.0, "unit": "", "label": "Position (0=NC, 1=NO)"}},
-      "model": {"shape": "toggle_switch"},
+      "keywords": [
+        "toggle",
+        "spdt",
+        "switch"
+      ],
+      "pins": [
+        {
+          "name": "COM",
+          "type": "passive"
+        },
+        {
+          "name": "NO",
+          "type": "passive"
+        },
+        {
+          "name": "NC",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "position": {
+          "default": 0.0,
+          "unit": "",
+          "label": "Position (0=NC, 1=NO)"
+        }
+      },
+      "model": {
+        "shape": "toggle_switch"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Modelled as selecting one throw via an ideal switch."
@@ -286,13 +713,36 @@
       "category": "Passive",
       "subcategory": "Switches",
       "description": "Magnetically actuated switch, closed by a nearby magnetic field.",
-      "keywords": ["reed", "magnetic", "magnet"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"closed": {"default": false, "unit": "", "label": "Closed"}},
-      "model": {"shape": "reed_switch"},
+      "keywords": [
+        "reed",
+        "magnetic",
+        "magnet"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "closed": {
+          "default": false,
+          "unit": "",
+          "label": "Closed"
+        }
+      },
+      "model": {
+        "shape": "reed_switch"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["switch"],
+      "simulation_models": [
+        "switch"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -301,16 +751,48 @@
       "category": "Passive",
       "subcategory": "Relays",
       "description": "Electromechanical relay. Coil pins energise the armature; COM switches between NC and NO.",
-      "keywords": ["relay", "spdt", "coil", "srld"],
-      "pins": [
-        {"name": "COIL+", "type": "passive"}, {"name": "COIL-", "type": "passive"},
-        {"name": "COM", "type": "passive"}, {"name": "NC", "type": "passive"}, {"name": "NO", "type": "passive"}
+      "keywords": [
+        "relay",
+        "spdt",
+        "coil",
+        "srld"
       ],
-      "params": {"coil_r": {"default": 400.0, "unit": "Ohm", "label": "Coil resistance"}},
-      "model": {"shape": "relay_module"},
+      "pins": [
+        {
+          "name": "COIL+",
+          "type": "passive"
+        },
+        {
+          "name": "COIL-",
+          "type": "passive"
+        },
+        {
+          "name": "COM",
+          "type": "passive"
+        },
+        {
+          "name": "NC",
+          "type": "passive"
+        },
+        {
+          "name": "NO",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "coil_r": {
+          "default": 400.0,
+          "unit": "Ohm",
+          "label": "Coil resistance"
+        }
+      },
+      "model": {
+        "shape": "relay_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "notes": "Coil + contact model not yet implemented. Drive via a transistor with a flyback diode for real hardware."
+      "simulation_status": "partial",
+      "notes": "Coil + contact model not yet implemented. Drive via a transistor with a flyback diode for real hardware.",
+      "simulation_backend": "mna"
     },
     {
       "id": "fuse",
@@ -318,13 +800,35 @@
       "category": "Passive",
       "subcategory": "Protection",
       "description": "One-time overcurrent protection.",
-      "keywords": ["fuse", "protection", "overcurrent"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"i_rated": {"default": 0.5, "unit": "A", "label": "Rated current"}},
-      "model": {"shape": "glass_fuse"},
+      "keywords": [
+        "fuse",
+        "protection",
+        "overcurrent"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "i_rated": {
+          "default": 0.5,
+          "unit": "A",
+          "label": "Rated current"
+        }
+      },
+      "model": {
+        "shape": "glass_fuse"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "Blow behaviour is not simulated; represented as a low-resistance connection."
+      "simulation_status": "full",
+      "notes": "Blow behaviour is not simulated; represented as a low-resistance connection.",
+      "simulation_backend": "mna"
     },
     {
       "id": "resettable_fuse",
@@ -332,13 +836,35 @@
       "category": "Passive",
       "subcategory": "Protection",
       "description": "Polymeric positive-temperature-coefficient self-resetting fuse.",
-      "keywords": ["ptc", "polyfuse", "resettable"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "params": {"i_hold": {"default": 0.5, "unit": "A", "label": "Hold current"}},
-      "model": {"shape": "ptc_fuse"},
+      "keywords": [
+        "ptc",
+        "polyfuse",
+        "resettable"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "i_hold": {
+          "default": 0.5,
+          "unit": "A",
+          "label": "Hold current"
+        }
+      },
+      "model": {
+        "shape": "ptc_fuse"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "Trip behaviour is not simulated."
+      "simulation_status": "full",
+      "notes": "Trip behaviour is not simulated.",
+      "simulation_backend": "mna"
     }
   ]
 }

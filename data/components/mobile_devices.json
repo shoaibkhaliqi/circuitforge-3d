@@ -10,11 +10,34 @@
       "manufacturer": "Google",
       "part_number": "Pixel 8",
       "description": "Google Pixel 8 Android smartphone (Tensor G3). USB-C, no exposed GPIO.",
-      "keywords": ["android", "phone", "pixel", "google", "usb-c", "tensor"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "pixel",
+        "google",
+        "usb-c",
+        "tensor"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external",
       "notes": "Android phones are host/client devices with no breadboard GPIO. Interact via USB-C, ADB or wireless only."
@@ -27,11 +50,33 @@
       "manufacturer": "Google",
       "part_number": "Pixel 7",
       "description": "Google Pixel 7 Android smartphone (Tensor G2). USB-C, no exposed GPIO.",
-      "keywords": ["android", "phone", "pixel", "google", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "pixel",
+        "google",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -43,11 +88,35 @@
       "manufacturer": "Samsung",
       "part_number": "SM-S911",
       "description": "Samsung Galaxy S23 Android smartphone (Snapdragon 8 Gen 2). USB-C.",
-      "keywords": ["android", "phone", "samsung", "galaxy", "s23", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot", "Odin"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "samsung",
+        "galaxy",
+        "s23",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot",
+        "Odin"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -59,11 +128,34 @@
       "manufacturer": "Samsung",
       "part_number": "SM-A546",
       "description": "Samsung Galaxy A54 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "samsung", "galaxy", "a54", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "samsung",
+        "galaxy",
+        "a54",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -75,11 +167,35 @@
       "manufacturer": "Xiaomi",
       "part_number": "Xiaomi 13",
       "description": "Xiaomi 13 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "xiaomi", "mi", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC", "IR"],
-      "protocols": ["USB", "ADB", "Fastboot", "Fastbootd"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "xiaomi",
+        "mi",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC",
+        "IR"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot",
+        "Fastbootd"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -91,11 +207,33 @@
       "manufacturer": "Xiaomi",
       "part_number": "Redmi Note 12",
       "description": "Xiaomi Redmi Note 12 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "xiaomi", "redmi", "note", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "xiaomi",
+        "redmi",
+        "note",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -107,11 +245,32 @@
       "manufacturer": "OnePlus",
       "part_number": "OnePlus 11",
       "description": "OnePlus 11 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "oneplus", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "oneplus",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -123,11 +282,32 @@
       "manufacturer": "Motorola",
       "part_number": "Moto G Power",
       "description": "Motorola Moto G Power Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "motorola", "moto", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "motorola",
+        "moto",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -139,11 +319,33 @@
       "manufacturer": "Huawei",
       "part_number": "P60",
       "description": "Huawei P60 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "huawei", "p60", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "huawei",
+        "p60",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -155,11 +357,33 @@
       "manufacturer": "Sony",
       "part_number": "Xperia 5",
       "description": "Sony Xperia 5 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "sony", "xperia", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "sony",
+        "xperia",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -171,11 +395,33 @@
       "manufacturer": "ASUS",
       "part_number": "Zenfone 10",
       "description": "ASUS Zenfone 10 Android smartphone. USB-C.",
-      "keywords": ["android", "phone", "asus", "zenfone", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth", "NFC"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "asus",
+        "zenfone",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth",
+        "NFC"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -187,11 +433,32 @@
       "manufacturer": "Samsung",
       "part_number": "SM-X710",
       "description": "Samsung Galaxy Tab S9 Android tablet. USB-C.",
-      "keywords": ["android", "tablet", "samsung", "galaxy tab", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "tablet"},
+      "keywords": [
+        "android",
+        "tablet",
+        "samsung",
+        "galaxy tab",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "tablet"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -203,11 +470,32 @@
       "manufacturer": "Google",
       "part_number": "Pixel Tablet",
       "description": "Google Pixel Tablet Android device. USB-C.",
-      "keywords": ["android", "tablet", "google", "pixel", "usb-c"],
-      "interfaces": ["USB-C", "WiFi", "Bluetooth"],
-      "protocols": ["USB", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_C", "type": "open"}],
-      "model": {"shape": "tablet"},
+      "keywords": [
+        "android",
+        "tablet",
+        "google",
+        "pixel",
+        "usb-c"
+      ],
+      "interfaces": [
+        "USB-C",
+        "WiFi",
+        "Bluetooth"
+      ],
+      "protocols": [
+        "USB",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_C",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "tablet"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -217,11 +505,33 @@
       "category": "Mobile Device",
       "subcategory": "Smartphone",
       "description": "Generic older Android smartphone with a Micro-USB port. Commonly used with OTG adapters for projects.",
-      "keywords": ["android", "phone", "micro-usb", "otg", "generic"],
-      "interfaces": ["USB-Micro", "WiFi", "Bluetooth"],
-      "protocols": ["USB", "USB-OTG", "ADB", "Fastboot"],
-      "pins": [{"name": "USB_MICRO", "type": "open"}],
-      "model": {"shape": "phone"},
+      "keywords": [
+        "android",
+        "phone",
+        "micro-usb",
+        "otg",
+        "generic"
+      ],
+      "interfaces": [
+        "USB-Micro",
+        "WiFi",
+        "Bluetooth"
+      ],
+      "protocols": [
+        "USB",
+        "USB-OTG",
+        "ADB",
+        "Fastboot"
+      ],
+      "pins": [
+        {
+          "name": "USB_MICRO",
+          "type": "open"
+        }
+      ],
+      "model": {
+        "shape": "phone"
+      },
       "mounting": "device",
       "simulation_status": "external",
       "notes": "Many older phones support USB OTG host mode, which requires a 5 V source through a Y-cable."
@@ -232,21 +542,73 @@
       "category": "Mobile Device",
       "subcategory": "Accessory",
       "description": "USB Host Shield (MAX3421E) that lets an Arduino act as a USB host for Android peripherals.",
-      "keywords": ["usb host", "shield", "max3421e", "arduino", "android", "otg"],
-      "interfaces": ["USB", "SPI"],
-      "protocols": ["USB", "USB-OTG", "SPI"],
-      "pins": [
-        {"name": "5V", "type": "power"}, {"name": "3V3", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SS", "type": "input"}, {"name": "SCK", "type": "clock"},
-        {"name": "MOSI", "type": "bidirectional"}, {"name": "MISO", "type": "bidirectional"},
-        {"name": "INT", "type": "output"}, {"name": "RST", "type": "input"}
+      "keywords": [
+        "usb host",
+        "shield",
+        "max3421e",
+        "arduino",
+        "android",
+        "otg"
       ],
-      "model": {"shape": "shield"},
+      "interfaces": [
+        "USB",
+        "SPI"
+      ],
+      "protocols": [
+        "USB",
+        "USB-OTG",
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "5V",
+          "type": "power"
+        },
+        {
+          "name": "3V3",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SS",
+          "type": "input"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "MOSI",
+          "type": "bidirectional"
+        },
+        {
+          "name": "MISO",
+          "type": "bidirectional"
+        },
+        {
+          "name": "INT",
+          "type": "output"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "shield"
+      },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "USB host behaviour requires a dedicated backend; not yet implemented.",
-      "references": ["Arduino USB Host Shield 2.0 - shield documentation", "Android Open Accessory (AOA) protocol - Android developer documentation"]
+      "notes": "USB host behaviour requires a dedicated backend; not yet implemented. (No electrical model: backend/external part.)",
+      "references": [
+        "Arduino USB Host Shield 2.0 - shield documentation",
+        "Android Open Accessory (AOA) protocol - Android developer documentation"
+      ],
+      "simulation_backend": "firmware"
     }
   ]
 }

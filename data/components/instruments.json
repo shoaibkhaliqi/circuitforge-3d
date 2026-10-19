@@ -8,12 +8,45 @@
       "category": "Instrument",
       "subcategory": "Meter",
       "description": "Handheld digital multimeter for voltage, current, resistance and continuity.",
-      "keywords": ["multimeter", "dmm", "measure", "voltage", "current", "resistance"],
-      "pins": [
-        {"name": "COM", "type": "passive"}, {"name": "VOHM", "type": "passive"}, {"name": "A", "type": "passive"}
+      "keywords": [
+        "multimeter",
+        "dmm",
+        "measure",
+        "voltage",
+        "current",
+        "resistance"
       ],
-      "params": {"mode": {"default": "DCV", "unit": "", "label": "Mode", "options": ["DCV", "ACV", "DCA", "OHM", "CONT"]}},
-      "model": {"shape": "multimeter"},
+      "pins": [
+        {
+          "name": "COM",
+          "type": "passive"
+        },
+        {
+          "name": "VOHM",
+          "type": "passive"
+        },
+        {
+          "name": "A",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "mode": {
+          "default": "DCV",
+          "unit": "",
+          "label": "Mode",
+          "options": [
+            "DCV",
+            "ACV",
+            "DCA",
+            "OHM",
+            "CONT"
+          ]
+        }
+      },
+      "model": {
+        "shape": "multimeter"
+      },
       "mounting": "device",
       "simulation_status": "external",
       "notes": "A measurement instrument; readings come from the solver, not a component model."
@@ -24,9 +57,25 @@
       "category": "Instrument",
       "subcategory": "Meter",
       "description": "Benchtop precision digital multimeter.",
-      "keywords": ["bench multimeter", "dmm", "precision", "meter"],
-      "pins": [{"name": "HI", "type": "passive"}, {"name": "LO", "type": "passive"}],
-      "model": {"shape": "bench_dmm"},
+      "keywords": [
+        "bench multimeter",
+        "dmm",
+        "precision",
+        "meter"
+      ],
+      "pins": [
+        {
+          "name": "HI",
+          "type": "passive"
+        },
+        {
+          "name": "LO",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "bench_dmm"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -36,12 +85,42 @@
       "category": "Instrument",
       "subcategory": "Scope",
       "description": "Two-channel digital oscilloscope for viewing time-domain waveforms.",
-      "keywords": ["oscilloscope", "scope", "waveform", "time domain", "probe"],
-      "pins": [
-        {"name": "CH1", "type": "passive"}, {"name": "CH2", "type": "passive"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "oscilloscope",
+        "scope",
+        "waveform",
+        "time domain",
+        "probe"
       ],
-      "params": {"timebase": {"default": 1.0, "unit": "ms/div", "label": "Time base"}, "vdiv": {"default": 1.0, "unit": "V/div", "label": "Volts per division"}},
-      "model": {"shape": "oscilloscope"},
+      "pins": [
+        {
+          "name": "CH1",
+          "type": "passive"
+        },
+        {
+          "name": "CH2",
+          "type": "passive"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "timebase": {
+          "default": 1.0,
+          "unit": "ms/div",
+          "label": "Time base"
+        },
+        "vdiv": {
+          "default": 1.0,
+          "unit": "V/div",
+          "label": "Volts per division"
+        }
+      },
+      "model": {
+        "shape": "oscilloscope"
+      },
       "mounting": "device",
       "simulation_status": "external",
       "notes": "Displays solver transient results; the circuit's own scope panel does the same."
@@ -52,13 +131,56 @@
       "category": "Instrument",
       "subcategory": "Analyzer",
       "description": "Multi-channel digital logic analyzer for protocol decoding.",
-      "keywords": ["logic analyzer", "digital", "protocol", "decode", "spi", "i2c", "uart"],
-      "pins": [
-        {"name": "CH0", "type": "input"}, {"name": "CH1", "type": "input"}, {"name": "CH2", "type": "input"}, {"name": "CH3", "type": "input"},
-        {"name": "CH4", "type": "input"}, {"name": "CH5", "type": "input"}, {"name": "CH6", "type": "input"}, {"name": "CH7", "type": "input"},
-        {"name": "GND", "type": "ground"}
+      "keywords": [
+        "logic analyzer",
+        "digital",
+        "protocol",
+        "decode",
+        "spi",
+        "i2c",
+        "uart"
       ],
-      "model": {"shape": "logic_analyzer"},
+      "pins": [
+        {
+          "name": "CH0",
+          "type": "input"
+        },
+        {
+          "name": "CH1",
+          "type": "input"
+        },
+        {
+          "name": "CH2",
+          "type": "input"
+        },
+        {
+          "name": "CH3",
+          "type": "input"
+        },
+        {
+          "name": "CH4",
+          "type": "input"
+        },
+        {
+          "name": "CH5",
+          "type": "input"
+        },
+        {
+          "name": "CH6",
+          "type": "input"
+        },
+        {
+          "name": "CH7",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "logic_analyzer"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -68,17 +190,52 @@
       "category": "Instrument",
       "subcategory": "Source",
       "description": "Signal generator producing sine, square and triangle waveforms.",
-      "keywords": ["function generator", "signal generator", "sine", "square", "waveform"],
-      "pins": [{"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
+      "keywords": [
+        "function generator",
+        "signal generator",
+        "sine",
+        "square",
+        "waveform"
+      ],
+      "pins": [
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
       "params": {
-        "waveform": {"default": "sine", "unit": "", "label": "Waveform", "options": ["sine", "square", "triangle"]},
-        "frequency": {"default": 1000.0, "unit": "Hz", "label": "Frequency"},
-        "amplitude": {"default": 1.0, "unit": "V", "label": "Amplitude"}
+        "waveform": {
+          "default": "sine",
+          "unit": "",
+          "label": "Waveform",
+          "options": [
+            "sine",
+            "square",
+            "triangle"
+          ]
+        },
+        "frequency": {
+          "default": 1000.0,
+          "unit": "Hz",
+          "label": "Frequency"
+        },
+        "amplitude": {
+          "default": 1.0,
+          "unit": "V",
+          "label": "Amplitude"
+        }
       },
-      "model": {"shape": "function_generator"},
+      "model": {
+        "shape": "function_generator"
+      },
       "mounting": "device",
-      "simulation_status": "planned",
-      "notes": "A driving source instrument; arbitrary-waveform backend not yet implemented."
+      "simulation_status": "external",
+      "notes": "A driving source instrument; arbitrary-waveform backend not yet implemented. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "bench_psu",
@@ -86,13 +243,38 @@
       "category": "Instrument",
       "subcategory": "Source",
       "description": "Adjustable benchtop DC power supply with voltage and current limits.",
-      "keywords": ["bench supply", "power supply", "psu", "adjustable", "current limit"],
-      "pins": [{"name": "+", "type": "power"}, {"name": "-", "type": "ground"}],
+      "keywords": [
+        "bench supply",
+        "power supply",
+        "psu",
+        "adjustable",
+        "current limit"
+      ],
+      "pins": [
+        {
+          "name": "+",
+          "type": "power"
+        },
+        {
+          "name": "-",
+          "type": "ground"
+        }
+      ],
       "params": {
-        "voltage": {"default": 5.0, "unit": "V", "label": "Output voltage"},
-        "current_limit": {"default": 1.0, "unit": "A", "label": "Current limit"}
+        "voltage": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage"
+        },
+        "current_limit": {
+          "default": 1.0,
+          "unit": "A",
+          "label": "Current limit"
+        }
       },
-      "model": {"shape": "bench_psu"},
+      "model": {
+        "shape": "bench_psu"
+      },
       "mounting": "device",
       "simulation_status": "partial",
       "notes": "Modelled as an ideal source; current-limit (CC) mode is not simulated."
@@ -103,9 +285,25 @@
       "category": "Instrument",
       "subcategory": "Meter",
       "description": "Digital frequency counter for periodic signals.",
-      "keywords": ["frequency counter", "hz", "period", "meter"],
-      "pins": [{"name": "IN", "type": "input"}, {"name": "GND", "type": "ground"}],
-      "model": {"shape": "frequency_counter"},
+      "keywords": [
+        "frequency counter",
+        "hz",
+        "period",
+        "meter"
+      ],
+      "pins": [
+        {
+          "name": "IN",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "frequency_counter"
+      },
       "mounting": "device",
       "simulation_status": "external"
     },
@@ -115,12 +313,30 @@
       "category": "Instrument",
       "subcategory": "Meter",
       "description": "Inductance, capacitance and resistance meter for passive components.",
-      "keywords": ["lcr", "inductance", "capacitance", "resistance", "meter"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "model": {"shape": "lcr_meter"},
+      "keywords": [
+        "lcr",
+        "inductance",
+        "capacitance",
+        "resistance",
+        "meter"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "lcr_meter"
+      },
       "mounting": "device",
-      "simulation_status": "planned",
-      "notes": "Requires an impedance-measurement model; not yet implemented."
+      "simulation_status": "external",
+      "notes": "Requires an impedance-measurement model; not yet implemented. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "usb_power_meter",
@@ -128,16 +344,40 @@
       "category": "Instrument",
       "subcategory": "Meter",
       "description": "Inline USB tester reporting voltage, current and power.",
-      "keywords": ["usb meter", "power meter", "tester", "usb"],
-      "protocols": ["USB"],
-      "pins": [
-        {"name": "VIN", "type": "power"}, {"name": "GND_IN", "type": "ground"},
-        {"name": "VOUT", "type": "power"}, {"name": "GND_OUT", "type": "ground"}
+      "keywords": [
+        "usb meter",
+        "power meter",
+        "tester",
+        "usb"
       ],
-      "model": {"shape": "usb_meter"},
+      "protocols": [
+        "USB"
+      ],
+      "pins": [
+        {
+          "name": "VIN",
+          "type": "power"
+        },
+        {
+          "name": "GND_IN",
+          "type": "ground"
+        },
+        {
+          "name": "VOUT",
+          "type": "power"
+        },
+        {
+          "name": "GND_OUT",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "usb_meter"
+      },
       "mounting": "device",
-      "simulation_status": "visual",
-      "notes": "Pass-through connection; measurement values come from the solver."
+      "simulation_status": "external",
+      "notes": "Pass-through connection; measurement values come from the solver. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     }
   ]
 }

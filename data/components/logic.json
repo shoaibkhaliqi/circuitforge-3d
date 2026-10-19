@@ -8,18 +8,51 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input AND gate. Output Y = vdd when A and B are both high.",
-      "keywords": ["and", "gate", "logic"],
+      "keywords": [
+        "and",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "and",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -28,18 +61,51 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input OR gate.",
-      "keywords": ["or", "gate", "logic"],
+      "keywords": [
+        "or",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "or",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -48,18 +114,48 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Single-input inverter.",
-      "keywords": ["not", "inverter", "gate", "logic"],
+      "keywords": [
+        "not",
+        "inverter",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "not",
-      "pins": [{"name": "A", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -68,18 +164,51 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input NAND gate.",
-      "keywords": ["nand", "gate", "logic"],
+      "keywords": [
+        "nand",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "nand",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -88,18 +217,51 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input NOR gate.",
-      "keywords": ["nor", "gate", "logic"],
+      "keywords": [
+        "nor",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "nor",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -108,18 +270,52 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input exclusive-OR gate.",
-      "keywords": ["xor", "eors", "gate", "logic"],
+      "keywords": [
+        "xor",
+        "eors",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "xor",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -128,18 +324,47 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Single-input non-inverting buffer.",
-      "keywords": ["buffer", "gate", "logic"],
+      "keywords": [
+        "buffer",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "buffer",
-      "pins": [{"name": "A", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
       "simulation_status": "full",
-      "simulation_models": ["ideal_logic"],
+      "simulation_models": [
+        "ideal_logic"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -148,18 +373,50 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Two-input exclusive-NOR gate.",
-      "keywords": ["xnor", "gate", "logic"],
+      "keywords": [
+        "xnor",
+        "gate",
+        "logic"
+      ],
       "logic_fn": "xnor",
-      "pins": [{"name": "A", "type": "input"}, {"name": "B", "type": "input"}, {"name": "Y", "type": "output"}],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        }
+      ],
       "params": {
-        "vdd": {"default": 5.0, "unit": "V", "label": "Logic high voltage"},
-        "vth": {"default": 2.5, "unit": "V", "label": "Input threshold"},
-        "rout": {"default": 1.0, "unit": "Ohm", "label": "Output resistance"}
+        "vdd": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic high voltage"
+        },
+        "vth": {
+          "default": 2.5,
+          "unit": "V",
+          "label": "Input threshold"
+        },
+        "rout": {
+          "default": 1.0,
+          "unit": "Ohm",
+          "label": "Output resistance"
+        }
       },
-      "model": {"shape": "dip14"},
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "virtual",
-      "simulation_status": "planned",
-      "notes": "The XNOR function is not yet implemented in the solver."
+      "simulation_status": "full",
+      "notes": "The XNOR function is not yet implemented in the solver.",
+      "simulation_backend": "mna"
     },
     {
       "id": "schmitt_trigger",
@@ -167,12 +424,37 @@
       "category": "Logic",
       "subcategory": "Gates",
       "description": "Inverting Schmitt trigger with hysteresis, for cleaning up noisy inputs.",
-      "keywords": ["schmitt", "74hc14", "hysteresis", "inverter"],
-      "pins": [{"name": "A", "type": "input"}, {"name": "Y", "type": "output"}, {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}],
-      "model": {"shape": "dip14"},
+      "keywords": [
+        "schmitt",
+        "74hc14",
+        "hysteresis",
+        "inverter"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "input"
+        },
+        {
+          "name": "Y",
+          "type": "output"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "d_flip_flop",
@@ -180,13 +462,42 @@
       "category": "Logic",
       "subcategory": "Sequential",
       "description": "Edge-triggered D-type flip-flop.",
-      "keywords": ["flip flop", "74hc74", "d-type", "sequential", "latch"],
-      "pins": [
-        {"name": "D", "type": "input"}, {"name": "CLK", "type": "clock"},
-        {"name": "Q", "type": "output"}, {"name": "Qn", "type": "output"},
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "flip flop",
+        "74hc74",
+        "d-type",
+        "sequential",
+        "latch"
       ],
-      "model": {"shape": "dip14"},
+      "pins": [
+        {
+          "name": "D",
+          "type": "input"
+        },
+        {
+          "name": "CLK",
+          "type": "clock"
+        },
+        {
+          "name": "Q",
+          "type": "output"
+        },
+        {
+          "name": "Qn",
+          "type": "output"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dip14"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -197,16 +508,81 @@
       "category": "Logic",
       "subcategory": "Sequential",
       "description": "8-bit serial-in parallel-out shift register with output latch.",
-      "keywords": ["74hc595", "shift register", "serial", "output expander", "spi"],
-      "protocols": ["SPI"],
-      "pins": [
-        {"name": "DS", "type": "input"}, {"name": "SHCP", "type": "clock"}, {"name": "STCP", "type": "clock"},
-        {"name": "OE", "type": "input"}, {"name": "MR", "type": "input"},
-        {"name": "Q0", "type": "output"}, {"name": "Q1", "type": "output"}, {"name": "Q2", "type": "output"}, {"name": "Q3", "type": "output"},
-        {"name": "Q4", "type": "output"}, {"name": "Q5", "type": "output"}, {"name": "Q6", "type": "output"}, {"name": "Q7", "type": "output"},
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "74hc595",
+        "shift register",
+        "serial",
+        "output expander",
+        "spi"
       ],
-      "model": {"shape": "dip16"},
+      "protocols": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "DS",
+          "type": "input"
+        },
+        {
+          "name": "SHCP",
+          "type": "clock"
+        },
+        {
+          "name": "STCP",
+          "type": "clock"
+        },
+        {
+          "name": "OE",
+          "type": "input"
+        },
+        {
+          "name": "MR",
+          "type": "input"
+        },
+        {
+          "name": "Q0",
+          "type": "output"
+        },
+        {
+          "name": "Q1",
+          "type": "output"
+        },
+        {
+          "name": "Q2",
+          "type": "output"
+        },
+        {
+          "name": "Q3",
+          "type": "output"
+        },
+        {
+          "name": "Q4",
+          "type": "output"
+        },
+        {
+          "name": "Q5",
+          "type": "output"
+        },
+        {
+          "name": "Q6",
+          "type": "output"
+        },
+        {
+          "name": "Q7",
+          "type": "output"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dip16"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -217,14 +593,49 @@
       "category": "Logic",
       "subcategory": "Sequential",
       "description": "Synchronous 4-bit binary counter.",
-      "keywords": ["counter", "74hc161", "binary", "sequential"],
-      "pins": [
-        {"name": "CLK", "type": "clock"}, {"name": "MR", "type": "input"},
-        {"name": "Q0", "type": "output"}, {"name": "Q1", "type": "output"},
-        {"name": "Q2", "type": "output"}, {"name": "Q3", "type": "output"},
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "counter",
+        "74hc161",
+        "binary",
+        "sequential"
       ],
-      "model": {"shape": "dip16"},
+      "pins": [
+        {
+          "name": "CLK",
+          "type": "clock"
+        },
+        {
+          "name": "MR",
+          "type": "input"
+        },
+        {
+          "name": "Q0",
+          "type": "output"
+        },
+        {
+          "name": "Q1",
+          "type": "output"
+        },
+        {
+          "name": "Q2",
+          "type": "output"
+        },
+        {
+          "name": "Q3",
+          "type": "output"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dip16"
+      },
       "mounting": "tht",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -235,17 +646,51 @@
       "category": "Logic",
       "subcategory": "Interface",
       "description": "Bidirectional 3.3 V to 5 V level shifter module.",
-      "keywords": ["level shifter", "3.3v", "5v", "bidirectional", "txs0108"],
-      "pins": [
-        {"name": "LV1", "type": "bidirectional"}, {"name": "LV2", "type": "bidirectional"},
-        {"name": "HV1", "type": "bidirectional"}, {"name": "HV2", "type": "bidirectional"},
-        {"name": "LV", "type": "power"}, {"name": "HV", "type": "power"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "level shifter",
+        "3.3v",
+        "5v",
+        "bidirectional",
+        "txs0108"
       ],
-      "model": {"shape": "level_shifter_module"},
+      "pins": [
+        {
+          "name": "LV1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "LV2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "HV1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "HV2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "LV",
+          "type": "power"
+        },
+        {
+          "name": "HV",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "level_shifter_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
       "arduino_compatible": true,
-      "notes": "Represented per channel; voltage-translation behaviour is not simulated."
+      "notes": "Represented per channel; voltage-translation behaviour is not simulated.",
+      "simulation_backend": "mna"
     }
   ]
 }

@@ -8,12 +8,50 @@
       "category": "Connector",
       "subcategory": "Header",
       "description": "Breakable male pin header strip, 2.54 mm pitch, 1x40 pins.",
-      "keywords": ["header", "male", "pin", "2.54", "strip"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"},
-        {"name": "5", "type": "passive"}, {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"}
+      "keywords": [
+        "header",
+        "male",
+        "pin",
+        "2.54",
+        "strip"
       ],
-      "model": {"shape": "header_male"},
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "header_male"
+      },
       "mounting": "tht",
       "simulation_status": "visual",
       "notes": "Mechanical/visual part; pin count in the schematic is representative."
@@ -24,12 +62,49 @@
       "category": "Connector",
       "subcategory": "Header",
       "description": "Female socket header strip, 2.54 mm pitch, 1x8 pins.",
-      "keywords": ["header", "female", "socket", "2.54"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"},
-        {"name": "5", "type": "passive"}, {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"}
+      "keywords": [
+        "header",
+        "female",
+        "socket",
+        "2.54"
       ],
-      "model": {"shape": "header_female"},
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "header_female"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -39,9 +114,26 @@
       "category": "Connector",
       "subcategory": "Power",
       "description": "5.5/2.1 mm DC power jack with center-positive tip and sleeve.",
-      "keywords": ["barrel jack", "dc jack", "power", "5.5mm", "2.1mm"],
-      "pins": [{"name": "TIP", "type": "power"}, {"name": "SLEEVE", "type": "ground"}],
-      "model": {"shape": "barrel_jack"},
+      "keywords": [
+        "barrel jack",
+        "dc jack",
+        "power",
+        "5.5mm",
+        "2.1mm"
+      ],
+      "pins": [
+        {
+          "name": "TIP",
+          "type": "power"
+        },
+        {
+          "name": "SLEEVE",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "barrel_jack"
+      },
       "mounting": "tht",
       "simulation_status": "visual",
       "notes": "Electrically a two-terminal connector; polarity depends on the mating plug."
@@ -52,9 +144,26 @@
       "category": "Connector",
       "subcategory": "Terminal",
       "description": "2-position 5.08 mm screw terminal block.",
-      "keywords": ["terminal", "screw", "block", "2 pin", "5.08"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "model": {"shape": "terminal_block_2"},
+      "keywords": [
+        "terminal",
+        "screw",
+        "block",
+        "2 pin",
+        "5.08"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "terminal_block_2"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -64,9 +173,30 @@
       "category": "Connector",
       "subcategory": "Terminal",
       "description": "3-position 5.08 mm screw terminal block.",
-      "keywords": ["terminal", "screw", "block", "3 pin", "5.08"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}],
-      "model": {"shape": "terminal_block_3"},
+      "keywords": [
+        "terminal",
+        "screw",
+        "block",
+        "3 pin",
+        "5.08"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "terminal_block_3"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -76,9 +206,26 @@
       "category": "Connector",
       "subcategory": "JST",
       "description": "JST-XH 2.5 mm 2-pin wire-to-board connector.",
-      "keywords": ["jst", "xh", "connector", "2 pin", "2.5mm"],
-      "pins": [{"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}],
-      "model": {"shape": "jst_xh"},
+      "keywords": [
+        "jst",
+        "xh",
+        "connector",
+        "2 pin",
+        "2.5mm"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "jst_xh"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -88,13 +235,36 @@
       "category": "Connector",
       "subcategory": "USB",
       "description": "Standard USB Type-A female receptacle (VBUS, D-, D+, GND).",
-      "keywords": ["usb", "type-a", "receptacle", "connector"],
-      "protocols": ["USB"],
-      "pins": [
-        {"name": "VBUS", "type": "power"}, {"name": "D-", "type": "bidirectional"},
-        {"name": "D+", "type": "bidirectional"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "usb",
+        "type-a",
+        "receptacle",
+        "connector"
       ],
-      "model": {"shape": "usb_a"},
+      "protocols": [
+        "USB"
+      ],
+      "pins": [
+        {
+          "name": "VBUS",
+          "type": "power"
+        },
+        {
+          "name": "D-",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D+",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "usb_a"
+      },
       "mounting": "tht",
       "simulation_status": "external",
       "notes": "USB signalling is handled by the host; not solved electrically."
@@ -105,13 +275,40 @@
       "category": "Connector",
       "subcategory": "USB",
       "description": "USB Micro-B female receptacle (VBUS, D-, D+, ID, GND).",
-      "keywords": ["usb", "micro", "micro-b", "receptacle"],
-      "protocols": ["USB"],
-      "pins": [
-        {"name": "VBUS", "type": "power"}, {"name": "D-", "type": "bidirectional"},
-        {"name": "D+", "type": "bidirectional"}, {"name": "ID", "type": "input"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "usb",
+        "micro",
+        "micro-b",
+        "receptacle"
       ],
-      "model": {"shape": "usb_micro"},
+      "protocols": [
+        "USB"
+      ],
+      "pins": [
+        {
+          "name": "VBUS",
+          "type": "power"
+        },
+        {
+          "name": "D-",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D+",
+          "type": "bidirectional"
+        },
+        {
+          "name": "ID",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "usb_micro"
+      },
       "mounting": "smd",
       "simulation_status": "external"
     },
@@ -121,14 +318,44 @@
       "category": "Connector",
       "subcategory": "USB",
       "description": "USB Type-C female receptacle with CC pins, VBUS and GND.",
-      "keywords": ["usb", "type-c", "usb-c", "receptacle"],
-      "protocols": ["USB"],
-      "pins": [
-        {"name": "VBUS", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "CC1", "type": "bidirectional"}, {"name": "CC2", "type": "bidirectional"},
-        {"name": "D+", "type": "bidirectional"}, {"name": "D-", "type": "bidirectional"}
+      "keywords": [
+        "usb",
+        "type-c",
+        "usb-c",
+        "receptacle"
       ],
-      "model": {"shape": "usb_c"},
+      "protocols": [
+        "USB"
+      ],
+      "pins": [
+        {
+          "name": "VBUS",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "CC1",
+          "type": "bidirectional"
+        },
+        {
+          "name": "CC2",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D+",
+          "type": "bidirectional"
+        },
+        {
+          "name": "D-",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "usb_c"
+      },
       "mounting": "smd",
       "simulation_status": "external",
       "notes": "Role detection via CC requires a USB backend; not solved electrically."
@@ -139,12 +366,34 @@
       "category": "Connector",
       "subcategory": "Audio",
       "description": "3.5 mm stereo TRS audio jack (tip/ring/ring/sleeve).",
-      "keywords": ["audio", "jack", "3.5mm", "trs", "headphone"],
-      "pins": [
-        {"name": "TIP", "type": "passive"}, {"name": "RING1", "type": "passive"},
-        {"name": "RING2", "type": "passive"}, {"name": "SLEEVE", "type": "passive"}
+      "keywords": [
+        "audio",
+        "jack",
+        "3.5mm",
+        "trs",
+        "headphone"
       ],
-      "model": {"shape": "audio_jack"},
+      "pins": [
+        {
+          "name": "TIP",
+          "type": "passive"
+        },
+        {
+          "name": "RING1",
+          "type": "passive"
+        },
+        {
+          "name": "RING2",
+          "type": "passive"
+        },
+        {
+          "name": "SLEEVE",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "audio_jack"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -154,13 +403,53 @@
       "category": "Connector",
       "subcategory": "Network",
       "description": "8P8C modular connector for Ethernet.",
-      "keywords": ["rj45", "ethernet", "network", "8p8c", "lan"],
-      "protocols": ["Ethernet"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"},
-        {"name": "5", "type": "passive"}, {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"}
+      "keywords": [
+        "rj45",
+        "ethernet",
+        "network",
+        "8p8c",
+        "lan"
       ],
-      "model": {"shape": "rj45"},
+      "protocols": [
+        "Ethernet"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "rj45"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -170,13 +459,57 @@
       "category": "Connector",
       "subcategory": "Serial",
       "description": "9-pin D-sub connector as used for RS-232 serial ports.",
-      "keywords": ["db9", "d-sub", "rs232", "serial", "connector"],
-      "protocols": ["RS-232"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"}, {"name": "5", "type": "passive"},
-        {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"}, {"name": "9", "type": "passive"}
+      "keywords": [
+        "db9",
+        "d-sub",
+        "rs232",
+        "serial",
+        "connector"
       ],
-      "model": {"shape": "db9"},
+      "protocols": [
+        "RS-232"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        },
+        {
+          "name": "9",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "db9"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -186,12 +519,48 @@
       "category": "Connector",
       "subcategory": "Socket",
       "description": "8-pin DIP IC socket.",
-      "keywords": ["socket", "dip8", "ic socket"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"},
-        {"name": "5", "type": "passive"}, {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"}
+      "keywords": [
+        "socket",
+        "dip8",
+        "ic socket"
       ],
-      "model": {"shape": "dip_socket_8"},
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "dip_socket_8"
+      },
       "mounting": "tht",
       "simulation_status": "visual",
       "notes": "Passes through electrically; pin count is fixed at 8."
@@ -202,14 +571,80 @@
       "category": "Connector",
       "subcategory": "Socket",
       "description": "16-pin DIP IC socket.",
-      "keywords": ["socket", "dip16", "ic socket"],
-      "pins": [
-        {"name": "1", "type": "passive"}, {"name": "2", "type": "passive"}, {"name": "3", "type": "passive"}, {"name": "4", "type": "passive"},
-        {"name": "5", "type": "passive"}, {"name": "6", "type": "passive"}, {"name": "7", "type": "passive"}, {"name": "8", "type": "passive"},
-        {"name": "9", "type": "passive"}, {"name": "10", "type": "passive"}, {"name": "11", "type": "passive"}, {"name": "12", "type": "passive"},
-        {"name": "13", "type": "passive"}, {"name": "14", "type": "passive"}, {"name": "15", "type": "passive"}, {"name": "16", "type": "passive"}
+      "keywords": [
+        "socket",
+        "dip16",
+        "ic socket"
       ],
-      "model": {"shape": "dip_socket_16"},
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        },
+        {
+          "name": "2",
+          "type": "passive"
+        },
+        {
+          "name": "3",
+          "type": "passive"
+        },
+        {
+          "name": "4",
+          "type": "passive"
+        },
+        {
+          "name": "5",
+          "type": "passive"
+        },
+        {
+          "name": "6",
+          "type": "passive"
+        },
+        {
+          "name": "7",
+          "type": "passive"
+        },
+        {
+          "name": "8",
+          "type": "passive"
+        },
+        {
+          "name": "9",
+          "type": "passive"
+        },
+        {
+          "name": "10",
+          "type": "passive"
+        },
+        {
+          "name": "11",
+          "type": "passive"
+        },
+        {
+          "name": "12",
+          "type": "passive"
+        },
+        {
+          "name": "13",
+          "type": "passive"
+        },
+        {
+          "name": "14",
+          "type": "passive"
+        },
+        {
+          "name": "15",
+          "type": "passive"
+        },
+        {
+          "name": "16",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "dip_socket_16"
+      },
       "mounting": "tht",
       "simulation_status": "visual"
     },
@@ -219,9 +654,21 @@
       "category": "Connector",
       "subcategory": "Test",
       "description": "4 mm banana plug for bench instruments.",
-      "keywords": ["banana", "plug", "test lead", "4mm"],
-      "pins": [{"name": "1", "type": "passive"}],
-      "model": {"shape": "banana_plug"},
+      "keywords": [
+        "banana",
+        "plug",
+        "test lead",
+        "4mm"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "banana_plug"
+      },
       "mounting": "device",
       "simulation_status": "visual"
     },
@@ -231,9 +678,21 @@
       "category": "Connector",
       "subcategory": "Test",
       "description": "Insulated alligator/crocodile clip for temporary test connections.",
-      "keywords": ["alligator", "crocodile", "clip", "test"],
-      "pins": [{"name": "1", "type": "passive"}],
-      "model": {"shape": "alligator_clip"},
+      "keywords": [
+        "alligator",
+        "crocodile",
+        "clip",
+        "test"
+      ],
+      "pins": [
+        {
+          "name": "1",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "alligator_clip"
+      },
       "mounting": "device",
       "simulation_status": "visual"
     }

@@ -48,6 +48,16 @@ const HANDLED_TYPES := [
 	"ldr_module", "soil_moisture", "rain_sensor", "mq2_gas", "mq135_air",
 	"acs712", "pressure_transducer_420ma", "load_cell_5kg",
 	"pcf8574", "mcu_analog_in", "mcu_pwm_out", "pcf8591", "mcp4725",
+	"xnor", "fuse", "resettable_fuse", "relay_spdt", "crystal", "led_rgb",
+	"schmitt_trigger", "logic_level_shifter",
+	"lm7805", "lm1117_33", "ams1117_33", "ams1117_50", "lm317", "tl431",
+	"buck_mp1584", "boost_mt3608", "buck_boost_xl6009", "tp4056_charger",
+	"fuse_holder", "relay_module_5v",
+	"npn_transistor", "pnp_transistor", "nmos_transistor", "darlington_transistor",
+	"tvs_diode", "photodiode", "bridge_rectifier",
+	"water_level_sensor", "water_flow_yfs201", "ph_sensor_module", "ec_sensor_module",
+	"solar_panel", "buck_converter_module",
+	"optocoupler", "thyristor", "triac",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -402,6 +412,66 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			out.append(_el(cid + "#2", "resistor", [nets[2], nets[1]], {"r": r0 - d_lc}))
 			out.append(_el(cid + "#3", "resistor", [nets[0], nets[3]], {"r": r0 - d_lc}))
 			out.append(_el(cid + "#4", "resistor", [nets[3], nets[1]], {"r": r0 + d_lc}))
+		"xnor":
+			var def_x := ComponentDB.get_def(type)
+			out.append(_el(cid, "logic", nets, {"fn": String(def_x.get("logic_fn", "xnor")), "vdd": float(params.get("vdd", 5.0)), "vth": float(params.get("vth", 2.5)), "rout": float(params.get("rout", 1.0))}))
+		"fuse", "resettable_fuse":
+			out.append(_el(cid, "resistor", nets, {"r": 0.001 if not bool(params.get("blown", false)) else 1e9}))
+		"relay_spdt":
+			out.append(_el(cid, "resistor", [nets[0], nets[1]], {"r": 0.001 if bool(params.get("actuated", params.get("energized", false))) else 1e9}))
+			out.append(_el(cid + "#2", "resistor", [nets[0], nets[2]], {"r": 1e9 if bool(params.get("actuated", params.get("energized", false))) else 0.001}))
+		"crystal":
+			out.append(_el(cid, "capacitor", nets, {"c": float(params.get("c", 22e-12)), "ic": 0.0}))
+		"led_rgb":
+			var common_rgb := String(params.get("common", "cathode"))
+			for i in 3:
+				var led_nets := [String(nets[3]), String(nets[i])] if common_rgb != "cathode" else [String(nets[i]), String(nets[3])]
+				out.append(_el(cid + "#" + ["R","G","B"][i], "led", led_nets, {"is": 1e-14, "n": 1.0}))
+		"schmitt_trigger", "logic_level_shifter":
+			out.append(_el(cid, "logic", nets, {"fn": "buffer", "vdd": float(params.get("vdd", params.get("vhigh", 5.0))), "vth": float(params.get("vth", 2.5)), "rout": float(params.get("rout", 1.0))}))
+		"lm7805", "lm1117_33", "ams1117_33", "ams1117_50", "lm317", "tl431":
+			var vreg := 5.0
+			if type in ["lm1117_33", "ams1117_33"]: vreg = 3.3
+			elif type == "lm317": vreg = float(params.get("vout", 5.0))
+			elif type == "tl431": vreg = float(params.get("vref", 2.5))
+			out.append(_el(cid, "vsource", [nets[0], nets[1] if nets.size() > 1 else nets[0]], {"v": vreg}))
+		"buck_mp1584", "boost_mt3608", "buck_boost_xl6009", "tp4056_charger", "fuse_holder", "relay_module_5v":
+			out.append(_el(cid, "vsource", nets, {"v": float(params.get("vout", params.get("v", 5.0)))}))
+		"npn_transistor", "pnp_transistor", "nmos_transistor", "darlington_transistor":
+			out.append(_el(cid, "resistor", nets, {"r": 0.1 if bool(params.get("on", params.get("driven", false))) else 1e9}))
+		"tvs_diode", "photodiode":
+			out.append(_el(cid, "diode", nets, {"is": 1e-12, "n": 1.0}))
+		"bridge_rectifier":
+			if nets.size() >= 4:
+				out.append(_el(cid, "diode", [nets[0], nets[2]], {"is": 1e-12, "n": 1.0}))
+				out.append(_el(cid + "#2", "diode", [nets[3], nets[2]], {"is": 1e-12, "n": 1.0}))
+				out.append(_el(cid + "#3", "diode", [nets[0], nets[1]], {"is": 1e-12, "n": 1.0}))
+				out.append(_el(cid + "#4", "diode", [nets[3], nets[1]], {"is": 1e-12, "n": 1.0}))
+		"water_level_sensor":
+			# Conductive probe: resistance drops as water level rises.
+			var wl: float = clampf(float(params.get("level", 0.5)), 0.0, 1.0)
+			out.append(_el(cid, "resistor", nets, {"r": clampf(1e6 * (1.0 - wl) + 1.0, 1.0, 1e9)}))
+		"water_flow_yfs201":
+			# Hall-effect pulse output: modelled as a current source pulsing at flow rate.
+			out.append(_el(cid, "isource", [nets[2], nets[1]], {"i": float(params.get("flow", 0.0))}))
+		"ph_sensor_module":
+			# Analog pH output: ideal voltage source (PO), plus temperature output (TO).
+			var phv: float = float(params.get("ph", 7.0))
+			out.append(_el(cid, "vsource", [nets[2], nets[1]], {"v": phv * 0.177 + 0.5}))  # ~59mV/pH + offset
+			out.append(_el(cid + "#to", "vsource", [nets[3], nets[1]], {"v": float(params.get("temperature", 25.0)) * 0.01}))
+		"ec_sensor_module":
+			# EC/TDS: conductance -> resistance.
+			var ecv: float = max(0.0, float(params.get("ec", 1.0)))
+			out.append(_el(cid, "resistor", [nets[2], nets[1]], {"r": clampf(1000.0 / max(1e-9, ecv), 1.0, 1e9)}))
+		"solar_panel":
+			out.append(_el(cid, "isource", nets, {"i": float(params.get("current", 0.5))}))
+		"buck_converter_module":
+			out.append(_el(cid, "vsource", [nets[2], nets[3]], {"v": float(params.get("vout", 5.0))}))
+		"optocoupler":
+			out.append(_el(cid, "led", [nets[0], nets[1]], {"is": 1e-14, "n": 1.0}))
+			out.append(_el(cid + "#out", "resistor", [nets[2], nets[3]], {"r": 0.1 if bool(params.get("on", false)) else 1e9}))
+		"thyristor", "triac":
+			out.append(_el(cid, "resistor", nets, {"r": 0.01 if bool(params.get("triggered", params.get("fired", false))) else 1e9}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out

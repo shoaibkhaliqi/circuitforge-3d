@@ -8,16 +8,44 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "Light-emitting diode. Anode = pin 1, cathode = pin 2. Always use a series resistor.",
-      "keywords": ["led", "light", "red", "indicator", "diode"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
+      "keywords": [
+        "led",
+        "light",
+        "red",
+        "indicator",
+        "diode"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "is": {"default": 2e-19, "unit": "A", "label": "Saturation current"},
-        "n": {"default": 1.8, "unit": "", "label": "Ideality factor"}
+        "is": {
+          "default": 2e-19,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.8,
+          "unit": "",
+          "label": "Ideality factor"
+        }
       },
-      "model": {"shape": "led_dome", "colour": "#e03030"},
+      "model": {
+        "shape": "led_dome",
+        "colour": "#e03030"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -27,13 +55,42 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "Green light-emitting diode. Anode = pin 1, cathode = pin 2.",
-      "keywords": ["led", "green", "indicator"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"is": {"default": 2e-19, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.9, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "led_dome", "colour": "#40d050"},
+      "keywords": [
+        "led",
+        "green",
+        "indicator"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 2e-19,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.9,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "led_dome",
+        "colour": "#40d050"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -43,13 +100,42 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "Blue light-emitting diode. Anode = pin 1, cathode = pin 2.",
-      "keywords": ["led", "blue", "indicator"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"is": {"default": 2e-20, "unit": "A", "label": "Saturation current"}, "n": {"default": 2.2, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "led_dome", "colour": "#4080e0"},
+      "keywords": [
+        "led",
+        "blue",
+        "indicator"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 2e-20,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 2.2,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "led_dome",
+        "colour": "#4080e0"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -59,16 +145,49 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "Three-die red/green/blue LED. Common cathode on the shared pin.",
-      "keywords": ["rgb", "led", "colour", "tri-colour"],
-      "pins": [
-        {"name": "R", "type": "passive"}, {"name": "G", "type": "passive"},
-        {"name": "B", "type": "passive"}, {"name": "COM", "type": "passive"}
+      "keywords": [
+        "rgb",
+        "led",
+        "colour",
+        "tri-colour"
       ],
-      "params": {"is": {"default": 2e-19, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.9, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "rgb_led"},
+      "pins": [
+        {
+          "name": "R",
+          "type": "passive"
+        },
+        {
+          "name": "G",
+          "type": "passive"
+        },
+        {
+          "name": "B",
+          "type": "passive"
+        },
+        {
+          "name": "COM",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 2e-19,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.9,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "rgb_led"
+      },
       "mounting": "tht",
-      "simulation_status": "visual",
-      "notes": "Each colour die is a diode; sharing of the common pin depends on the model."
+      "simulation_status": "partial",
+      "notes": "Each colour die is a diode; sharing of the common pin depends on the model.",
+      "simulation_backend": "mna"
     },
     {
       "id": "led_ir",
@@ -76,13 +195,44 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "IR emitter, typically 850 or 940 nm, used for remote controls and IR communication.",
-      "keywords": ["ir", "infrared", "emitter", "940nm", "remote"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"is": {"default": 1e-18, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.5, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "led_dome", "colour": "#503050"},
+      "keywords": [
+        "ir",
+        "infrared",
+        "emitter",
+        "940nm",
+        "remote"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 1e-18,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.5,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "led_dome",
+        "colour": "#503050"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -91,16 +241,42 @@
       "category": "Semiconductor",
       "subcategory": "Diodes",
       "description": "General-purpose silicon diode. Conducts from anode (1) to cathode (2).",
-      "keywords": ["diode", "1n4148", "signal", "rectifier"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
+      "keywords": [
+        "diode",
+        "1n4148",
+        "signal",
+        "rectifier"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "is": {"default": 1e-14, "unit": "A", "label": "Saturation current"},
-        "n": {"default": 1.0, "unit": "", "label": "Ideality factor"}
+        "is": {
+          "default": 1e-14,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.0,
+          "unit": "",
+          "label": "Ideality factor"
+        }
       },
-      "model": {"shape": "axial_diode"},
+      "model": {
+        "shape": "axial_diode"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -110,13 +286,42 @@
       "category": "Semiconductor",
       "subcategory": "Diodes",
       "description": "Higher-current silicon rectifier diode, e.g. 1N4007.",
-      "keywords": ["rectifier", "1n4007", "1n4001", "power diode"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"is": {"default": 1e-13, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.4, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "axial_diode"},
+      "keywords": [
+        "rectifier",
+        "1n4007",
+        "1n4001",
+        "power diode"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 1e-13,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.4,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "axial_diode"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna"
     },
     {
@@ -125,13 +330,42 @@
       "category": "Semiconductor",
       "subcategory": "Diodes",
       "description": "Low forward-drop diode, e.g. 1N5819. Common in flyback and switching supplies.",
-      "keywords": ["schottky", "1n5819", "flyback", "low drop"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"is": {"default": 1e-7, "unit": "A", "label": "Saturation current"}, "n": {"default": 1.1, "unit": "", "label": "Ideality factor"}},
-      "model": {"shape": "axial_diode"},
+      "keywords": [
+        "schottky",
+        "1n5819",
+        "flyback",
+        "low drop"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "is": {
+          "default": 1e-07,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.1,
+          "unit": "",
+          "label": "Ideality factor"
+        }
+      },
+      "model": {
+        "shape": "axial_diode"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode"],
+      "simulation_models": [
+        "diode"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -141,17 +375,48 @@
       "category": "Semiconductor",
       "subcategory": "Diodes",
       "description": "Diode with a defined reverse breakdown voltage, used for regulation and clamping.",
-      "keywords": ["zener", "breakdown", "clamp", "vz"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
+      "keywords": [
+        "zener",
+        "breakdown",
+        "clamp",
+        "vz"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
       "params": {
-        "is": {"default": 1e-14, "unit": "A", "label": "Saturation current"},
-        "n": {"default": 1.0, "unit": "", "label": "Ideality factor"},
-        "vz": {"default": 5.1, "unit": "V", "label": "Breakdown voltage"}
+        "is": {
+          "default": 1e-14,
+          "unit": "A",
+          "label": "Saturation current"
+        },
+        "n": {
+          "default": 1.0,
+          "unit": "",
+          "label": "Ideality factor"
+        },
+        "vz": {
+          "default": 5.1,
+          "unit": "V",
+          "label": "Breakdown voltage"
+        }
       },
-      "model": {"shape": "axial_zener"},
+      "model": {
+        "shape": "axial_zener"
+      },
       "mounting": "tht",
       "simulation_status": "full",
-      "simulation_models": ["diode", "zener"],
+      "simulation_models": [
+        "diode",
+        "zener"
+      ],
       "simulation_backend": "mna",
       "arduino_compatible": true
     },
@@ -161,13 +426,37 @@
       "category": "Semiconductor",
       "subcategory": "Protection",
       "description": "Transient voltage suppressor for clamping ESD and surges.",
-      "keywords": ["tvs", "esd", "surge", "protection", "clamp"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"v_standoff": {"default": 5.0, "unit": "V", "label": "Standoff voltage"}},
-      "model": {"shape": "axial_diode"},
+      "keywords": [
+        "tvs",
+        "esd",
+        "surge",
+        "protection",
+        "clamp"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "v_standoff": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Standoff voltage"
+        }
+      },
+      "model": {
+        "shape": "axial_diode"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "Transient clamping is not simulated."
+      "simulation_status": "partial",
+      "notes": "Transient clamping is not simulated.",
+      "simulation_backend": "mna"
     },
     {
       "id": "photodiode",
@@ -175,13 +464,40 @@
       "category": "Semiconductor",
       "subcategory": "Optoelectronics",
       "description": "Light-sensitive diode that produces a photocurrent.",
-      "keywords": ["photodiode", "light sensor", "photocurrent"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}],
-      "params": {"responsivity": {"default": 0.5, "unit": "A/W", "label": "Responsivity"}, "light": {"default": 0.5, "unit": "", "label": "Light level (0-1)"}},
-      "model": {"shape": "photodiode_can"},
+      "keywords": [
+        "photodiode",
+        "light sensor",
+        "photocurrent"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "responsivity": {
+          "default": 0.5,
+          "unit": "A/W",
+          "label": "Responsivity"
+        },
+        "light": {
+          "default": 0.5,
+          "unit": "",
+          "label": "Light level (0-1)"
+        }
+      },
+      "model": {
+        "shape": "photodiode_can"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "A photocurrent model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "A photocurrent model is not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "npn_transistor",
@@ -189,15 +505,42 @@
       "category": "Semiconductor",
       "subcategory": "Transistors",
       "description": "N-channel bipolar junction transistor, e.g. 2N3904. Pins: base, collector, emitter.",
-      "keywords": ["npn", "bjt", "2n3904", "transistor", "amplifier", "switch"],
-      "pins": [
-        {"name": "B", "type": "input"}, {"name": "C", "type": "passive"}, {"name": "E", "type": "passive"}
+      "keywords": [
+        "npn",
+        "bjt",
+        "2n3904",
+        "transistor",
+        "amplifier",
+        "switch"
       ],
-      "params": {"hfe": {"default": 100.0, "unit": "", "label": "Current gain (beta)"}},
-      "model": {"shape": "to92"},
+      "pins": [
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "C",
+          "type": "passive"
+        },
+        {
+          "name": "E",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "hfe": {
+          "default": 100.0,
+          "unit": "",
+          "label": "Current gain (beta)"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "A large-signal BJT model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "A large-signal BJT model is not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "pnp_transistor",
@@ -205,15 +548,40 @@
       "category": "Semiconductor",
       "subcategory": "Transistors",
       "description": "P-channel bipolar junction transistor, e.g. 2N3906.",
-      "keywords": ["pnp", "bjt", "2n3906", "transistor"],
-      "pins": [
-        {"name": "B", "type": "input"}, {"name": "C", "type": "passive"}, {"name": "E", "type": "passive"}
+      "keywords": [
+        "pnp",
+        "bjt",
+        "2n3906",
+        "transistor"
       ],
-      "params": {"hfe": {"default": 100.0, "unit": "", "label": "Current gain (beta)"}},
-      "model": {"shape": "to92"},
+      "pins": [
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "C",
+          "type": "passive"
+        },
+        {
+          "name": "E",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "hfe": {
+          "default": 100.0,
+          "unit": "",
+          "label": "Current gain (beta)"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "A large-signal BJT model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "A large-signal BJT model is not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "nmos_transistor",
@@ -221,15 +589,42 @@
       "category": "Semiconductor",
       "subcategory": "Transistors",
       "description": "Logic-level N-channel MOSFET, e.g. 2N7000 / IRLZ44N. Pins: gate, drain, source.",
-      "keywords": ["mosfet", "nmos", "2n7000", "irlz44n", "logic level", "switch"],
-      "pins": [
-        {"name": "G", "type": "input"}, {"name": "D", "type": "passive"}, {"name": "S", "type": "passive"}
+      "keywords": [
+        "mosfet",
+        "nmos",
+        "2n7000",
+        "irlz44n",
+        "logic level",
+        "switch"
       ],
-      "params": {"vth": {"default": 2.1, "unit": "V", "label": "Gate threshold voltage"}},
-      "model": {"shape": "to92"},
+      "pins": [
+        {
+          "name": "G",
+          "type": "input"
+        },
+        {
+          "name": "D",
+          "type": "passive"
+        },
+        {
+          "name": "S",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "vth": {
+          "default": 2.1,
+          "unit": "V",
+          "label": "Gate threshold voltage"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "A MOSFET model is not yet implemented. Use with a gate resistor and pull-down."
+      "simulation_status": "partial",
+      "notes": "A MOSFET model is not yet implemented. Use with a gate resistor and pull-down.",
+      "simulation_backend": "mna"
     },
     {
       "id": "darlington_transistor",
@@ -237,12 +632,39 @@
       "category": "Semiconductor",
       "subcategory": "Transistors",
       "description": "Darlington pair (e.g. ULN2003 channel / TIP120) with very high current gain.",
-      "keywords": ["darlington", "tip120", "uln2003", "high gain"],
-      "pins": [{"name": "B", "type": "input"}, {"name": "C", "type": "passive"}, {"name": "E", "type": "passive"}],
-      "params": {"hfe": {"default": 1000.0, "unit": "", "label": "Current gain (beta)"}},
-      "model": {"shape": "to220"},
+      "keywords": [
+        "darlington",
+        "tip120",
+        "uln2003",
+        "high gain"
+      ],
+      "pins": [
+        {
+          "name": "B",
+          "type": "input"
+        },
+        {
+          "name": "C",
+          "type": "passive"
+        },
+        {
+          "name": "E",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "hfe": {
+          "default": 1000.0,
+          "unit": "",
+          "label": "Current gain (beta)"
+        }
+      },
+      "model": {
+        "shape": "to220"
+      },
       "mounting": "tht",
-      "simulation_status": "planned"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "optocoupler",
@@ -250,16 +672,45 @@
       "category": "Semiconductor",
       "subcategory": "Isolation",
       "description": "Optical isolation device, e.g. PC817. Input LED drives an output transistor.",
-      "keywords": ["optocoupler", "opto", "pc817", "isolation", "galvanic"],
-      "pins": [
-        {"name": "A", "type": "passive"}, {"name": "K", "type": "passive"},
-        {"name": "C", "type": "passive"}, {"name": "E", "type": "passive"}
+      "keywords": [
+        "optocoupler",
+        "opto",
+        "pc817",
+        "isolation",
+        "galvanic"
       ],
-      "params": {"ctr": {"default": 0.5, "unit": "", "label": "Current transfer ratio"}},
-      "model": {"shape": "dip4"},
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        },
+        {
+          "name": "C",
+          "type": "passive"
+        },
+        {
+          "name": "E",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "ctr": {
+          "default": 0.5,
+          "unit": "",
+          "label": "Current transfer ratio"
+        }
+      },
+      "model": {
+        "shape": "dip4"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "Coupled LED/transistor model not yet implemented."
+      "simulation_status": "partial",
+      "notes": "Coupled LED/transistor model not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "thyristor",
@@ -267,11 +718,32 @@
       "category": "Semiconductor",
       "subcategory": "Power",
       "description": "Silicon controlled rectifier: latches on once triggered.",
-      "keywords": ["scr", "thyristor", "latch", "power"],
-      "pins": [{"name": "A", "type": "passive"}, {"name": "K", "type": "passive"}, {"name": "G", "type": "input"}],
-      "model": {"shape": "to220"},
+      "keywords": [
+        "scr",
+        "thyristor",
+        "latch",
+        "power"
+      ],
+      "pins": [
+        {
+          "name": "A",
+          "type": "passive"
+        },
+        {
+          "name": "K",
+          "type": "passive"
+        },
+        {
+          "name": "G",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "to220"
+      },
       "mounting": "tht",
-      "simulation_status": "planned"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "triac",
@@ -279,11 +751,32 @@
       "category": "Semiconductor",
       "subcategory": "Power",
       "description": "Bidirectional triode for AC switching and dimming.",
-      "keywords": ["triac", "ac switch", "dimmer", "bt136"],
-      "pins": [{"name": "MT1", "type": "passive"}, {"name": "MT2", "type": "passive"}, {"name": "G", "type": "input"}],
-      "model": {"shape": "to220"},
+      "keywords": [
+        "triac",
+        "ac switch",
+        "dimmer",
+        "bt136"
+      ],
+      "pins": [
+        {
+          "name": "MT1",
+          "type": "passive"
+        },
+        {
+          "name": "MT2",
+          "type": "passive"
+        },
+        {
+          "name": "G",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "to220"
+      },
       "mounting": "tht",
-      "simulation_status": "planned"
+      "simulation_status": "partial",
+      "simulation_backend": "mna"
     },
     {
       "id": "bridge_rectifier",
@@ -291,15 +784,37 @@
       "category": "Semiconductor",
       "subcategory": "Power",
       "description": "Four-diode bridge (e.g. DB107) converting AC to pulsating DC.",
-      "keywords": ["bridge", "rectifier", "db107", "ac dc"],
-      "pins": [
-        {"name": "AC1", "type": "passive"}, {"name": "AC2", "type": "passive"},
-        {"name": "+", "type": "power"}, {"name": "-", "type": "power"}
+      "keywords": [
+        "bridge",
+        "rectifier",
+        "db107",
+        "ac dc"
       ],
-      "model": {"shape": "bridge_module"},
+      "pins": [
+        {
+          "name": "AC1",
+          "type": "passive"
+        },
+        {
+          "name": "AC2",
+          "type": "passive"
+        },
+        {
+          "name": "+",
+          "type": "power"
+        },
+        {
+          "name": "-",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "bridge_module"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "notes": "An internal four-diode model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "An internal four-diode model is not yet implemented.",
+      "simulation_backend": "mna"
     },
     {
       "id": "lm7805",
@@ -307,18 +822,44 @@
       "category": "Semiconductor",
       "subcategory": "Regulators",
       "description": "Fixed 5 V 1 A linear voltage regulator TO-220. Pins: IN, GND, OUT.",
-      "keywords": ["7805", "regulator", "5v", "ldo", "linear"],
+      "keywords": [
+        "7805",
+        "regulator",
+        "5v",
+        "ldo",
+        "linear"
+      ],
       "part_number": "LM7805",
       "manufacturer": "Generic",
       "pins": [
-        {"name": "IN", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "power"}
+        {
+          "name": "IN",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "OUT",
+          "type": "power"
+        }
       ],
-      "params": {"vout": {"default": 5.0, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "to220"},
+      "params": {
+        "vout": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "to220"
+      },
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
       "notes": "Requires input and output decoupling capacitors. Dropout and thermal limits not simulated.",
-      "arduino_compatible": true
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "ams1117_33",
@@ -326,16 +867,42 @@
       "category": "Semiconductor",
       "subcategory": "Regulators",
       "description": "3.3 V low-dropout linear regulator, SOT-223.",
-      "keywords": ["ams1117", "ldo", "3.3v", "regulator", "sot223"],
+      "keywords": [
+        "ams1117",
+        "ldo",
+        "3.3v",
+        "regulator",
+        "sot223"
+      ],
       "part_number": "AMS1117-3.3",
       "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "power"}, {"name": "IN", "type": "power"}
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "OUT",
+          "type": "power"
+        },
+        {
+          "name": "IN",
+          "type": "power"
+        }
       ],
-      "params": {"vout": {"default": 3.3, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "sot223"},
+      "params": {
+        "vout": {
+          "default": 3.3,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "sot223"
+      },
       "mounting": "smd",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "buck_converter_module",
@@ -343,13 +910,44 @@
       "category": "Semiconductor",
       "subcategory": "Regulators",
       "description": "Adjustable step-down DC-DC converter module (e.g. LM2596).",
-      "keywords": ["buck", "step down", "dc-dc", "lm2596"],
-      "pins": [{"name": "IN+", "type": "power"}, {"name": "IN-", "type": "ground"}, {"name": "OUT+", "type": "power"}, {"name": "OUT-", "type": "ground"}],
-      "params": {"vout": {"default": 5.0, "unit": "V", "label": "Output voltage"}},
-      "model": {"shape": "dc_dc_module"},
+      "keywords": [
+        "buck",
+        "step down",
+        "dc-dc",
+        "lm2596"
+      ],
+      "pins": [
+        {
+          "name": "IN+",
+          "type": "power"
+        },
+        {
+          "name": "IN-",
+          "type": "ground"
+        },
+        {
+          "name": "OUT+",
+          "type": "power"
+        },
+        {
+          "name": "OUT-",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "vout": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Output voltage"
+        }
+      },
+      "model": {
+        "shape": "dc_dc_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "notes": "A switching-regulator model is not yet implemented."
+      "simulation_status": "partial",
+      "notes": "A switching-regulator model is not yet implemented.",
+      "simulation_backend": "mna"
     }
   ]
 }
