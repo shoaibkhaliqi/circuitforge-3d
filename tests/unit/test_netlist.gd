@@ -161,6 +161,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("tof_vl53l0x"), "tof_vl53l0x is not mapped by the solver (the harness serves the I2C register file)")
 	t.check(ComponentDB.status_of("ccs811") == "external", "ccs811 status is 'external'")
 	t.check(not NetlistBuilder.handles("ccs811"), "ccs811 is not mapped by the solver (the harness serves the I2C register file)")
+	t.check(ComponentDB.status_of("scd40") == "external", "scd40 status is 'external'")
+	t.check(not NetlistBuilder.handles("scd40"), "scd40 is not mapped by the solver (the harness serves the I2C command-driven device)")
 	# The MCP4725 is the one firmware part with a *netlist* model too: VOUT is a driven
 	# source, so it claims 'partial' (the harness supplies the code).
 	t.check(ComponentDB.status_of("mcp4725") == "partial", "mcp4725 status is 'partial'")

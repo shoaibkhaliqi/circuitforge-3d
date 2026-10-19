@@ -1091,6 +1091,57 @@ function buildDevices() {
           eco2, tvoc, status: regs[0x00], pointer: ptr,
         }),
       });
+    } else if (s.kind === 'scd40') {
+      // SCD40 CO2 sensor: command-driven like the SHT31. Command 0x21B1 triggers a
+      // single-shot measurement; a read returns 9 bytes - CO2 (MSB/LSB + CRC), temp
+      // (MSB/LSB + CRC), humidity (MSB/LSB + CRC) - using the same CRC-8 (poly 0x31,
+      // init 0xFF). Values come from `co2`/`temp_c`/`humidity`.
+      const crc8 = (a, b) => {
+        let crc = 0xff;
+        for (const byte of [a, b]) {
+          crc ^= byte & 0xff;
+          for (let i = 0; i < 8; i++) {
+            crc = crc & 0x80 ? ((crc << 1) ^ 0x31) & 0xff : (crc << 1) & 0xff;
+          }
+        }
+        return crc;
+      };
+      const co2 = Math.max(0, Math.min(40000, Number(s.co2 ?? 400)));
+      const tempC = Math.max(-10, Math.min(60, Number(s.temp_c ?? 23)));
+      const humPct = Math.max(0, Math.min(100, Number(s.humidity ?? 48)));
+      const tempRaw = Math.max(0, Math.min(65535, Math.round(((tempC + 45) / 175) * 65535)));
+      const humRaw = Math.max(0, Math.min(65535, Math.round((humPct / 100) * 65535)));
+      const out = [
+        (co2 >> 8) & 0xff, co2 & 0xff, 0,
+        (tempRaw >> 8) & 0xff, tempRaw & 0xff, 0,
+        (humRaw >> 8) & 0xff, humRaw & 0xff, 0,
+      ];
+      out[2] = crc8(out[0], out[1]);
+      out[5] = crc8(out[3], out[4]);
+      out[8] = crc8(out[6], out[7]);
+      let idx = 0;
+      let cmdHi = null;
+      let command = -1;
+      let reads = 0;
+      map.set(addr, {
+        kind: 'scd40',
+        onStart(write) { if (write) cmdHi = null; else { idx = 0; reads++; } },
+        writeByte(b) {
+          b &= 0xff;
+          if (cmdHi === null) { cmdHi = b; return; }
+          command = (cmdHi << 8) | b;
+          cmdHi = null;
+        },
+        readByte() {
+          const v = out[idx] ?? 0xff;
+          idx = (idx + 1) % out.length;
+          return v;
+        },
+        summary: () => ({
+          kind: 'scd40', address: addr, command, co2, temp_c: tempC,
+          humidity: humPct, reads,
+        }),
+      });
     } else if (s.kind === 'sht31') {
       // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
       // 0xf32d soft reset, 0x306d/0xe000 heater) and a 6-byte read of

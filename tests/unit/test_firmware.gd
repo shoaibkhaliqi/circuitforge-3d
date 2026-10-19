@@ -436,4 +436,18 @@ func run(t) -> void:
 		t.check(absf(float(cc.get("eco2", 0.0)) - 1000.0) < 1e-6, "eco2 comes from params", str(cc))
 		t.check(absf(float(cc.get("tvoc", 0.0)) - 50.0) < 1e-6, "tvoc comes from params", str(cc))
 
+	# SCD40: I2C command-driven device, no pin_map needed.
+	var app14 = AppService.new()
+	app14.session.add_component("ground", ["TM1"])
+	app14.session.add_component("scd40",
+		["TP1", "TM1", "d2", "d3"], {"co2": 800.0, "temp_c": 22.0, "humidity": 40.0}, "S1")
+	var built14: Dictionary = app14.session.build_circuit()
+	var specs15: Array = app14._firmware_devices({}, built14.pin_nets, {})
+	t.check(specs15.size() == 1, "SCD40 produces one device spec", str(specs15))
+	if specs15.size() == 1:
+		var scd: Dictionary = specs15[0]
+		t.check(String(scd.get("kind", "")) == "scd40", "spec kind is scd40")
+		t.check(int(scd.get("address", -1)) == 98, "default I2C address is 0x62", str(scd))
+		t.check(absf(float(scd.get("co2", 0.0)) - 800.0) < 1e-6, "co2 comes from params", str(scd))
+
 	t.done()

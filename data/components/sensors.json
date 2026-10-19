@@ -1468,9 +1468,40 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "This sensor performs a genuine CO2 measurement, unlike eCO2 estimates."
+      "notes": "No breadboard electrical model: the harness serves an SCD40 on the I2C bus while firmware runs (attach_devices). Command 0x21B1 triggers a single-shot measurement; a read returns 9 bytes (CO2, temperature, humidity, each with a CRC-8, poly 0x31 init 0xFF). Values come from co2/temp_c/humidity. The 5 s measurement cycle, ASC, and the FRC are not modelled.",
+      "simulation_models": [
+        "scd40-i2c"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "address": {
+          "default": 98,
+          "label": "I2C address (7-bit)"
+        },
+        "co2": {
+          "default": 400,
+          "label": "CO2",
+          "unit": "ppm",
+          "min": 0,
+          "max": 40000
+        },
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -10,
+          "max": 60
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        }
+      }
     },
     {
       "id": "pms5003",

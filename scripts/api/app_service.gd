@@ -546,6 +546,14 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"width": 250,
 						"height": 122,
 					})
+		elif t == "scd40":
+			out.append({
+				"kind": "scd40",
+				"address": int(p.get("address", 98)) & 0x7F,
+				"co2": float(p.get("co2", 400.0)),
+				"temp_c": clampf(float(p.get("temp_c", 23.0)), -10.0, 60.0),
+				"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
+			})
 		elif t == "ccs811":
 			out.append({
 				"kind": "ccs811",
