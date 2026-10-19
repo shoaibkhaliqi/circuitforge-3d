@@ -789,6 +789,62 @@ can drive the analog half of the circuit.
   part is taken to output), the `A` variant's internal reference/gain settings are not
   modelled, and the part's supply and electrical limits are not modelled.
 
+## 11r. Twenty-first device: DS18B20 (a real 1-Wire bus)
+
+The DHT (§11f) was the first one-wire part, but it is only *half* a protocol: the MCU pulls the
+line low as a start signal, releases it and then only listens while the sensor plays a fixed bit
+train. 1-Wire proper is bidirectional at *bit* granularity — the master pulls the line low to
+begin every slot and releases it (the bus pull-up takes it back high), and each side has to read
+the other's timing. The `ds18b20` (`planned` → `external`) is the harness's first part that has to
+do that, and it is worth separating what was new from what was reused.
+
+- **Where the master's edges come from**: the DHT/HC-SR04 devices notice the MCU through
+  `port.addListener` (PORT writes) plus a DDR write hook, because for them the line's level *is*
+  the MCU's drive. That breaks down here: the slave drives the same line the master does, so an
+  edge of the line may be either side's doing. The model therefore reads the master's *registers*
+  — `DDR` says whether it drives, `PORT` says what it drives — from a poll in the run loop,
+  which is called once per emulated instruction (sub-microsecond resolution at 16 MHz) and only
+  exists at all when a 1-Wire device is attached (`wirePolls`), so every other run pays nothing.
+- **Decoding a slot**: on the master's release the model measures how long the line was low.
+  A reset is any low ≥ 480 µs; a write slot's low is 60–120 µs for a 0 and 1–15 µs for a 1, and
+  the datasheet lets the slave sample anywhere 15–60 µs after the falling edge, so the model
+  samples at 40 µs — far from both ends of the spec. That margin is not decoration: the slot log
+  of a real run shows 12–13 µs for 1s and 65–68 µs for 0s, with an interrupt occasionally
+  stretching a 1 to 20 µs, which is why a threshold next to the fast case misdecoded a byte.
+- **Serving a bit**: when the model is shifting a byte out, it drives the line the instant the
+  master releases it (a 0 is held for 60 µs, a 1 is just left released — the pull-up is modelled
+  with `setPin`, and `absent` serves *only* the pull-up, which is how a no-device control gets a
+  realistic idle-high bus instead of the harness's floating-low default). Because the slave knows
+  what it is expecting, it never has to guess read from write: a slot arriving while it is
+  outputting is a read, and one arriving while it is receiving is a bit.
+- **Protocol**: READ ROM (0x33) serves family 0x28, a fixed serial and a valid CRC-8; MATCH ROM
+  (0x55) compares the eight bytes the master sends and, if they are not the part's, leaves it
+  *muted* for the rest of the transaction (a real part stays silent); SKIP ROM (0xCC), CONVERT T
+  (0x44), READ/WRITE SCRATCHPAD (0xBE/0x4E) and COPY/RECALL E2 (0x48/0xB8) are decoded and
+  reported, and SEARCH ROM/ALARM SEARCH are counted as unimplemented. A reset always gets a
+  presence pulse — even from a muted part, as the datasheet says — and clears the transaction.
+- **The payload is live**: the 9-byte scratchpad (`[temp LSB, temp MSB, TH, TL, config, 0xFF×3,
+  CRC-8]`) is recomputed from `temp_c`, the alarm registers the master wrote and the config byte
+  every time it is served, so the resolution bits quantise it the way the silicon does — a 10-bit
+  read of 23.1 °C reports 23.0 °C — and a WRITE SCRATCHPAD changes what the next read returns.
+- **Verified**: `firmware/sketches/ds18b20_read` is a hand-written 1-Wire master (the OneWire
+  library is not bundled, so every slot is timed with `delayMicroseconds`), and
+  `verify_ds18b20.mjs` recomputes the ROM and its CRC-8, the raw 12/10-bit counts and the
+  milli-degrees, and cross-checks the served scratchpad, the command stream and the reset/presence
+  counts. Two temperatures are run (23.1 °C and −10.125 °C), plus a **pull-up-only control** (no
+  part answers: `present 0`, all ones back, every CRC fails) and a **wrong-pin control** (the part
+  is served on a pin the firmware does not use, so its counters stay at zero and the 0.0 °C the
+  firmware decodes from its floating pin cannot have come from it). The app's own spec builder was
+  driven end to end too (30.0 °C → `temp 480 30000`).
+- **Limits (honest)**: SEARCH ROM / ALARM SEARCH are counted but not modelled, so a discovery
+  driver that walks the bus would not work; the alarm function and the TH/TL compares are not
+  modelled (the registers are served back); conversion timing is not modelled (the payload is
+  complete as soon as 0x44 is decoded, so both a driver that waits 750 ms and one that polls
+  work); the EEPROM behind COPY/RECALL is decoded and counted but nothing persists between runs;
+  the model serves one fixed ROM (a real part's serial is laser-programmed and the catalog
+  parameters are numeric); and an unattached 1-Wire pin floats low in the harness, because it has
+  no resistor models — the controls document exactly what that looks like.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working

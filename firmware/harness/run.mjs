@@ -108,11 +108,13 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"ads1115","address":72,"ain":[2.5,1,0,3.3]}]
 //   CF_DEVICES=[{"kind":"mcp4725","address":96,"vref":5}]
 //
-// `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
-// they are listed separately as pin_devices.
+// `hc_sr04`, `encoder`, `dht` and `ds18b20` are not I2C devices: they drive MCU *input*
+// pins (or, for the DS18B20, a whole 1-Wire bus), so they are listed separately as
+// pin_devices.
 //   CF_DEVICES=[{"kind":"hc_sr04","trig":9,"echo":10,"distance_cm":30}]
 //   CF_DEVICES=[{"kind":"encoder","a":2,"b":3,"counts":50,"direction":1}]
 //   CF_DEVICES=[{"kind":"dht","pin":2,"model":"dht22","temp_c":23,"humidity":48}]
+//   CF_DEVICES=[{"kind":"ds18b20","pin":2,"temp_c":23.1}]
 const pinDevices = [];
 // SPI-attached devices. Unlike I2C there is no address to hook: the AVR's own SPI
 // peripheral is the bus, so these are decoded from the transfers the monitor records,
@@ -354,6 +356,35 @@ function buildDevices() {
         temp_c: Math.max(-40, Math.min(125, Number(s.temp_c ?? 23.0))),
         humidity: Math.max(0, Math.min(100, Number(s.humidity ?? 48.0))),
         reads: [],
+        error: null,
+      });
+      continue;
+    }
+    if (s.kind === 'ds18b20') {
+      pinDevices.push({
+        kind: 'ds18b20',
+        pin: Number(s.pin),
+        // Harness aid, not a part: `absent` serves *only* the bus pull-up, which is how a
+        // no-device control gets a realistic idle-high line (the harness has no resistors on
+        // MCU pins, so an unattached pin floats low). With it, the master sees no presence
+        // pulse at all, which is exactly what "no sensor on the bus" looks like.
+        absent: !!s.absent,
+        temp_c: Math.max(-55, Math.min(125, Number(s.temp_c ?? 23.0))),
+        alarm_high: 0x00,
+        alarm_low: 0x00,
+        config: 0x7f, // power-on default: 12-bit resolution
+        resolution: 12,
+        resets: 0,
+        presence: 0,
+        commands: [],
+        converts: 0,
+        reads: [],
+        writes_config: 0,
+        copies: 0,
+        recalls: 0,
+        search: 0,
+        unknown: 0,
+        muted: false,
         error: null,
       });
       continue;
@@ -999,7 +1030,7 @@ for (const [letter, port] of Object.entries(ports)) {
 }
 
 // ---- Timing-driven pin devices ----------------------------------------------
-// Three kinds, all driving MCU *input* pins:
+// Four kinds, all driving MCU *input* pins:
 //  * HC-SR04: the MCU drives TRIG; on its falling edge (after a >= 5 us high pulse)
 //    the sensor waits a short propagation delay and then drives ECHO high for a
 //    distance-proportional time (58 us per cm round-trip), so pulseIn(ECHO) measures it.
@@ -1010,6 +1041,9 @@ for (const [letter, port] of Object.entries(ports)) {
 //    datasheet timings (80 us low + 80 us high handshake, then 40 bits of 50 us low with
 //    a 27 us or 70 us high), sub-100 us pulses that a bit-banged reader times with
 //    micros(). The line is held high by the module pull-up whenever the MCU releases it.
+//  * DS18B20: a *bidirectional 1-Wire slave* over real bit slots - the master pulls the line
+//    low to start every bit and releases it, and the slave both decodes the master's slots
+//    (by low time) and drives the line itself to serve bytes. See its case below.
 // Edges are queued and applied from the run loop (never from inside the GPIO write,
 // so we don't re-enter the port model).
 const pinByNumber = new Map();
@@ -1017,6 +1051,10 @@ for (const [key, pin] of Object.entries(UNO_PIN)) {
   pinByNumber.set(pin, { port: key[0], bit: Number(key[1]) });
 }
 const scheduledPins = [];
+// 1-Wire slaves are polled from the run loop instead of hooking the port: their edges depend
+// on the *master's* DDR/PORT registers (the slave's own drive changes the line level too),
+// and polling the registers each instruction is both simpler and sub-microsecond accurate.
+const wirePolls = [];
 const ECHO_PROPAGATION_US = 200;
 const QUAD_SEQ = [[0, 0], [1, 0], [1, 1], [0, 1]]; // (A,B) for one CW detent
 
@@ -1032,6 +1070,48 @@ function dhtBytes(model, tempC, humidity) {
   if (tempC < 0) tmp |= 0x8000;
   const b = [(hum >> 8) & 0xff, hum & 0xff, (tmp >> 8) & 0xff, tmp & 0xff];
   return [b[0], b[1], b[2], b[3], (b[0] + b[1] + b[2] + b[3]) & 0xff];
+}
+
+// Dallas/Maxim CRC-8: reflected polynomial 0x8C, initial value 0, no final XOR - the same
+// algorithm the 1-Wire library uses (its catalogue check value for "123456789" is 0xA1). It
+// checksums both the DS18B20's 64-bit ROM and its 9-byte scratchpad, so the model serves
+// values a real driver's CRC check accepts.
+function dallasCrc8(bytes) {
+  let crc = 0;
+  for (const byte of bytes) {
+    let inByte = byte & 0xff;
+    for (let i = 0; i < 8; i++) {
+      const mix = (crc ^ inByte) & 0x01;
+      crc = (crc >> 1) & 0xff;
+      if (mix) crc ^= 0x8c;
+      inByte >>= 1;
+    }
+  }
+  return crc & 0xff;
+}
+
+// The ROM this model serves: family code 0x28 (DS18B20) plus a fixed serial. A real part has
+// a unique laser ROM and the app passes no ROM parameter (catalog parameters are numeric),
+// so one fixed *CRC-valid* ID is served and the verifier recomputes the checksum.
+const DS_ROM_BODY = [0x28, 0x8a, 0x1b, 0x2c, 0x3d, 0x4e, 0x5f];
+function dsRom() {
+  return [...DS_ROM_BODY, dallasCrc8(DS_ROM_BODY)];
+}
+
+// The DS18B20's 9-byte scratchpad for a temperature at the resolution the config byte
+// selects: [temp LSB, temp MSB, TH, TL, config, 0xFF, 0xFF, 0xFF, CRC8]. The temperature is a
+// 12-bit two's-complement count of 0.0625 degC; a coarser resolution clears the unused low
+// bits (the part does the same), so a 10-bit read of 23.1 C reports 23.0 C.
+function dsScratchpad(tempC, alarmHigh, alarmLow, config) {
+  const resolution = 9 + ((config >> 5) & 0x03);
+  let raw = Math.round(tempC / 0.0625) & 0xffff;
+  const dropped = 12 - resolution;
+  if (dropped > 0) raw = (raw & ~((1 << dropped) - 1)) & 0xffff;
+  const body = [
+    raw & 0xff, (raw >> 8) & 0xff, alarmHigh & 0xff, alarmLow & 0xff, config & 0xff,
+    0xff, 0xff, 0xff,
+  ];
+  return { bytes: [...body, dallasCrc8(body)], raw, resolution };
 }
 
 for (const d of pinDevices) {
@@ -1110,6 +1190,206 @@ for (const d of pinDevices) {
     };
     continue;
   }
+  if (d.kind === 'ds18b20') {
+    // DS18B20 1-Wire digital thermometer: a *bidirectional bit-slot* slave, which the DHT's
+    // start-pulse model cannot express. 1-Wire has one wire and one master: for every bit the
+    // master pulls the line low and releases it (the pull-up then takes it high), and the
+    // slave tells slots apart by the master's *low time* - a low of ~60 us is a 0, a short
+    // low is a 1 or a read slot - and, when it is serving a byte, drives the line itself
+    // right after the master's release so the master samples the bit ~15 us later.
+    //
+    // The master's edges come from its DDR/PORT registers, not from the line level (the
+    // slave drives the same line), so a poll in the run loop watches those registers and no
+    // listener is hijacked. A reset (any low of >= 480 us) always answers with a presence
+    // pulse and restarts the transaction - even for a device muted by a failed 0x55 MATCH
+    // ROM, exactly as a real part does. The commands the model implements (READ ROM, SKIP
+    // ROM, MATCH ROM, CONVERT T, READ/WRITE SCRATCHPAD, COPY/RECALL) are decoded and
+    // reported; SEARCH ROM/ALARM SEARCH are counted, not modelled.
+    const p = pinByNumber.get(d.pin);
+    if (!p) { d.error = 'pin out of range'; continue; }
+    const port = ports[p.port];
+    const bitMask = 1 << p.bit;
+    const PIN_REG = port.portConfig.PIN;
+    d.rom = dsRom();
+    port.setPin(p.bit, true); // bus pull-up: the line idles high whenever both ends release
+    if (d.absent) continue;   // pull-up only: no part answers, so the master sees no presence
+    const RESET_US = 480;     // a low at least this long is a reset pulse
+    // A write slot's low is 60-120 us for a 0 and 1-15 us for a 1, and the datasheet lets the
+    // slave sample anywhere 15-60 us after the falling edge, so the model samples at 40 us:
+    // far from both ends of the spec. (A stray interrupt can stretch a 1 by a few us - the
+    // slot log of a real 16 MHz run shows 12-13 us for 1s and 65-68 us for 0s - so the
+    // threshold must not sit right next to the fast case.)
+    const ZERO_US = 40;
+    const PRESENCE_DELAY_US = 30;
+    const PRESENCE_US = 120;
+    const BIT_HOLD_US = 60;   // how long a served 0 is held low
+    let master = null;        // what the *master* does with the line: low | high | release
+    let tLow = 0;
+    let mode = 'command';     // command | match | config | output | muted
+    let rxByte = 0, rxBits = 0;
+    let matchBytes = [];
+    let configBytes = [];
+    let out = [], outIndex = 0, outByte = 0, outBits = 0, outKind = '';
+    const clearScheduled = () => {
+      for (let i = scheduledPins.length - 1; i >= 0; i--) {
+        const ev = scheduledPins[i];
+        if (ev.port === p.port && ev.bit === p.bit) scheduledPins.splice(i, 1);
+      }
+    };
+    const schedule = (atUs, level) => {
+      scheduledPins.push({
+        at: cpu.cycles + Math.round((atUs / 1e6) * F_CPU),
+        port: p.port, bit: p.bit, level,
+      });
+      scheduledPins.sort((x, y) => x.at - y.at);
+    };
+    const beginOutput = (bytes, kind) => {
+      out = bytes;
+      outIndex = 0;
+      outByte = bytes[0] ?? 0xff;
+      outBits = 0;
+      outKind = kind;
+      mode = 'output';
+    };
+    // Serve the next bit (LSB first, as 1-Wire orders bytes): a 0 is held low long enough
+    // for the master's sample, a 1 is just released. When the queue runs out the model keeps
+    // answering 0xFF until the next reset, so an over-long read cannot be mistaken for a
+    // command stream.
+    const serveBit = () => {
+      const bit = (outByte >> outBits) & 1;
+      clearScheduled();
+      if (bit) {
+        port.setPin(p.bit, true);
+      } else {
+        port.setPin(p.bit, false);
+        schedule(BIT_HOLD_US, 1);
+      }
+      outBits++;
+      if (outBits < 8) return;
+      outBits = 0;
+      if (outIndex + 1 < out.length) {
+        outIndex++;
+        outByte = out[outIndex];
+        return;
+      }
+      if (outKind === 'scratchpad') {
+        const served = out.slice();
+        d.reads.push({
+          bytes: served,
+          temp_c: d.temp_c,
+          resolution: d.resolution,
+          crc_ok: dallasCrc8(served.slice(0, 8)) === served[8],
+        });
+      }
+      out = [0xff];
+      outIndex = 0;
+      outByte = 0xff;
+    };
+    const onReset = () => {
+      d.resets++;
+      d.presence++;
+      mode = 'command';
+      rxByte = 0;
+      rxBits = 0;
+      matchBytes = [];
+      configBytes = [];
+      out = [];
+      outIndex = 0;
+      outBits = 0;
+      outKind = '';
+      clearScheduled();
+      port.setPin(p.bit, true);
+      schedule(PRESENCE_DELAY_US, 0);
+      schedule(PRESENCE_DELAY_US + PRESENCE_US, 1);
+    };
+    const onByte = (value) => {
+      d.commands.push(value);
+      if (mode === 'muted') return;
+      if (mode === 'match') {
+        matchBytes.push(value);
+        if (matchBytes.length === 8) {
+          const same = matchBytes.every((b, i) => b === d.rom[i]);
+          if (same) {
+            mode = 'command';
+          } else {
+            // A different ROM: a real part stays silent for the rest of the transaction.
+            mode = 'muted';
+            d.muted = true;
+            port.setPin(p.bit, true);
+          }
+        }
+        return;
+      }
+      if (mode === 'config') {
+        configBytes.push(value);
+        if (configBytes.length === 3) {
+          d.alarm_high = configBytes[0];
+          d.alarm_low = configBytes[1];
+          d.config = configBytes[2];
+          d.resolution = 9 + ((d.config >> 5) & 0x03);
+          d.writes_config++;
+          configBytes = [];
+          mode = 'command';
+        }
+        return;
+      }
+      if (mode === 'output') return; // the master cannot write while we shift out
+      switch (value) {
+        case 0x33: beginOutput(d.rom, 'rom'); break; // READ ROM
+        case 0xcc: break;                            // SKIP ROM: the next byte is a command
+        case 0x55: mode = 'match'; matchBytes = []; break; // MATCH ROM
+        case 0xec: d.search++; break;                // ALARM SEARCH: counted, not modelled
+        case 0xf0: d.search++; break;                // SEARCH ROM: counted, not modelled
+        case 0x44: d.converts++; break;              // CONVERT T: the payload is ready at once
+        case 0xbe: {                                 // READ SCRATCHPAD
+          const sp = dsScratchpad(d.temp_c, d.alarm_high, d.alarm_low, d.config);
+          d.resolution = sp.resolution;
+          beginOutput(sp.bytes, 'scratchpad');
+          break;
+        }
+        case 0x4e: mode = 'config'; configBytes = []; break; // WRITE SCRATCHPAD (TH/TL/config)
+        case 0x48: d.copies++; break;                // COPY SCRATCHPAD: nothing persists
+        case 0xb8: d.recalls++; break;               // RECALL E2: nothing to recall
+        default: d.unknown++; break;
+      }
+    };
+    const poll = () => {
+      const ddr = cpu.data[port.portConfig.DDR] & bitMask;
+      const prt = cpu.data[port.portConfig.PORT] & bitMask;
+      const now = ddr ? (prt ? 'high' : 'low') : 'release';
+      if (now === master) return;
+      const was = master;
+      master = now;
+      if (now === 'low') {
+        tLow = cpu.cycles;
+        return;
+      }
+      if (was !== 'low') return;
+      const lowUs = ((cpu.cycles - tLow) / F_CPU) * 1e6;
+      if (lowUs >= RESET_US) {
+        onReset();
+        return;
+      }
+      if (mode === 'output') {
+        serveBit();
+        return;
+      }
+      if (mode === 'muted') return;
+      // A received bit: the master holds the line low for a 0 and releases it quickly for a
+      // 1 (it samples the same way). A read slot cannot occur while we are not serving.
+      const bit = lowUs >= ZERO_US ? 0 : 1;
+      rxByte |= bit << rxBits;
+      rxBits++;
+      if (rxBits === 8) {
+        const byte = rxByte;
+        rxByte = 0;
+        rxBits = 0;
+        onByte(byte);
+      }
+    };
+    wirePolls.push(poll);
+    continue;
+  }
   const trig = pinByNumber.get(d.trig);
   const echo = pinByNumber.get(d.echo);
   if (!trig || !echo) {
@@ -1145,6 +1425,9 @@ while (cpu.cycles < maxCycles) {
   while (scheduledPins.length && scheduledPins[0].at <= cpu.cycles) {
     const ev = scheduledPins.shift();
     ports[ev.port].setPin(ev.bit, ev.level === 1);
+  }
+  if (wirePolls.length) {
+    for (const poll of wirePolls) poll();
   }
 }
 twiTracer.flush();
@@ -1213,6 +1496,26 @@ process.stdout.write(
             kind: d.kind, pin: d.pin, model: d.model, temp_c: d.temp_c,
             humidity: d.humidity, reads: d.reads.length, bytes: d.reads[0]?.bytes ?? [],
             error: d.error,
+          };
+        }
+        if (d.kind === 'ds18b20') {
+          const hex = (b) => (b & 0xff).toString(16).padStart(2, '0');
+          if (d.absent) return { kind: d.kind, pin: d.pin, absent: true, error: d.error };
+          const rom = d.rom ?? [];
+          const scratchpad = dsScratchpad(d.temp_c, d.alarm_high, d.alarm_low, d.config).bytes;
+          return {
+            kind: d.kind, pin: d.pin, temp_c: d.temp_c,
+            rom_hex: rom.map(hex).join(' '),
+            rom_crc_ok: rom.length === 8 && dallasCrc8(rom.slice(0, 7)) === rom[7],
+            resets: d.resets, presence: d.presence, converts: d.converts,
+            commands: d.commands, muted: d.muted,
+            config: d.config, resolution: d.resolution,
+            alarm_high: d.alarm_high, alarm_low: d.alarm_low,
+            writes_config: d.writes_config, copies: d.copies, recalls: d.recalls,
+            search: d.search, unknown_commands: d.unknown,
+            scratchpad_hex: scratchpad.map(hex).join(' '),
+            scratchpad_crc_ok: dallasCrc8(scratchpad.slice(0, 8)) === scratchpad[8],
+            scratchpad_reads: d.reads.length, reads: d.reads, error: d.error,
           };
         }
         return {

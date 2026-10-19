@@ -117,9 +117,14 @@
       "pins": [{"name": "GND", "type": "ground"}, {"name": "DQ", "type": "bidirectional"}, {"name": "VDD", "type": "power"}],
       "model": {"shape": "ds18b20_probe"},
       "mounting": "device",
-      "simulation_status": "planned",
+      "simulation_status": "external",
+      "simulation_models": ["ds18b20-onewire"],
+      "simulation_backend": "firmware",
       "arduino_compatible": true,
-      "notes": "Requires a 4.7k pull-up on the data line in real hardware."
+      "params": {
+        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -55, "max": 125}
+      },
+      "notes": "No breadboard electrical model: the harness serves the 1-Wire bus itself, so a hand-written or library driver works through real bit slots - a reset (any low of >= 480 us) is answered with a presence pulse, the master's slots are decoded by their low time (60-120 us is a 0, 1-15 us is a 1) and the part drives the line itself to serve bytes. Protocol: READ ROM (0x33: family 0x28 + a fixed serial + CRC-8), MATCH ROM (0x55 - a ROM that is not the part's makes it stay silent for the rest of the transaction), SKIP ROM (0xCC), CONVERT T (0x44), READ/WRITE SCRATCHPAD (0xBE/0x4E), COPY/RECALL E2 (0x48/0xB8). The scratchpad is [temp LSB, temp MSB, TH, TL, config, 0xFF, 0xFF, 0xFF, CRC-8] with the temperature a 12-bit two's-complement count of 0.0625 degC taken from `temp_c`, and the config byte's resolution bits quantise it (a 10-bit read of 23.1 C reports 23.0 C). DQ is resolved from `pin_map`, and the harness models the bus pull-up (the real module needs a 4.7k resistor). Not modelled: SEARCH ROM / ALARM SEARCH, the alarm function and the TH/TL compares, parasite power, conversion timing (the payload is complete as soon as 0x44 is decoded, so waiting 750 ms or polling both work), the EEPROM behind COPY/RECALL (nothing persists between runs), and the pull-up resistor's value."
     },
     {
       "id": "lm35",

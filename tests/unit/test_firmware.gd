@@ -339,4 +339,27 @@ func run(t) -> void:
 			t.check(absf(float(ads_ain[3]) - 3.3) < 1e-6, "A3 probes its solved net", str(ads_ain))
 			t.check(absf(float(ads_ain[1])) < 1e-9, "an unwired channel reads 0 V", str(ads_ain))
 
+	# The DS18B20 is served over a real 1-Wire bus, so it needs neither an address nor a CS:
+	# only its DQ pin, resolved from `pin_map` (the same net lookup the DHT's DATA uses).
+	var app7 = AppService.new()
+	app7.session.add_component("ground", ["TM1"])
+	app7.session.add_component("mcu_pin", ["c2", "TM9"], {}, "P2")     # DQ
+	app7.session.add_component("ds18b20", ["TM3", "a2", "TP2"], {"temp_c": 23.1}, "S1")
+	var built7: Dictionary = app7.session.build_circuit()
+	var specs8: Array = app7._firmware_devices({}, built7.pin_nets, {"2": "P2"})
+	t.check(specs8.size() == 1, "DS18B20 produces one device spec", str(specs8))
+	if specs8.size() == 1:
+		var sd: Dictionary = specs8[0]
+		t.check(String(sd.get("kind", "")) == "ds18b20", "spec kind is ds18b20")
+		t.check(int(sd.get("pin", -1)) == 2, "DQ resolved from pin_map", str(sd))
+		t.check(absf(float(sd.get("temp_c", 0.0)) - 23.1) < 1e-6, "temp_c comes from params", str(sd))
+
+	# A DQ that no firmware pin drives is skipped, not guessed at.
+	var app8 = AppService.new()
+	app8.session.add_component("ground", ["TM1"])
+	app8.session.add_component("ds18b20", ["TM3", "a2", "TP2"], {"temp_c": 23.1}, "S2")
+	var built8: Dictionary = app8.session.build_circuit()
+	var specs9: Array = app8._firmware_devices({}, built8.pin_nets, {})
+	t.check(specs9.is_empty(), "unmapped DQ => no spec (nothing to answer the bus)", str(specs9))
+
 	t.done()

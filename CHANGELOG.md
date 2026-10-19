@@ -389,6 +389,36 @@ follow [Semantic Versioning](https://semver.org/).
     and counted but nothing persists, the fast-mode encoding is not decoded (an unrecognised
     command is counted), and the power-on-reset/MTP value, the `A` variant's internal reference
     and the supply/electrical limits are not modelled.
+  - **DS18B20 1-Wire digital thermometer** (`data/components/sensors.json`, `ds18b20` `planned` →
+    `external`): the harness's first *bidirectional bit-slot* slave, which the DHT's start-pulse
+    model could not express. 1-Wire has one wire and one master: for every bit the master pulls
+    the line low and releases it, and the slave tells a 0 slot (~60–120 µs low) from a 1 or a
+    read slot (1–15 µs) by *low time*, then drives the line itself to serve a byte — a reset (any
+    low ≥ 480 µs) is answered with a presence pulse even by a part that a failed MATCH ROM has
+    muted. The master's edges are read from its DDR/PORT registers by a run-loop poll (the
+    slave's own drive changes the same line), so no port listener is hijacked and slot timing is
+    sub-microsecond accurate. The protocol is decoded and reported: READ ROM (0x33: family 0x28 +
+    a fixed serial + CRC-8), MATCH ROM (0x55 — a ROM that is not the part's makes it silent for
+    the rest of the transaction), SKIP ROM (0xCC), CONVERT T (0x44), READ/WRITE SCRATCHPAD
+    (0xBE/0x4E), COPY/RECALL E2 (0x48/0xB8). The scratchpad is [temp LSB, temp MSB, TH, TL,
+    config, 0xFF×3, CRC-8] with the temperature a 12-bit two's-complement count of 0.0625 °C from
+    `temp_c`, and the config byte's resolution bits quantise the payload (a 10-bit read of 23.1 °C
+    reports 23.0 °C) — the model recomputes it live, so a WRITE SCRATCHPAD changes what the next
+    read returns. `ds18b20_read` is a hand-written 1-Wire master (no OneWire library: only the
+    core is bundled) that checks the presence pulse, reads the ROM and its CRC, MATCHes a ROM that
+    is not the part's and the ROM it just read, converts twice, reads the scratchpad, writes a
+    10-bit config and reads it back; `verify_ds18b20.mjs` recomputes every byte, count,
+    milli-degree and CRC independently, and adds a second temperature (the values must follow the
+    spec), a **pull-up-only control** (no part answers, so the driver sees no presence pulse and
+    every CRC fails) and a **wrong-pin control** (the part is served on a pin the firmware does not
+    use, so its counters stay at zero and nothing it decoded can be in the output). Suite 817 →
+    **824**; harness verifiers 26 → **27**; catalog `external` 57 → **58**, `planned` 88 → **87**.
+    Honest limits: SEARCH ROM/ALARM SEARCH are counted but not modelled, so a search-based
+    discovery driver would fail; the alarm function and the TH/TL compares are not modelled; the
+    conversion is complete as soon as 0x44 is decoded (a driver that waits 750 ms or polls both
+    work); the EEPROM behind COPY/RECALL is decoded and counted but nothing persists between runs;
+    and an unattached 1-Wire pin floats low in the harness (it has no resistors), which reads as a
+    false presence — the controls document that and `absent` models just the bus pull-up.
   - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
     ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
     the true length always reported in `spi_byte_count`; the decoded device summary is the

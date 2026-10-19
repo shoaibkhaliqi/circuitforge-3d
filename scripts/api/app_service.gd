@@ -402,7 +402,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
-		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, and a DHT answers the one-wire start signal. Mapped outputs are read back the same way: a servo's commanded angle (`servos`) and a stepper driver's move (`steppers`) are decoded from the pulse trains or phase sequence the sketch drove."
+		note += " Pin-level devices (mapped via pin_map) drive MCU inputs: the HC-SR04 emits a distance pulse, the rotary encoder steps a quadrature pair, a DHT answers the one-wire start signal, and a DS18B20 answers real 1-Wire reset/read/write slots (its `pin_devices` entry reports the served ROM, the scratchpad and the command stream). Mapped outputs are read back the same way: a servo's commanded angle (`servos`) and a stepper driver's move (`steppers`) are decoded from the pulse trains or phase sequence the sketch drove."
 	return _ok({
 		"engine": FirmwareBackend.ENGINE,
 		"engine_license": FirmwareBackend.ENGINE_LICENSE,
@@ -655,6 +655,19 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"model": t,
 						"temp_c": clampf(float(p.get("temp_c", 23.0)), -40.0, 125.0),
 						"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
+					})
+		elif t == "ds18b20":
+			# 1-Wire digital thermometer: a real bidirectional bit-slot slave, so (unlike the
+			# DHT's start-pulse part) it only needs its DQ pin, resolved from `pin_map`, and
+			# the harness decodes and answers every reset, read and write slot.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 2:
+				var dq := _net_pin(String(nets[1]), pin_map, pin_nets)
+				if dq >= 0:
+					out.append({
+						"kind": "ds18b20",
+						"pin": dq,
+						"temp_c": clampf(float(p.get("temp_c", 23.0)), -55.0, 125.0),
 					})
 	return out
 

@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected, and the `ads1115` answers I2C conversion reads with codes from its A0..A3 solved nets at the MUX/PGA the firmware selects; the `mcp4725` closes the loop the other way — its 12-bit code becomes a VOUT Thevenin source (or a pull-down resistor in a power-down write) |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected, and the `ads1115` answers I2C conversion reads with codes from its A0..A3 solved nets at the MUX/PGA the firmware selects; the `mcp4725` closes the loop the other way — its 12-bit code becomes a VOUT Thevenin source (or a pull-down resistor in a power-down write) — and the `ds18b20` answers a real 1-Wire bus (reset/presence, ROM commands, CONVERT, READ/WRITE SCRATCHPAD, COPY/RECALL) over decoded bit slots |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | done (43 tools: `get_board_pinout`, `get_pin_states`, `set_pin_levels`, `get_catalog_facets` and the 7 firmware tools; integration suite 29/29) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
@@ -518,12 +518,36 @@ catalog that replaces the hardcoded definition list.
   (no memory survives a run), the fast-mode write encoding is not decoded (an unrecognised
   command is counted), and the power-on-reset/MTP recall value, the `A` variant's internal
   reference and the part's supply/electrical limits are not modelled.
+- **DS18B20 1-Wire digital thermometer** (`ds18b20`, `planned` → `external`): the harness's first
+  *bidirectional bit-slot* slave, a mechanism the DHT's start-pulse model could not express — so
+  the model watches the *master's* DDR/PORT registers (not the line level, which the slave also
+  drives) with a run-loop poll, tells slots apart by the master's low time (60–120 µs is a 0,
+  1–15 µs is a 1 or a read), and drives the line right after the master's release so the master
+  samples the bit it serves. A reset (any low ≥ 480 µs) answers with a presence pulse — even for a
+  part a failed MATCH ROM has muted, as the real part does — and restarts the transaction. READ
+  ROM (0x33: family 0x28 + a fixed serial + CRC-8), MATCH ROM (0x55), SKIP ROM (0xCC), CONVERT T
+  (0x44), READ/WRITE SCRATCHPAD (0xBE/0x4E) and COPY/RECALL (0x48/0xB8) are decoded and reported
+  (the whole command stream, the reset/presence counts, the served ROM and scratchpad), while
+  SEARCH ROM/ALARM SEARCH are counted as unimplemented. The 9-byte scratchpad is recomputed live
+  from `temp_c` and the config the firmware wrote, so its resolution bits quantise it (a 10-bit
+  read of 23.1 °C reports 23.0 °C) and a WRITE SCRATCHPAD changes what the next read returns.
+  `ds18b20_read` is a hand-written 1-Wire master (only core libraries are bundled: every slot is
+  timed with `delayMicroseconds`), and `verify_ds18b20.mjs` recomputes the ROM, the CRC-8, the raw
+  counts and the milli-degrees for two temperatures and adds a pull-up-only control (no part
+  answers: no presence, every CRC fails) and a wrong-pin control (the served part's counters stay
+  at zero). A circuit was driven end to end through the app's own spec builder (30.0 °C →
+  `temp 480 30000`). Suite **824/824**; harness verifiers **27**; catalog `external` 57 → **58**,
+  `planned` 88 → **87**. Honest limits: search-based discovery, the alarm function and the TH/TL
+  compares are not modelled, the conversion is complete as soon as 0x44 is decoded, the EEPROM
+  behind COPY/RECALL does not persist, and an unattached 1-Wire pin floats low (the harness has no
+  resistors) — which the controls document and `absent` (pull-up only) works around.
 - Still planned/visual: the e-paper SPI display, and the gas/analog
   sensor modules (an SPI *ADC path* now exists — see the MCP3008 above — but those specific
   modules are not modelled). The remaining `planned`/`visual` parts generally need a model the
   app does not have yet — see `docs/catalog/status_report.md`. Servos, STEP/DIR steppers and the four-phase
   `uln2003_driver`/`stepper_28byj48` pair are done (above), and the LCD/OLED/I2C/DHT/
-  ultrasonic/IMU parts are closed by the M7 device work above.
+  ultrasonic/IMU parts are closed by the M7 device work above — as are the SPI ADC/display parts
+  and, on the 1-Wire side, the `ds18b20`.
 
 ### Milestone 9 — MCP pin/metadata tooling (done)
 - New MCP tools (34 → **36**, plus **7** M7/M8 firmware tools —
@@ -573,13 +597,13 @@ catalog that replaces the hardcoded definition list.
 
 ### Verification habit (per milestone)
 1. `godot --headless --script res://tests/run_tests.gd` → must stay green
-   (currently 817/817).
+   (currently 824/824).
 2. `godot --headless --quit-after 90` → exit 0 (no parse/runtime errors).
 3. Launch windowed, load an example, screenshot into `docs/plan/`.
 4. `CIRCUITFORGE_GODOT=... python mcp_server/tests/test_mcp_integration.py` →
    29/29.
 5. `cd firmware/harness` and run each `verify_*.mjs` against its compiled sketch →
-   all pass (26 verifiers).
+   all pass (27 verifiers).
 
 ## 4. Component implementation status vocabulary
 
