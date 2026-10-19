@@ -1029,6 +1029,37 @@ function buildDevices() {
         readByte() { return 0x00; },
         summary: () => ({ kind: 'ssd1306', address: addr, ...core.fields() }),
       });
+    } else if (s.kind === 'tof_vl53l0x') {
+      // VL53L0X time-of-flight: a tiny register file. Chip ID (0xEE) at 0xC0 and the
+      // measured distance in millimetres at 0x1A..0x1B (16-bit, MSB first), with a
+      // pointer + auto-increment shape like the MPU-6050. Only the result registers and
+      // the model ID are modelled; calibration, ranging modes and the interrupt/GPIO
+      // behaviour are not.
+      const dist = Math.max(0, Math.min(2000, Number(s.distance_mm ?? 300)));
+      const regs = new Uint8Array(0x100);
+      regs[0xc0] = 0xee; // model ID
+      regs[0x1a] = (dist >> 8) & 0xff;
+      regs[0x1b] = dist & 0xff;
+      let ptr = 0;
+      let first = true;
+      map.set(addr, {
+        kind: 'tof_vl53l0x',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0xff; first = false; }
+          else { regs[ptr & 0xff] = b; ptr = (ptr + 1) & 0xff; }
+        },
+        readByte() {
+          const v = regs[ptr & 0xff];
+          ptr = (ptr + 1) & 0xff;
+          return v;
+        },
+        summary: () => ({
+          kind: 'tof_vl53l0x', address: addr, model_id: regs[0xc0],
+          distance_mm: dist, pointer: ptr,
+        }),
+      });
     } else if (s.kind === 'sht31') {
       // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
       // 0xf32d soft reset, 0x306d/0xe000 heater) and a 6-byte read of

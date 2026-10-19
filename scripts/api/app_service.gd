@@ -546,6 +546,12 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"width": 250,
 						"height": 122,
 					})
+		elif t == "tof_vl53l0x":
+			out.append({
+				"kind": "tof_vl53l0x",
+				"address": int(p.get("address", 41)) & 0x7F,
+				"distance_mm": float(p.get("distance_mm", 300.0)),
+			})
 		elif t == "max6675_thermocouple":
 			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
 			if nets.size() >= 4:

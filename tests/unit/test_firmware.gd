@@ -407,4 +407,18 @@ func run(t) -> void:
 		t.check(int(sk.get("cs", -1)) == 9, "CS pin resolved from pin_map", str(sk))
 		t.check(absf(float(sk.get("temperature", 0.0)) - 100.0) < 1e-6, "temperature comes from params", str(sk))
 
+	# ToF sensor: I2C register file, no pin_map needed.
+	var app12 = AppService.new()
+	app12.session.add_component("ground", ["TM1"])
+	app12.session.add_component("tof_vl53l0x",
+		["TP1", "TM1", "d2", "d3"], {"distance_mm": 500.0}, "T1")
+	var built12: Dictionary = app12.session.build_circuit()
+	var specs13: Array = app12._firmware_devices({}, built12.pin_nets, {})
+	t.check(specs13.size() == 1, "ToF produces one device spec", str(specs13))
+	if specs13.size() == 1:
+		var tof_spec2: Dictionary = specs13[0]
+		t.check(String(tof_spec2.get("kind", "")) == "tof_vl53l0x", "spec kind is tof_vl53l0x")
+		t.check(int(tof_spec2.get("address", -1)) == 41, "default I2C address is 0x29", str(tof_spec2))
+		t.check(absf(float(tof_spec2.get("distance_mm", 0.0)) - 500.0) < 1e-6, "distance comes from params", str(tof_spec2))
+
 	t.done()

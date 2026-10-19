@@ -713,8 +713,26 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "tof-i2c"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "address": {
+          "default": 41,
+          "label": "I2C address (7-bit)"
+        },
+        "distance_mm": {
+          "default": 300,
+          "label": "Distance",
+          "unit": "mm",
+          "min": 0,
+          "max": 2000
+        }
+      },
+      "notes": "No breadboard electrical model: the harness serves a VL53L0X register file on the I2C bus while firmware runs (attach_devices). Chip ID (0xEE) at 0xC0 and the measured distance in millimetres at 0x1A..0x1B (16-bit, MSB first), with a pointer + auto-increment shape. Calibration, ranging modes and the interrupt/GPIO behaviour are not modelled."
     },
     {
       "id": "pir_hcsr501",
