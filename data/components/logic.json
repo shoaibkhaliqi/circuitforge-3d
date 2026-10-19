@@ -499,8 +499,9 @@
         "shape": "dip14"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "shift_register_74hc595",

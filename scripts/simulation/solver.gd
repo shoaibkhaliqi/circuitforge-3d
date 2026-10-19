@@ -103,12 +103,15 @@ func solve_transient(circuit, options: Dictionary) -> Dictionary:
 static func initial_state(circuit) -> Dictionary:
 	var cap_v := {}
 	var ind_i := {}
+	var flip_state := {}
 	for el in circuit.elements:
 		if el.type == "capacitor":
 			cap_v[el.id] = float(el.params.get("ic", 0.0))
 		elif el.type == "inductor":
 			ind_i[el.id] = float(el.params.get("ic", 0.0))
-	return {"cap_v": cap_v, "ind_i": ind_i}
+		elif el.type == "flipflop":
+			flip_state[el.id] = float(el.params.get("state", 0.0))
+	return {"cap_v": cap_v, "ind_i": ind_i, "flip_state": flip_state}
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +143,7 @@ func _prepare(circuit) -> Dictionary:
 	var node_unknowns := nets.size() - 1
 	var k := 0
 	for el in circuit.elements:
-		if el.type == "vsource" or el.type == "inductor" or el.type == "logic" or el.type == "vcvs":
+		if el.type == "vsource" or el.type == "inductor" or el.type == "logic" or el.type == "vcvs" or el.type == "comparator" or el.type == "flipflop":
 			branch_rows[el.id] = node_unknowns + k
 			k += 1
 
@@ -351,6 +354,46 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 			if inn > 0:
 				mna.a[row][inn - 1] += gain
 			mna.z[row] = 0.0
+		"comparator":
+			var row: int = branch_rows[el.id]
+			var out_net: String = String(el.nets[el.nets.size() - 1])
+			var outp: int = node_index.get(out_net, -1)
+			if outp < 0:
+				_warn("Comparator '%s' has an unconnected output; ignored." % el.id)
+				return
+			var vinp: float = (0.0 if p < 0 else (0.0 if p == 0 else 0.0))  # placeholder
+			# Use node voltages from guess if available
+			var g: Dictionary = ctx.get("guess", {})
+			var vplus: float = float(g.get(el.nets[0], 0.0))
+			var vminus: float = float(g.get(el.nets[1], 0.0))
+			var vdd: float = float(el.params.get("vdd", 5.0))
+			var rout: float = max(0.0, float(el.params.get("rout", 1.0)))
+			var vout: float = vdd if vplus > vminus else 0.0
+			mna.add_branch(outp, 0, row)
+			mna.branch_extra(row, -rout, vout)
+		"flipflop":
+			var row2: int = branch_rows[el.id]
+			var out_net2: String = String(el.nets[el.nets.size() - 1])
+			var outp2: int = node_index.get(out_net2, -1)
+			if outp2 < 0:
+				_warn("Flip-flop '%s' has an unconnected output; ignored." % el.id)
+				return
+			var vdd2: float = float(el.params.get("vdd", 5.0))
+			var rout2: float = max(0.0, float(el.params.get("rout", 1.0)))
+			var state_val: float = float(ctx.state.get("flip_state", {}).get(el.id, 0.0))
+			var clk_net: String = String(el.nets[1])
+			var clk_v: float = float(ctx.get("guess", {}).get(clk_net, 0.0))
+			var vth: float = float(el.params.get("vth", vdd2 * 0.5))
+			# Level-sensitive: if clock high, output follows D
+			var d_net: String = String(el.nets[0])
+			var d_v: float = float(ctx.get("guess", {}).get(d_net, 0.0))
+			var vout2: float
+			if clk_v > vth:
+				vout2 = vdd2 if d_v > vth else 0.0
+			else:
+				vout2 = state_val
+			mna.add_branch(outp2, 0, row2)
+			mna.branch_extra(row2, -rout2, vout2)
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -519,6 +562,14 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			if branch_rows.has(el.id):
 				return x[branch_rows[el.id]]
 			return 0.0
+		"comparator":
+			if branch_rows.has(el.id):
+				return x[branch_rows[el.id]]
+			return 0.0
+		"flipflop":
+			if branch_rows.has(el.id):
+				return x[branch_rows[el.id]]
+			return 0.0
 		"vout":
 			var vset: float = float(el.params.get("voltage", 0.0))
 			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))
@@ -533,6 +584,10 @@ func _update_state(circuit, result: Dictionary, state: Dictionary) -> void:
 			state.cap_v[el.id] = result.element_voltages.get(el.id, 0.0)
 		elif el.type == "inductor":
 			state.ind_i[el.id] = result.element_currents.get(el.id, 0.0)
+		elif el.type == "flipflop":
+			if not state.has("flip_state"):
+				state["flip_state"] = {}
+			state.flip_state[el.id] = result.element_voltages.get(el.id, 0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -547,7 +602,7 @@ func _is_linear(circuit) -> bool:
 
 
 func _is_nonlinear(t: String) -> bool:
-	return t == "diode" or t == "led" or t == "zener" or t == "logic"
+	return t == "diode" or t == "led" or t == "zener" or t == "logic" or t == "comparator" or t == "flipflop"
 
 
 func _warn(msg: String) -> void:

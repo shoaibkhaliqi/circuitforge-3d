@@ -58,7 +58,7 @@ const HANDLED_TYPES := [
 	"water_level_sensor", "water_flow_yfs201", "ph_sensor_module", "ec_sensor_module",
 	"solar_panel", "buck_converter_module",
 	"optocoupler", "thyristor", "triac",
-	"lm741",
+	"lm741", "lm358", "lm393", "ne555", "d_flip_flop", "lm386",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -477,6 +477,24 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			# Ideal op-amp: Vout = gain * (Vin+ - Vin-), as a VCVS between OUT and V-.
 			if nets.size() >= 6:
 				out.append(_el(cid, "vcvs", [String(nets[5]), String(nets[3]), String(nets[2]), String(nets[1])], {"gain": float(params.get("gain", 100000.0))}))
+		"lm393":
+			# Comparator: output high if in+ > in-. pins: OUT1,IN1-,IN1+,GND,IN2+,IN2-,OUT2,VCC
+			if nets.size() >= 4:
+				out.append(_el(cid, "comparator", [String(nets[2]), String(nets[1]), String(nets[0])], {"vdd": float(params.get("vdd", 5.0)), "rout": 1.0}))
+		"ne555":
+			# 555 timer: simplified as a comparator (output high if trigger < threshold).
+			if nets.size() >= 8:
+				out.append(_el(cid, "comparator", [String(nets[1]), String(nets[5]), String(nets[2])], {"vdd": float(params.get("vcc", 5.0)), "rout": 10.0}))
+		"d_flip_flop":
+			# D flip-flop: D, CLK, Q (last pin is Q).
+			if nets.size() >= 3:
+				out.append(_el(cid, "flipflop", [String(nets[0]), String(nets[1]), String(nets[2])], {"vdd": float(params.get("vdd", 5.0)), "rout": 1.0}))
+		"lm358":
+			if nets.size() >= 4:
+				out.append(_el(cid, "vcvs", [String(nets[0]), String(nets[3]), String(nets[2]), String(nets[1])], {"gain": float(params.get("gain", 100000.0))}))
+		"lm386":
+			if nets.size() >= 5:
+				out.append(_el(cid, "vcvs", [String(nets[4]), String(nets[3]), String(nets[2]), String(nets[1])], {"gain": float(params.get("gain", 20.0))}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out

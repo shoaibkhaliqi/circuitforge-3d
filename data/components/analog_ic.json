@@ -54,9 +54,10 @@
         "shape": "dip8"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
+      "simulation_status": "partial",
       "arduino_compatible": true,
-      "notes": "Pin numbers follow the DIP-8 package (pin 1 = OUT1, pin 8 = V+)."
+      "notes": "Pin numbers follow the DIP-8 package (pin 1 = OUT1, pin 8 = V+).",
+      "simulation_backend": "mna"
     },
     {
       "id": "lm741",
@@ -168,8 +169,9 @@
         "shape": "dip8"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "ne555",
@@ -225,8 +227,9 @@
         "shape": "dip8"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "lm386",
@@ -279,8 +282,9 @@
         "shape": "dip8"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "lm317",
