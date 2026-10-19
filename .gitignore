@@ -15,4 +15,13 @@ venv/
 # Node (firmware harness / sidecar spike)
 node_modules/
 
+# OpenCode / environment
+.trail/
+AGENTS.md
+opencode.json
+
+# Godot import cache
+*.import
+*.uid
+
 
