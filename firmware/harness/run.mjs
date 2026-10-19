@@ -594,6 +594,34 @@ function buildDevices() {
       });
       continue;
     }
+    if (s.kind === 'max6675_spi') {
+      const tempC = Number(s.temperature ?? 25);
+      const raw = Math.max(0, Math.min(4095, Math.round((tempC / 0.25))));
+      const word = (raw & 0x0fff) << 3; // bits 3..14, bit2=0 (connected), bit0=0
+      let phase = 0;
+      spiDevices.push({
+        kind: 'max6675_spi',
+        dc: -1,
+        cs: Number.isFinite(Number(s.cs)) ? Number(s.cs) : -1,
+        bytes: 0,
+        deselected: 0,
+        selected: false,
+        select() { phase = 0; },
+        onByte(b) {
+          phase++;
+          if (phase === 1) return (word >> 8) & 0xff;
+          if (phase === 2) { const v = word & 0xff; phase = 0; return v; }
+          return 0x00;
+        },
+        summary() {
+          return {
+            kind: 'max6675_spi', cs_pin: this.cs, temperature_c: tempC,
+            raw: raw, word: word, bytes: this.bytes, deselected: this.deselected,
+          };
+        },
+      });
+      continue;
+    }
     if (s.kind === 'mcp3008') {
       // MCP3008 8-channel 10-bit ADC, also on the SPI peripheral: one conversion is three
       // transfers inside a single CS-low window - 0x01 (start), then 0x80 | channel << 4

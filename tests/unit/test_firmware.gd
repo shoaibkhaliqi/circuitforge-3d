@@ -392,4 +392,19 @@ func run(t) -> void:
 		t.check(String(sm.get("kind", "")) == "max7219_spi", "spec kind is max7219_spi")
 		t.check(int(sm.get("cs", -1)) == 9, "CS pin resolved from pin_map", str(sm))
 
+	# MAX6675 thermocouple: CS resolved from pin_map (no DC line, answers on MISO).
+	var app11 = AppService.new()
+	app11.session.add_component("ground", ["TM1"])
+	app11.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # CS
+	app11.session.add_component("max6675_thermocouple",
+		["TM4", "TP4", "d5", "a2", "d6"], {"temperature": 100.0}, "K1")
+	var built11: Dictionary = app11.session.build_circuit()
+	var specs12: Array = app11._firmware_devices({}, built11.pin_nets, {"9": "P1"})
+	t.check(specs12.size() == 1, "MAX6675 produces one device spec", str(specs12))
+	if specs12.size() == 1:
+		var sk: Dictionary = specs12[0]
+		t.check(String(sk.get("kind", "")) == "max6675_spi", "spec kind is max6675_spi")
+		t.check(int(sk.get("cs", -1)) == 9, "CS pin resolved from pin_map", str(sk))
+		t.check(absf(float(sk.get("temperature", 0.0)) - 100.0) < 1e-6, "temperature comes from params", str(sk))
+
 	t.done()

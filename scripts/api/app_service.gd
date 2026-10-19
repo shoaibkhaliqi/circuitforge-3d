@@ -546,6 +546,16 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"width": 250,
 						"height": 122,
 					})
+		elif t == "max6675_thermocouple":
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 4:
+				var cs := _net_pin(String(nets[3]), pin_map, pin_nets)
+				if cs >= 0:
+					out.append({
+						"kind": "max6675_spi",
+						"cs": cs,
+						"temperature": float(p.get("temperature", 25.0)),
+					})
 		elif t == "max7219_matrix":
 			# MAX7219 LED matrix on SPI: no DC line, CS frames 16-bit words.
 			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])

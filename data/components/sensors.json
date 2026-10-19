@@ -8,19 +8,51 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Low-cost digital temperature and humidity sensor with a single-wire interface.",
-      "keywords": ["dht11", "temperature", "humidity", "sensor"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "DATA", "type": "bidirectional"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "dht11",
+        "temperature",
+        "humidity",
+        "sensor"
       ],
-      "model": {"shape": "dht11"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "DATA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dht11"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["dht11-onewire"],
+      "simulation_models": [
+        "dht11-onewire"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -40, "max": 125},
-        "humidity": {"default": 48, "label": "Relative humidity", "unit": "%", "min": 0, "max": 100}
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -40,
+          "max": 125
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        }
       },
       "notes": "No breadboard electrical model: the harness answers the MCU's one-wire start signal with the DHT11 bit train at datasheet timings (80 us low + 80 us high, then 40 bits of 50 us low with a 27 us or 70 us high), so a hand-written or library reader that times the line with micros() works. DATA is resolved from `pin_map` (the same firmware-pin -> component-id map as the HC-SR04). DHT11 integer encoding: humidity, 0, temperature, 0, checksum. Values come from `temp_c`/`humidity`. Not modelled: the <0.5 Hz sample rate and hold-off, power-on settling, timing jitter, and the pull-up resistor value (the line is ideal)."
     },
@@ -30,19 +62,52 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Higher-accuracy digital temperature and humidity sensor.",
-      "keywords": ["dht22", "am2302", "temperature", "humidity", "sensor"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "DATA", "type": "bidirectional"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "dht22",
+        "am2302",
+        "temperature",
+        "humidity",
+        "sensor"
       ],
-      "model": {"shape": "dht22"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "DATA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "dht22"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["dht22-onewire"],
+      "simulation_models": [
+        "dht22-onewire"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -40, "max": 125},
-        "humidity": {"default": 48, "label": "Relative humidity", "unit": "%", "min": 0, "max": 100}
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -40,
+          "max": 125
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        }
       },
       "notes": "No breadboard electrical model: the harness answers the MCU's one-wire start signal with the DHT22 bit train at datasheet timings (80 us low + 80 us high, then 40 bits of 50 us low with a 27 us or 70 us high), so a hand-written or library reader that times the line with micros() works. DATA is resolved from `pin_map`. DHT22 encoding: 16-bit humidity (tenths of %), 16-bit temperature (tenths of degC, bit 15 = sign), checksum; values come from `temp_c`/`humidity`. Not modelled: the <0.5 Hz sample rate and hold-off, power-on settling, timing jitter, and the pull-up resistor value."
     },
@@ -52,23 +117,71 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "High-accuracy I2C temperature and humidity sensor.",
-      "keywords": ["sht31", "sht30", "temperature", "humidity", "i2c"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      "keywords": [
+        "sht31",
+        "sht30",
+        "temperature",
+        "humidity",
+        "i2c"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["sht3x-i2c"],
+      "simulation_models": [
+        "sht3x-i2c"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 68, "label": "I2C address (0x44 / 0x45)", "min": 0, "max": 127},
-        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -40, "max": 125},
-        "humidity": {"default": 48, "label": "Relative humidity", "unit": "%", "min": 0, "max": 100},
-        "corrupt_crc": {"default": 0, "label": "Corrupt the CRC (tests a driver's validation)", "min": 0, "max": 1}
+        "address": {
+          "default": 68,
+          "label": "I2C address (0x44 / 0x45)",
+          "min": 0,
+          "max": 127
+        },
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -40,
+          "max": 125
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        },
+        "corrupt_crc": {
+          "default": 0,
+          "label": "Corrupt the CRC (tests a driver's validation)",
+          "min": 0,
+          "max": 1
+        }
       },
       "notes": "No breadboard electrical model: the harness serves the sensor's I2C interface, so a hand-written or library driver reads real data. It accepts the part's 16-bit commands (0x2400/0x2406/0x240B measure, 0xF32D soft reset, 0x306D/0xE000 heater) and answers a read with six bytes - temperature MSB/LSB + CRC-8, humidity MSB/LSB + CRC-8 - using the SHT3x checksum (poly 0x31, init 0xFF; it matches the datasheet's 0xBE 0xEF -> 0x92 vector). Values come from `temp_c`/`humidity` (T = -45 + 175*raw/65535, RH = 100*raw/65535). Set `corrupt_crc` to break the temperature checksum and exercise a driver's error path. Not modelled: the ~15 ms measurement latency (data is available immediately, so any driver that waits or polls works), clock stretching, the internal heater's thermal effect, and I2C bus capacitance."
     },
@@ -78,13 +191,39 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Temperature, humidity and barometric pressure sensor (I2C / SPI).",
-      "keywords": ["bme280", "pressure", "humidity", "temperature", "i2c", "spi"],
-      "protocols": ["I2C", "SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      "keywords": [
+        "bme280",
+        "pressure",
+        "humidity",
+        "temperature",
+        "i2c",
+        "spi"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C",
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -95,13 +234,37 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Barometric pressure and temperature sensor (I2C / SPI).",
-      "keywords": ["bmp280", "pressure", "altitude", "temperature"],
-      "protocols": ["I2C", "SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      "keywords": [
+        "bmp280",
+        "pressure",
+        "altitude",
+        "temperature"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C",
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -112,17 +275,48 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Waterproof digital temperature sensor on a 1-Wire bus.",
-      "keywords": ["ds18b20", "temperature", "1-wire", "waterproof", "probe"],
-      "protocols": ["1-Wire"],
-      "pins": [{"name": "GND", "type": "ground"}, {"name": "DQ", "type": "bidirectional"}, {"name": "VDD", "type": "power"}],
-      "model": {"shape": "ds18b20_probe"},
+      "keywords": [
+        "ds18b20",
+        "temperature",
+        "1-wire",
+        "waterproof",
+        "probe"
+      ],
+      "protocols": [
+        "1-Wire"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "DQ",
+          "type": "bidirectional"
+        },
+        {
+          "name": "VDD",
+          "type": "power"
+        }
+      ],
+      "model": {
+        "shape": "ds18b20_probe"
+      },
       "mounting": "device",
       "simulation_status": "external",
-      "simulation_models": ["ds18b20-onewire"],
+      "simulation_models": [
+        "ds18b20-onewire"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "temp_c": {"default": 23, "label": "Temperature", "unit": "degC", "min": -55, "max": 125}
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -55,
+          "max": 125
+        }
       },
       "notes": "No breadboard electrical model: the harness serves the 1-Wire bus itself, so a hand-written or library driver works through real bit slots - a reset (any low of >= 480 us) is answered with a presence pulse, the master's slots are decoded by their low time (60-120 us is a 0, 1-15 us is a 1) and the part drives the line itself to serve bytes. Protocol: READ ROM (0x33: family 0x28 + a fixed serial + CRC-8), MATCH ROM (0x55 - a ROM that is not the part's makes it stay silent for the rest of the transaction), SKIP ROM (0xCC), CONVERT T (0x44), READ/WRITE SCRATCHPAD (0xBE/0x4E), COPY/RECALL E2 (0x48/0xB8). The scratchpad is [temp LSB, temp MSB, TH, TL, config, 0xFF, 0xFF, 0xFF, CRC-8] with the temperature a 12-bit two's-complement count of 0.0625 degC taken from `temp_c`, and the config byte's resolution bits quantise it (a 10-bit read of 23.1 C reports 23.0 C). DQ is resolved from `pin_map`, and the harness models the bus pull-up (the real module needs a 4.7k resistor). Not modelled: SEARCH ROM / ALARM SEARCH, the alarm function and the TH/TL compares, parasite power, conversion timing (the payload is complete as soon as 0x44 is decoded, so waiting 750 ms or polling both work), the EEPROM behind COPY/RECALL (nothing persists between runs), and the pull-up resistor's value."
     },
@@ -132,10 +326,36 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Analog temperature sensor, 10 mV/degC, TO-92. Pins: +VS, VOUT, GND.",
-      "keywords": ["lm35", "temperature", "analog", "to92"],
-      "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
-      "params": {"temperature": {"default": 25.0, "unit": "degC", "label": "Temperature"}},
-      "model": {"shape": "to92"},
+      "keywords": [
+        "lm35",
+        "temperature",
+        "analog",
+        "to92"
+      ],
+      "pins": [
+        {
+          "name": "VS",
+          "type": "power"
+        },
+        {
+          "name": "VOUT",
+          "type": "analog"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "temperature": {
+          "default": 25.0,
+          "unit": "degC",
+          "label": "Temperature"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Ideal linear output VOUT = 10 mV/degC * T; the temperature is a stimulus you set. Supply, accuracy and self-heating are not simulated.",
@@ -147,10 +367,36 @@
       "category": "Sensor",
       "subcategory": "Environmental",
       "description": "Analog temperature sensor, 10 mV/degC with 500 mV offset, TO-92.",
-      "keywords": ["tmp36", "temperature", "analog", "to92"],
-      "pins": [{"name": "VS", "type": "power"}, {"name": "VOUT", "type": "analog"}, {"name": "GND", "type": "ground"}],
-      "params": {"temperature": {"default": 25.0, "unit": "degC", "label": "Temperature"}},
-      "model": {"shape": "to92"},
+      "keywords": [
+        "tmp36",
+        "temperature",
+        "analog",
+        "to92"
+      ],
+      "pins": [
+        {
+          "name": "VS",
+          "type": "power"
+        },
+        {
+          "name": "VOUT",
+          "type": "analog"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "params": {
+        "temperature": {
+          "default": 25.0,
+          "unit": "degC",
+          "label": "Temperature"
+        }
+      },
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
       "simulation_status": "partial",
       "notes": "Ideal linear output VOUT = 500 mV + 10 mV/degC * T; the temperature is a stimulus you set. Supply and accuracy are not simulated.",
@@ -162,14 +408,48 @@
       "category": "Sensor",
       "subcategory": "Light",
       "description": "Photoresistor module with analog and digital (comparator) outputs.",
-      "keywords": ["ldr", "light", "photoresistor", "module", "analog", "digital"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      "keywords": [
+        "ldr",
+        "light",
+        "photoresistor",
+        "module",
+        "analog",
+        "digital"
       ],
-      "model": {"shape": "sensor_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -180,14 +460,47 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Resistive soil-moisture probe module with analog and digital outputs.",
-      "keywords": ["soil", "moisture", "agriculture", "irrigation", "probe"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      "keywords": [
+        "soil",
+        "moisture",
+        "agriculture",
+        "irrigation",
+        "probe"
       ],
-      "model": {"shape": "soil_probe_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "soil_probe_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Resistive probes corrode over time; capacitive probes are preferred for long-term use.",
       "arduino_compatible": true
@@ -198,14 +511,46 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Rain/fc-37 detector board with analog and digital outputs.",
-      "keywords": ["rain", "water", "moisture", "weather"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      "keywords": [
+        "rain",
+        "water",
+        "moisture",
+        "weather"
       ],
-      "model": {"shape": "sensor_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -216,9 +561,29 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Conductive water-level sensing strip module.",
-      "keywords": ["water level", "liquid", "tank", "float"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}],
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "water level",
+        "liquid",
+        "tank",
+        "float"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SIG",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -229,9 +594,30 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Hall-effect inline water flow sensor producing a pulse per volume.",
-      "keywords": ["flow", "yf-s201", "water", "hall", "pulse"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "output"}],
-      "model": {"shape": "flow_sensor"},
+      "keywords": [
+        "flow",
+        "yf-s201",
+        "water",
+        "hall",
+        "pulse"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SIG",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "flow_sensor"
+      },
       "mounting": "device",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -242,19 +628,49 @@
       "category": "Sensor",
       "subcategory": "Distance",
       "description": "Ultrasonic distance sensor with separate trigger and echo pins.",
-      "keywords": ["ultrasonic", "hc-sr04", "distance", "range", "sonar"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "TRIG", "type": "input"},
-        {"name": "ECHO", "type": "output"}, {"name": "GND", "type": "ground"}
+      "keywords": [
+        "ultrasonic",
+        "hc-sr04",
+        "distance",
+        "range",
+        "sonar"
       ],
-      "model": {"shape": "hcsr04"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "TRIG",
+          "type": "input"
+        },
+        {
+          "name": "ECHO",
+          "type": "output"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "hcsr04"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["hc-sr04-echo"],
+      "simulation_models": [
+        "hc-sr04-echo"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "distance_cm": {"default": 30, "unit": "cm", "label": "Sensed distance", "min": 0, "max": 400}
+        "distance_cm": {
+          "default": 30,
+          "unit": "cm",
+          "label": "Sensed distance",
+          "min": 0,
+          "max": 400
+        }
       },
       "notes": "No breadboard electrical model. The harness watches the firmware's TRIG pulse and drives the ECHO pin (an MCU input) high for a distance-proportional time (58 us per cm round trip, 200 us propagation delay), so pulseIn() measures a real echo. Wire TRIG/ECHO to `mcu_pin` components and map them with run_firmware(pin_map, ...). Echo output is 5 V; level-shift when driving a 3.3 V MCU input. Timing is an idealisation: no acoustic spread, min/max range, temperature or 60 ms cycle limit."
     },
@@ -264,13 +680,38 @@
       "category": "Sensor",
       "subcategory": "Distance",
       "description": "Laser time-of-flight distance sensor, I2C.",
-      "keywords": ["vl53l0x", "tof", "time of flight", "distance", "laser", "i2c"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      "keywords": [
+        "vl53l0x",
+        "tof",
+        "time of flight",
+        "distance",
+        "laser",
+        "i2c"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -281,11 +722,43 @@
       "category": "Sensor",
       "subcategory": "Motion",
       "description": "Passive-infrared motion detector with a digital output.",
-      "keywords": ["pir", "motion", "hc-sr501", "infrared", "presence"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
-      "model": {"shape": "pir_module"},
+      "keywords": [
+        "pir",
+        "motion",
+        "hc-sr501",
+        "infrared",
+        "presence"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "pir_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -296,11 +769,42 @@
       "category": "Sensor",
       "subcategory": "Distance",
       "description": "Infrared reflective obstacle/proximity sensor module.",
-      "keywords": ["ir", "obstacle", "proximity", "line follower"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "output"}],
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "ir",
+        "obstacle",
+        "proximity",
+        "line follower"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -311,11 +815,43 @@
       "category": "Sensor",
       "subcategory": "Magnetic",
       "description": "Digital unipolar Hall-effect switch.",
-      "keywords": ["hall", "a3144", "magnetic", "switch", "rpm"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "OUT", "type": "output"}, {"name": "GND", "type": "ground"}],
-      "model": {"shape": "to92"},
+      "keywords": [
+        "hall",
+        "a3144",
+        "magnetic",
+        "switch",
+        "rpm"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "OUT",
+          "type": "output"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        }
+      ],
+      "model": {
+        "shape": "to92"
+      },
       "mounting": "tht",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -326,21 +862,64 @@
       "category": "Sensor",
       "subcategory": "Motion",
       "description": "Incremental rotary encoder with quadrature outputs and a push switch.",
-      "keywords": ["rotary encoder", "quadrature", "knob", "ky-040"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
-        {"name": "A", "type": "output"}, {"name": "B", "type": "output"}, {"name": "SW", "type": "output"}
+      "keywords": [
+        "rotary encoder",
+        "quadrature",
+        "knob",
+        "ky-040"
       ],
-      "model": {"shape": "rotary_encoder"},
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "A",
+          "type": "output"
+        },
+        {
+          "name": "B",
+          "type": "output"
+        },
+        {
+          "name": "SW",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "rotary_encoder"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["quadrature-pair"],
+      "simulation_models": [
+        "quadrature-pair"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "counts": {"default": 40, "label": "Quadrature counts to emit", "min": 0, "max": 100000},
-        "direction": {"default": 1, "label": "Direction (1 = CW, -1 = CCW)", "min": -1, "max": 1},
-        "step_us": {"default": 1000, "label": "Time per count", "unit": "us", "min": 50, "max": 10000000}
+        "counts": {
+          "default": 40,
+          "label": "Quadrature counts to emit",
+          "min": 0,
+          "max": 100000
+        },
+        "direction": {
+          "default": 1,
+          "label": "Direction (1 = CW, -1 = CCW)",
+          "min": -1,
+          "max": 1
+        },
+        "step_us": {
+          "default": 1000,
+          "label": "Time per count",
+          "unit": "us",
+          "min": 50,
+          "max": 10000000
+        }
       },
       "notes": "No breadboard electrical model: the harness drives the A/B quadrature pair through a one-bit-at-a-time Gray cycle, so a polling decoder on the MCU sees every step, and reports the emitted steps under run_firmware's pin_devices. A/B are resolved from `pin_map` (the same firmware-pin -> component-id map as the HC-SR04). Not modelled: contact bounce/detents (steps are ideal), acceleration, the push switch (SW is a plain digital input you can wire to an mcu_pin), and any electrical loading."
     },
@@ -350,10 +929,36 @@
       "category": "Sensor",
       "subcategory": "Motion",
       "description": "Mechanical end-stop switch. COM, NO and NC contacts.",
-      "keywords": ["limit switch", "endstop", "mechanical", "3d printer"],
-      "pins": [{"name": "COM", "type": "passive"}, {"name": "NO", "type": "passive"}, {"name": "NC", "type": "passive"}],
-      "params": {"actuated": {"default": false, "unit": "", "label": "Actuated (pressed)"}},
-      "model": {"shape": "limit_switch"},
+      "keywords": [
+        "limit switch",
+        "endstop",
+        "mechanical",
+        "3d printer"
+      ],
+      "pins": [
+        {
+          "name": "COM",
+          "type": "passive"
+        },
+        {
+          "name": "NO",
+          "type": "passive"
+        },
+        {
+          "name": "NC",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "actuated": {
+          "default": false,
+          "unit": "",
+          "label": "Actuated (pressed)"
+        }
+      },
+      "model": {
+        "shape": "limit_switch"
+      },
       "mounting": "device",
       "simulation_status": "partial",
       "notes": "SPDT contact: COM-NO closes and COM-NC opens when actuated. Contact bounce is not simulated.",
@@ -365,27 +970,88 @@
       "category": "Sensor",
       "subcategory": "Motion",
       "description": "6-axis accelerometer and gyroscope, I2C.",
-      "keywords": ["mpu6050", "imu", "accelerometer", "gyroscope", "i2c"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}, {"name": "INT", "type": "output"}
+      "keywords": [
+        "mpu6050",
+        "imu",
+        "accelerometer",
+        "gyroscope",
+        "i2c"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "INT",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["i2c-register-file"],
+      "simulation_models": [
+        "i2c-register-file"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 104, "label": "I2C address (7-bit)"},
-        "ax": {"default": 0.0, "unit": "g", "label": "Accel X"},
-        "ay": {"default": 0.0, "unit": "g", "label": "Accel Y"},
-        "az": {"default": 1.0, "unit": "g", "label": "Accel Z"},
-        "gx": {"default": 0.0, "unit": "deg/s", "label": "Gyro X"},
-        "gy": {"default": 0.0, "unit": "deg/s", "label": "Gyro Y"},
-        "gz": {"default": 0.0, "unit": "deg/s", "label": "Gyro Z"},
-        "temp_c": {"default": 25.0, "unit": "C", "label": "Die temperature"}
+        "address": {
+          "default": 104,
+          "label": "I2C address (7-bit)"
+        },
+        "ax": {
+          "default": 0.0,
+          "unit": "g",
+          "label": "Accel X"
+        },
+        "ay": {
+          "default": 0.0,
+          "unit": "g",
+          "label": "Accel Y"
+        },
+        "az": {
+          "default": 1.0,
+          "unit": "g",
+          "label": "Accel Z"
+        },
+        "gx": {
+          "default": 0.0,
+          "unit": "deg/s",
+          "label": "Gyro X"
+        },
+        "gy": {
+          "default": 0.0,
+          "unit": "deg/s",
+          "label": "Gyro Y"
+        },
+        "gz": {
+          "default": 0.0,
+          "unit": "deg/s",
+          "label": "Gyro Z"
+        },
+        "temp_c": {
+          "default": 25.0,
+          "unit": "C",
+          "label": "Die temperature"
+        }
       },
       "notes": "No breadboard electrical model: the harness serves an MPU-6050 register file on the I2C bus while firmware runs (attach_devices). A write transaction's first byte sets the register pointer and further bytes auto-increment; reads return and auto-increment, so a burst read of 0x3B..0x48 works. WHO_AM_I (0x75) is 0x68 and the sample accel/temp/gyro registers are filled from the `ax`..`gz` and `temp_c` parameters (full-scale defaults: 16384 LSB/g, 131 LSB/(deg/s), 340 LSB/degC). Configuration registers (DMP, FIFO, filters, interrupts, INT pin) and timing/self-test are not modelled."
     },
@@ -395,23 +1061,65 @@
       "category": "Sensor",
       "subcategory": "Motion",
       "description": "3-axis digital accelerometer (I2C / SPI).",
-      "keywords": ["adxl345", "accelerometer", "i2c", "spi", "tilt"],
-      "protocols": ["I2C", "SPI"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SCL", "type": "input"}, {"name": "SDA", "type": "bidirectional"}
+      "keywords": [
+        "adxl345",
+        "accelerometer",
+        "i2c",
+        "spi",
+        "tilt"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C",
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "external",
-      "simulation_models": ["i2c-register-file"],
+      "simulation_models": [
+        "i2c-register-file"
+      ],
       "simulation_backend": "firmware",
       "arduino_compatible": true,
       "params": {
-        "address": {"default": 83, "label": "I2C address (7-bit)"},
-        "ax": {"default": 0.0, "unit": "g", "label": "Accel X"},
-        "ay": {"default": 0.0, "unit": "g", "label": "Accel Y"},
-        "az": {"default": 1.0, "unit": "g", "label": "Accel Z"}
+        "address": {
+          "default": 83,
+          "label": "I2C address (7-bit)"
+        },
+        "ax": {
+          "default": 0.0,
+          "unit": "g",
+          "label": "Accel X"
+        },
+        "ay": {
+          "default": 0.0,
+          "unit": "g",
+          "label": "Accel Y"
+        },
+        "az": {
+          "default": 1.0,
+          "unit": "g",
+          "label": "Accel Z"
+        }
       },
       "notes": "No breadboard electrical model: the harness serves an ADXL345 register file on the I2C bus while firmware runs (attach_devices), with the same pointer + auto-increment shape as the MPU-6050 but the ADXL345's own map. DEVID (0x00) is 0xE5 and the sample g values come from the `ax`/`ay`/`az` parameters, scaled by the scale the firmware itself selected: DATA_FORMAT (0x31) FULL_RES (bit 3) gives 3.9 mg/LSB (256 LSB/g) at every range, and in 10-bit mode it is 256 >> range LSB/g (so +/-4 g is 128 LSB/g). The DATA registers (0x32..0x37) are little-endian 16-bit two's complement and are computed from the live configuration, so a sketch that changes the range sees the counts change. Not modelled: the SPI interface (this part is I2C here), FIFO, tap/double-tap/free-fall/activity interrupts and the INT1/INT2 pins, self-test, offset registers, the 2 g/4 g/8 g output data rate and bandwidth corners, and the part's electrical loading."
     },
@@ -421,12 +1129,50 @@
       "category": "Sensor",
       "subcategory": "Force",
       "description": "24-bit load-cell amplifier with a simple two-wire interface.",
-      "keywords": ["hx711", "load cell", "weight", "scale", "amplifier"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "DT", "type": "input"}, {"name": "SCK", "type": "input"}, {"name": "GND", "type": "ground"},
-        {"name": "E+", "type": "passive"}, {"name": "E-", "type": "passive"}, {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"}
+      "keywords": [
+        "hx711",
+        "load cell",
+        "weight",
+        "scale",
+        "amplifier"
       ],
-      "model": {"shape": "breakout_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "DT",
+          "type": "input"
+        },
+        {
+          "name": "SCK",
+          "type": "input"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "E+",
+          "type": "passive"
+        },
+        {
+          "name": "E-",
+          "type": "passive"
+        },
+        {
+          "name": "A+",
+          "type": "passive"
+        },
+        {
+          "name": "A-",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -437,14 +1183,57 @@
       "category": "Sensor",
       "subcategory": "Force",
       "description": "Bar-type strain-gauge load cell with a four-wire bridge (E+, E-, A+, A-).",
-      "keywords": ["load cell", "strain gauge", "weight", "scale", "5kg"],
-      "pins": [
-        {"name": "E+", "type": "passive"}, {"name": "E-", "type": "passive"},
-        {"name": "A+", "type": "passive"}, {"name": "A-", "type": "passive"}
+      "keywords": [
+        "load cell",
+        "strain gauge",
+        "weight",
+        "scale",
+        "5kg"
       ],
-      "model": {"shape": "load_cell"},
+      "pins": [
+        {
+          "name": "E+",
+          "type": "passive"
+        },
+        {
+          "name": "E-",
+          "type": "passive"
+        },
+        {
+          "name": "A+",
+          "type": "passive"
+        },
+        {
+          "name": "A-",
+          "type": "passive"
+        }
+      ],
+      "model": {
+        "shape": "load_cell"
+      },
       "mounting": "device",
-      "params": {"load": {"default": 0.0, "unit": "kg", "label": "Applied load"}, "capacity": {"default": 5.0, "unit": "kg", "label": "Rated capacity"}, "r0": {"default": 1000.0, "unit": "ohm", "label": "Bridge arm resistance"}, "sensitivity": {"default": 0.002, "unit": "", "label": "Full-scale resistance change (2 mV/V)"}},
+      "params": {
+        "load": {
+          "default": 0.0,
+          "unit": "kg",
+          "label": "Applied load"
+        },
+        "capacity": {
+          "default": 5.0,
+          "unit": "kg",
+          "label": "Rated capacity"
+        },
+        "r0": {
+          "default": 1000.0,
+          "unit": "ohm",
+          "label": "Bridge arm resistance"
+        },
+        "sensitivity": {
+          "default": 0.002,
+          "unit": "",
+          "label": "Full-scale resistance change (2 mV/V)"
+        }
+      },
       "simulation_status": "partial",
       "notes": "Wheatstone bridge of four strain gauges; arm resistance shifts linearly with load. The A+/A- output is a few mV and needs an amplifier (e.g. HX711).",
       "arduino_compatible": true
@@ -455,14 +1244,48 @@
       "category": "Sensor",
       "subcategory": "Gas",
       "description": "Analog gas sensor for LPG, methane, propane and smoke. Needs warm-up.",
-      "keywords": ["mq2", "gas", "smoke", "lpg", "methane", "analog"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      "keywords": [
+        "mq2",
+        "gas",
+        "smoke",
+        "lpg",
+        "methane",
+        "analog"
       ],
-      "model": {"shape": "mq_sensor"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "mq_sensor"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Requires burn-in and calibration; cross-sensitive to multiple gases.",
       "arduino_compatible": true
@@ -473,14 +1296,47 @@
       "category": "Sensor",
       "subcategory": "Gas",
       "description": "Analog air-quality sensor for NH3, benzene, smoke and CO2-equivalent readings.",
-      "keywords": ["mq135", "air quality", "voc", "co2", "analog"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}
+      "keywords": [
+        "mq135",
+        "air quality",
+        "voc",
+        "co2",
+        "analog"
       ],
-      "model": {"shape": "mq_sensor"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "mq_sensor"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "Only the digital output (DO) is modelled (an ideal push-pull level set by the 'detected' stimulus; AO, supply and thresholds are not simulated). Provides an estimated air-quality signal, not a calibrated CO2 measurement.",
       "arduino_compatible": true
@@ -491,13 +1347,41 @@
       "category": "Sensor",
       "subcategory": "Gas",
       "description": "Metal-oxide sensor giving eCO2 and TVOC estimates over I2C.",
-      "keywords": ["ccs811", "eco2", "tvoc", "air quality", "i2c"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}, {"name": "WAKE", "type": "input"}
+      "keywords": [
+        "ccs811",
+        "eco2",
+        "tvoc",
+        "air quality",
+        "i2c"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        },
+        {
+          "name": "WAKE",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -509,13 +1393,38 @@
       "category": "Sensor",
       "subcategory": "Gas",
       "description": "Photoacoustic true CO2 sensor with humidity and temperature, I2C.",
-      "keywords": ["scd40", "scd41", "co2", "ndir", "true co2", "i2c"],
-      "protocols": ["I2C"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "SDA", "type": "bidirectional"}, {"name": "SCL", "type": "input"}
+      "keywords": [
+        "scd40",
+        "scd41",
+        "co2",
+        "ndir",
+        "true co2",
+        "i2c"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "I2C"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SDA",
+          "type": "bidirectional"
+        },
+        {
+          "name": "SCL",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -527,13 +1436,46 @@
       "category": "Sensor",
       "subcategory": "Gas",
       "description": "Laser particle counter reporting PM1.0 / PM2.5 / PM10 over UART.",
-      "keywords": ["pms5003", "pm2.5", "particulate", "dust", "air quality", "uart"],
-      "protocols": ["UART"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "TX", "type": "output"}, {"name": "RX", "type": "input"}, {"name": "SET", "type": "input"}, {"name": "RST", "type": "input"}
+      "keywords": [
+        "pms5003",
+        "pm2.5",
+        "particulate",
+        "dust",
+        "air quality",
+        "uart"
       ],
-      "model": {"shape": "sensor_module"},
+      "protocols": [
+        "UART"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "TX",
+          "type": "output"
+        },
+        {
+          "name": "RX",
+          "type": "input"
+        },
+        {
+          "name": "SET",
+          "type": "input"
+        },
+        {
+          "name": "RST",
+          "type": "input"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "device",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -544,12 +1486,34 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Analog pH interface board for water and soil solutions; requires calibration.",
-      "keywords": ["ph", "water quality", "hydroponics", "analog", "probe"],
-      "pins": [
-        {"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"},
-        {"name": "PO", "type": "analog"}, {"name": "TO", "type": "analog"}
+      "keywords": [
+        "ph",
+        "water quality",
+        "hydroponics",
+        "analog",
+        "probe"
       ],
-      "model": {"shape": "sensor_module"},
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "PO",
+          "type": "analog"
+        },
+        {
+          "name": "TO",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true,
@@ -561,9 +1525,30 @@
       "category": "Sensor",
       "subcategory": "Agriculture",
       "description": "Analog electrical-conductivity / TDS interface for nutrient and water monitoring.",
-      "keywords": ["ec", "tds", "conductivity", "hydroponics", "analog"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}],
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "ec",
+        "tds",
+        "conductivity",
+        "hydroponics",
+        "analog"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SIG",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
       "simulation_status": "planned",
       "arduino_compatible": true
@@ -574,10 +1559,38 @@
       "category": "Sensor",
       "subcategory": "Industrial",
       "description": "Platinum resistance temperature detector (100 ohm at 0 degC).",
-      "keywords": ["pt100", "rtd", "temperature", "industrial", "platinum"],
-      "pins": [{"name": "P1", "type": "passive"}, {"name": "P2", "type": "passive"}],
-      "params": {"temperature": {"default": 0.0, "unit": "degC", "label": "Temperature"}, "r0": {"default": 100.0, "unit": "ohm", "label": "Resistance at 0 degC"}},
-      "model": {"shape": "rtd_probe"},
+      "keywords": [
+        "pt100",
+        "rtd",
+        "temperature",
+        "industrial",
+        "platinum"
+      ],
+      "pins": [
+        {
+          "name": "P1",
+          "type": "passive"
+        },
+        {
+          "name": "P2",
+          "type": "passive"
+        }
+      ],
+      "params": {
+        "temperature": {
+          "default": 0.0,
+          "unit": "degC",
+          "label": "Temperature"
+        },
+        "r0": {
+          "default": 100.0,
+          "unit": "ohm",
+          "label": "Resistance at 0 degC"
+        }
+      },
+      "model": {
+        "shape": "rtd_probe"
+      },
       "mounting": "device",
       "simulation_status": "partial",
       "notes": "Linear RTD model R = R0*(1 + 0.00385*T). 2/3/4-wire wiring and self-heating are not simulated."
@@ -588,16 +1601,58 @@
       "category": "Sensor",
       "subcategory": "Industrial",
       "description": "K-type thermocouple amplifier with cold-junction compensation, SPI.",
-      "keywords": ["max6675", "thermocouple", "k-type", "temperature", "spi"],
-      "protocols": ["SPI"],
-      "pins": [
-        {"name": "GND", "type": "ground"}, {"name": "VCC", "type": "power"},
-        {"name": "SCK", "type": "clock"}, {"name": "CS", "type": "input"}, {"name": "SO", "type": "output"}
+      "keywords": [
+        "max6675",
+        "thermocouple",
+        "k-type",
+        "temperature",
+        "spi"
       ],
-      "model": {"shape": "breakout_module"},
+      "protocols": [
+        "SPI"
+      ],
+      "pins": [
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "SCK",
+          "type": "clock"
+        },
+        {
+          "name": "CS",
+          "type": "input"
+        },
+        {
+          "name": "SO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "breakout_module"
+      },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "max6675-spi"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "temperature": {
+          "default": 25.0,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": 0,
+          "max": 1024
+        }
+      },
+      "notes": "No breadboard electrical model: the harness serves the MAX6675 SPI word (12-bit temperature at 0.25 degC resolution, thermocouple-input bit) on MISO, framed by CS. CS is resolved from pin_map; DIN/SCK use the AVR SPI peripheral. Temperature comes from the temperature param."
     },
     {
       "id": "pressure_transducer_420ma",
@@ -605,10 +1660,43 @@
       "category": "Sensor",
       "subcategory": "Industrial",
       "description": "Industrial two-wire 4-20 mA pressure transmitter.",
-      "keywords": ["pressure", "4-20ma", "transmitter", "industrial", "loop"],
-      "pins": [{"name": "LOOP+", "type": "power"}, {"name": "LOOP-", "type": "power"}],
-      "params": {"pressure": {"default": 0.0, "unit": "bar", "label": "Measured pressure"}, "range_min": {"default": 0.0, "unit": "bar", "label": "Range minimum"}, "range_max": {"default": 10.0, "unit": "bar", "label": "Range maximum"}},
-      "model": {"shape": "industrial_sensor"},
+      "keywords": [
+        "pressure",
+        "4-20ma",
+        "transmitter",
+        "industrial",
+        "loop"
+      ],
+      "pins": [
+        {
+          "name": "LOOP+",
+          "type": "power"
+        },
+        {
+          "name": "LOOP-",
+          "type": "power"
+        }
+      ],
+      "params": {
+        "pressure": {
+          "default": 0.0,
+          "unit": "bar",
+          "label": "Measured pressure"
+        },
+        "range_min": {
+          "default": 0.0,
+          "unit": "bar",
+          "label": "Range minimum"
+        },
+        "range_max": {
+          "default": 10.0,
+          "unit": "bar",
+          "label": "Range maximum"
+        }
+      },
+      "model": {
+        "shape": "industrial_sensor"
+      },
       "mounting": "device",
       "simulation_status": "partial",
       "notes": "Ideal 4-20 mA loop: I = 4 mA + 16 mA * (pressure - range_min)/(range_max - range_min). A receiver/sense resistor is still needed to read it."
@@ -619,10 +1707,48 @@
       "category": "Sensor",
       "subcategory": "Current",
       "description": "Hall-effect AC/DC current sensor module (5A / 20A / 30A variants).",
-      "keywords": ["acs712", "current", "hall", "ac", "dc", "analog"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "OUT", "type": "analog"}],
-      "params": {"current": {"default": 0.0, "unit": "A", "label": "Measured current"}, "sensitivity": {"default": 0.185, "unit": "V/A", "label": "Sensitivity"}, "vcc": {"default": 5.0, "unit": "V", "label": "Supply"}},
-      "model": {"shape": "acs712_module"},
+      "keywords": [
+        "acs712",
+        "current",
+        "hall",
+        "ac",
+        "dc",
+        "analog"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "OUT",
+          "type": "analog"
+        }
+      ],
+      "params": {
+        "current": {
+          "default": 0.0,
+          "unit": "A",
+          "label": "Measured current"
+        },
+        "sensitivity": {
+          "default": 0.185,
+          "unit": "V/A",
+          "label": "Sensitivity"
+        },
+        "vcc": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Supply"
+        }
+      },
+      "model": {
+        "shape": "acs712_module"
+      },
       "mounting": "module",
       "simulation_status": "partial",
       "notes": "Ideal linear output Vout = Vcc/2 + sensitivity * current; the current is a stimulus you set. Supply range, offset drift and bandwidth are not simulated.",
@@ -634,10 +1760,45 @@
       "category": "Sensor",
       "subcategory": "Voltage",
       "description": "Resistive-divider voltage sensor module (up to ~25 V input).",
-      "keywords": ["voltage sensor", "divider", "b25", "analog"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "SIG", "type": "analog"}, {"name": "VIN", "type": "analog"}],
-      "params": {"r1": {"default": 30000.0, "unit": "ohm", "label": "Top resistor (VIN-SIG)"}, "r2": {"default": 7500.0, "unit": "ohm", "label": "Bottom resistor (SIG-GND)"}},
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "voltage sensor",
+        "divider",
+        "b25",
+        "analog"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "SIG",
+          "type": "analog"
+        },
+        {
+          "name": "VIN",
+          "type": "analog"
+        }
+      ],
+      "params": {
+        "r1": {
+          "default": 30000.0,
+          "unit": "ohm",
+          "label": "Top resistor (VIN-SIG)"
+        },
+        "r2": {
+          "default": 7500.0,
+          "unit": "ohm",
+          "label": "Bottom resistor (SIG-GND)"
+        }
+      },
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
       "simulation_status": "partial",
       "notes": "Resistive divider (default 30k/7.5k = 5:1): SIG is a scaled copy of VIN. Connect VIN to the voltage being measured.",
@@ -649,11 +1810,46 @@
       "category": "Sensor",
       "subcategory": "Safety",
       "description": "Infrared flame detector module with analog and digital outputs.",
-      "keywords": ["flame", "fire", "infrared", "safety"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "DO", "type": "output"}, {"name": "AO", "type": "analog"}],
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "flame",
+        "fire",
+        "infrared",
+        "safety"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
@@ -664,11 +1860,47 @@
       "category": "Sensor",
       "subcategory": "Sound",
       "description": "Electret microphone module with analog envelope and digital threshold outputs.",
-      "keywords": ["sound", "microphone", "noise", "clap", "audio"],
-      "pins": [{"name": "VCC", "type": "power"}, {"name": "GND", "type": "ground"}, {"name": "AO", "type": "analog"}, {"name": "DO", "type": "output"}],
-      "model": {"shape": "sensor_module"},
+      "keywords": [
+        "sound",
+        "microphone",
+        "noise",
+        "clap",
+        "audio"
+      ],
+      "pins": [
+        {
+          "name": "VCC",
+          "type": "power"
+        },
+        {
+          "name": "GND",
+          "type": "ground"
+        },
+        {
+          "name": "AO",
+          "type": "analog"
+        },
+        {
+          "name": "DO",
+          "type": "output"
+        }
+      ],
+      "model": {
+        "shape": "sensor_module"
+      },
       "mounting": "module",
-      "params": {"detected": {"default": false, "unit": "", "label": "Detected / triggered"}, "vlogic": {"default": 5.0, "unit": "V", "label": "Logic voltage"}},
+      "params": {
+        "detected": {
+          "default": false,
+          "unit": "",
+          "label": "Detected / triggered"
+        },
+        "vlogic": {
+          "default": 5.0,
+          "unit": "V",
+          "label": "Logic voltage"
+        }
+      },
       "simulation_status": "partial",
       "notes": "The digital output (OUT/DO) is an ideal push-pull logic level set by the 'detected' stimulus. Supply, thresholds/timing and any analog output (AO) are not simulated.",
       "arduino_compatible": true
