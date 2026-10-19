@@ -405,9 +405,10 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "I2C register behaviour requires a peripheral backend."
+      "notes": "I2C register behaviour requires a peripheral backend. (No electrical model: backend/external part.)",
+      "simulation_backend": "firmware"
     },
     {
       "id": "mcp3008",
@@ -724,8 +725,10 @@
         "shape": "dip20"
       },
       "mounting": "smd",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_backend": "firmware",
+      "notes": " (No electrical model: backend/external part.)"
     },
     {
       "id": "pcf8574",
