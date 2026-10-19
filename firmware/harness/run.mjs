@@ -504,6 +504,17 @@ function buildDevices() {
       });
       continue;
     }
+    if (s.kind === 'hx711') {
+      pinDevices.push({
+        kind: 'hx711',
+        dout: Number(s.dout),
+        sck: Number(s.sck),
+        value: Number(s.value ?? 100000) & 0xffffff,
+        reads: 0,
+        error: null,
+      });
+      continue;
+    }
     if (s.kind === 'ssd1306_spi' || s.kind === 'ili9341') {
       // A panel on the AVR's SPI peripheral. Unlike I2C there is no address to serve: the
       // bytes come from the SPI monitor and `dc` (command vs data) / `cs` (selected) are
@@ -1701,6 +1712,39 @@ for (const d of pinDevices) {
     wirePolls.push(poll);
     continue;
   }
+  if (d.kind === 'hx711') {
+    const doutP = pinByNumber.get(d.dout);
+    const sckP = pinByNumber.get(d.sck);
+    if (!doutP || !sckP) { d.error = 'pin out of range'; continue; }
+    const portDout = ports[doutP.port];
+    const portSck = ports[sckP.port];
+    const doutMask = 1 << doutP.bit;
+    const sckMask = 1 << sckP.bit;
+    portDout.setPin(doutP.bit, false); // data ready: DOUT low
+    let bitIndex = 0;
+    let sckLevel = 0;
+    let gainPulses = 0;
+    const poll = () => {
+      const sckDdr = cpu.data[portSck.portConfig.DDR] & sckMask;
+      const sckPort = cpu.data[portSck.portConfig.PORT] & sckMask;
+      const now = sckDdr ? (sckPort ? 1 : 0) : 0;
+      if (now === sckLevel) return;
+      const was = sckLevel;
+      sckLevel = now;
+      if (was === 1 || now !== 1) return; // rising edge only
+      if (bitIndex < 24) {
+        const bit = (d.value >> (23 - bitIndex)) & 1;
+        portDout.setPin(doutP.bit, bit === 1);
+        bitIndex++;
+        if (bitIndex === 24) {
+          d.reads++;
+          bitIndex = 0;
+        }
+      }
+    };
+    wirePolls.push(poll);
+    continue;
+  }
   const trig = pinByNumber.get(d.trig);
   const echo = pinByNumber.get(d.echo);
   if (!trig || !echo) {
@@ -1827,6 +1871,12 @@ process.stdout.write(
             scratchpad_hex: scratchpad.map(hex).join(' '),
             scratchpad_crc_ok: dallasCrc8(scratchpad.slice(0, 8)) === scratchpad[8],
             scratchpad_reads: d.reads.length, reads: d.reads, error: d.error,
+          };
+        }
+        if (d.kind === 'hx711') {
+          return {
+            kind: d.kind, dout: d.dout, sck: d.sck, value: d.value,
+            reads: d.reads, error: d.error,
           };
         }
         return {

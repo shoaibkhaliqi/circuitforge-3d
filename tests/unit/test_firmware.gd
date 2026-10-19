@@ -450,4 +450,21 @@ func run(t) -> void:
 		t.check(int(scd.get("address", -1)) == 98, "default I2C address is 0x62", str(scd))
 		t.check(absf(float(scd.get("co2", 0.0)) - 800.0) < 1e-6, "co2 comes from params", str(scd))
 
+	# HX711: two pins (DT, SCK) resolved from pin_map.
+	var app15 = AppService.new()
+	app15.session.add_component("ground", ["TM1"])
+	app15.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # DT
+	app15.session.add_component("mcu_pin", ["b3", "TM7"], {}, "P2")     # SCK
+	app15.session.add_component("hx711",
+		["TM4", "a2", "a3", "TP4", "d5", "d6", "d7", "d8"], {"value": 123456}, "H1")
+	var built15: Dictionary = app15.session.build_circuit()
+	var specs16: Array = app15._firmware_devices({}, built15.pin_nets, {"9": "P1", "10": "P2"})
+	t.check(specs16.size() == 1, "HX711 produces one device spec", str(specs16))
+	if specs16.size() == 1:
+		var hx: Dictionary = specs16[0]
+		t.check(String(hx.get("kind", "")) == "hx711", "spec kind is hx711")
+		t.check(int(hx.get("dout", -1)) == 9, "DT pin resolved from pin_map", str(hx))
+		t.check(int(hx.get("sck", -1)) == 10, "SCK pin resolved from pin_map", str(hx))
+		t.check(int(hx.get("value", 0)) == 123456, "value comes from params", str(hx))
+
 	t.done()

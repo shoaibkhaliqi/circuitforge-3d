@@ -567,6 +567,18 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"address": int(p.get("address", 41)) & 0x7F,
 				"distance_mm": float(p.get("distance_mm", 300.0)),
 			})
+		elif t == "hx711":
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 3:
+				var dout := _net_pin(String(nets[1]), pin_map, pin_nets)
+				var sck := _net_pin(String(nets[2]), pin_map, pin_nets)
+				if dout >= 0 and sck >= 0 and dout != sck:
+					out.append({
+						"kind": "hx711",
+						"dout": dout,
+						"sck": sck,
+						"value": int(p.get("value", 100000)),
+					})
 		elif t == "max6675_thermocouple":
 			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
 			if nets.size() >= 4:

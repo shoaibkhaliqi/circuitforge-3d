@@ -1192,8 +1192,21 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "hx711-pin"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "value": {
+          "default": 100000,
+          "label": "Raw 24-bit value",
+          "min": 0,
+          "max": 16777215
+        }
+      },
+      "notes": "No breadboard electrical model: the harness serves the HX711 on two MCU pins (DT data-ready/output, SCK clock input). DT goes low when data is ready and the 24-bit value is clocked out MSB-first by SCK pulses; 25/26/27 pulses set gain (128/32/64). DT and SCK are resolved from pin_map. The analog front end (load cell, gain, noise) is not modelled; value comes from the value param."
     },
     {
       "id": "load_cell_5kg",
