@@ -467,4 +467,18 @@ func run(t) -> void:
 		t.check(int(hx.get("sck", -1)) == 10, "SCK pin resolved from pin_map", str(hx))
 		t.check(int(hx.get("value", 0)) == 123456, "value comes from params", str(hx))
 
+	# BME280/BMP280: I2C register files, no pin_map needed.
+	var app16 = AppService.new()
+	app16.session.add_component("ground", ["TM1"])
+	app16.session.add_component("bme280",
+		["TP1", "TM1", "d2", "d3"], {"temp_c": 25.0, "humidity": 50.0, "pressure": 1000.0}, "B1")
+	var built16: Dictionary = app16.session.build_circuit()
+	var specs17: Array = app16._firmware_devices({}, built16.pin_nets, {})
+	t.check(specs17.size() == 1, "BME280 produces one device spec", str(specs17))
+	if specs17.size() == 1:
+		var bm: Dictionary = specs17[0]
+		t.check(String(bm.get("kind", "")) == "bme280", "spec kind is bme280")
+		t.check(int(bm.get("address", -1)) == 118, "default I2C address is 0x76", str(bm))
+		t.check(absf(float(bm.get("temp_c", 0.0)) - 25.0) < 1e-6, "temp comes from params", str(bm))
+
 	t.done()

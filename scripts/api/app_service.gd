@@ -554,6 +554,14 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 				"temp_c": clampf(float(p.get("temp_c", 23.0)), -10.0, 60.0),
 				"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
 			})
+		elif t == "bme280" or t == "bmp280":
+			out.append({
+				"kind": t,
+				"address": int(p.get("address", 118)) & 0x7F,
+				"temp_c": clampf(float(p.get("temp_c", 23.0)), -40.0, 85.0),
+				"humidity": clampf(float(p.get("humidity", 48.0)), 0.0, 100.0),
+				"pressure": float(p.get("pressure", 1013.25)),
+			})
 		elif t == "ccs811":
 			out.append({
 				"kind": "ccs811",

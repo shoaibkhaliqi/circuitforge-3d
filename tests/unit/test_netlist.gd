@@ -165,6 +165,10 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("ccs811"), "ccs811 is not mapped by the solver (the harness serves the I2C register file)")
 	t.check(ComponentDB.status_of("scd40") == "external", "scd40 status is 'external'")
 	t.check(not NetlistBuilder.handles("scd40"), "scd40 is not mapped by the solver (the harness serves the I2C command-driven device)")
+	t.check(ComponentDB.status_of("bme280") == "external", "bme280 status is 'external'")
+	t.check(not NetlistBuilder.handles("bme280"), "bme280 is not mapped by the solver (the harness serves the I2C register file)")
+	t.check(ComponentDB.status_of("bmp280") == "external", "bmp280 status is 'external'")
+	t.check(not NetlistBuilder.handles("bmp280"), "bmp280 is not mapped by the solver (the harness serves the I2C register file)")
 	# The MCP4725 is the one firmware part with a *netlist* model too: VOUT is a driven
 	# source, so it claims 'partial' (the harness supplies the code).
 	t.check(ComponentDB.status_of("mcp4725") == "partial", "mcp4725 status is 'partial'")

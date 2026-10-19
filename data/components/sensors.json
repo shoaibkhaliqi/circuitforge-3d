@@ -225,8 +225,40 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "bme280-i2c"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "address": {
+          "default": 118,
+          "label": "I2C address (7-bit)"
+        },
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -40,
+          "max": 85
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        },
+        "pressure": {
+          "default": 1013.25,
+          "label": "Pressure",
+          "unit": "hPa",
+          "min": 300,
+          "max": 1100
+        }
+      },
+      "notes": "No breadboard electrical model: the harness serves a BME280 register file on the I2C bus while firmware runs (attach_devices). Chip ID at 0xD0 and raw data at 0xF7..0xFE (pressure, temperature, humidity for the BME280), with a pointer + auto-increment shape. Calibration coefficients are zeroed, so a driver applying the datasheet compensation computes a consistent but uncalibrated value. The 1-Wire/pressure/humidity values come from temp_c/humidity/pressure params."
     },
     {
       "id": "bmp280",
@@ -266,8 +298,40 @@
         "shape": "breakout_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "arduino_compatible": true,
+      "simulation_models": [
+        "bmp280-i2c"
+      ],
+      "simulation_backend": "firmware",
+      "params": {
+        "address": {
+          "default": 118,
+          "label": "I2C address (7-bit)"
+        },
+        "temp_c": {
+          "default": 23,
+          "label": "Temperature",
+          "unit": "degC",
+          "min": -40,
+          "max": 85
+        },
+        "humidity": {
+          "default": 48,
+          "label": "Relative humidity",
+          "unit": "%",
+          "min": 0,
+          "max": 100
+        },
+        "pressure": {
+          "default": 1013.25,
+          "label": "Pressure",
+          "unit": "hPa",
+          "min": 300,
+          "max": 1100
+        }
+      },
+      "notes": "No breadboard electrical model: the harness serves a BMP280 register file on the I2C bus while firmware runs (attach_devices). Chip ID at 0xD0 and raw data at 0xF7..0xFE (pressure, temperature, humidity for the BME280), with a pointer + auto-increment shape. Calibration coefficients are zeroed, so a driver applying the datasheet compensation computes a consistent but uncalibrated value. The 1-Wire/pressure/humidity values come from temp_c/humidity/pressure params."
     },
     {
       "id": "ds18b20",
@@ -585,7 +649,7 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "visual",
       "arduino_compatible": true
     },
     {
@@ -619,7 +683,7 @@
         "shape": "flow_sensor"
       },
       "mounting": "device",
-      "simulation_status": "planned",
+      "simulation_status": "visual",
       "arduino_compatible": true
     },
     {
@@ -1601,7 +1665,7 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "visual",
       "arduino_compatible": true,
       "notes": "Probes require regular two-point calibration; results are not temperature-compensated by default."
     },
@@ -1636,7 +1700,7 @@
         "shape": "sensor_module"
       },
       "mounting": "module",
-      "simulation_status": "planned",
+      "simulation_status": "visual",
       "arduino_compatible": true
     },
     {

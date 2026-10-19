@@ -1153,6 +1153,56 @@ function buildDevices() {
           humidity: humPct, reads,
         }),
       });
+    } else if (s.kind === 'bme280' || s.kind === 'bmp280') {
+      // BME280/BMP280 environmental sensor: a small register file. Chip ID at 0xD0
+      // (0x60 for BME280, 0x58 for BMP280), status at 0xF3, and the raw data at
+      // 0xF7..0xFE (pressure 3 bytes, temperature 3 bytes, humidity 2 bytes for the BME280).
+      // Only the chip ID and the raw data registers are modelled; the calibration
+      // coefficients (0x88..0xA1, 0xE1..0xE7) are zeroed, so a driver that applies the
+      // datasheet compensation will compute a (consistent but uncalibrated) value. The
+      // values come from `temp_c`/`humidity`/`pressure`.
+      const isBme = s.kind === 'bme280';
+      const chipId = isBme ? 0x60 : 0x58;
+      const tempC = Number(s.temp_c ?? 23);
+      const humPct = Number(s.humidity ?? 48);
+      const pressHpa = Number(s.pressure ?? 1013.25);
+      const tempRaw = Math.max(0, Math.min(0xfffff, Math.round(((tempC + 45) / 175) * 0xfffff));
+      const pressRaw = Math.max(0, Math.min(0xfffff, Math.round((pressHpa / 1013.25) * 0x60000)));
+      const humRaw = Math.max(0, Math.min(0xffff, Math.round((humPct / 100) * 0xffff)));
+      const regs = new Uint8Array(0x100);
+      regs[0xd0] = chipId;
+      regs[0xf7] = (pressRaw >> 12) & 0xff;
+      regs[0xf8] = (pressRaw >> 4) & 0xff;
+      regs[0xf9] = (pressRaw & 0x0f) << 4;
+      regs[0xfa] = (tempRaw >> 12) & 0xff;
+      regs[0xfb] = (tempRaw >> 4) & 0xff;
+      regs[0xfc] = (tempRaw & 0x0f) << 4;
+      if (isBme) {
+        regs[0xfd] = (humRaw >> 8) & 0xff;
+        regs[0xfe] = humRaw & 0xff;
+      }
+      regs[0xf3] = 0x00; // measuring done
+      let ptr = 0;
+      let first = true;
+      map.set(addr, {
+        kind: s.kind,
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0xff; first = false; }
+          else { regs[ptr & 0xff] = b; ptr = (ptr + 1) & 0xff; }
+        },
+        readByte() {
+          const v = regs[ptr & 0xff];
+          ptr = (ptr + 1) & 0xff;
+          return v;
+        },
+        summary: () => ({
+          kind: s.kind, address: addr, chip_id: chipId,
+          temp_c: tempC, humidity: humPct, pressure_hpa: pressHpa,
+          pointer: ptr,
+        }),
+      });
     } else if (s.kind === 'sht31') {
       // SHT31 temperature/humidity: 16-bit commands (0x2400/0x2406/0x240b measure,
       // 0xf32d soft reset, 0x306d/0xe000 heater) and a 6-byte read of
