@@ -140,7 +140,7 @@ func _prepare(circuit) -> Dictionary:
 	var node_unknowns := nets.size() - 1
 	var k := 0
 	for el in circuit.elements:
-		if el.type == "vsource" or el.type == "inductor" or el.type == "logic":
+		if el.type == "vsource" or el.type == "inductor" or el.type == "logic" or el.type == "vcvs":
 			branch_rows[el.id] = node_unknowns + k
 			k += 1
 
@@ -333,6 +333,24 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 			var gp: float = 1.0 / rp
 			mna.add_g(p, n, gp)
 			mna.add_i(p, n, gp * vset)
+		"vcvs":
+			# Voltage-controlled voltage source: Vout = gain * (Vin+ - Vin-).
+			# nets = [out+, out-, in+, in-]. Branch row already allocated.
+			var row: int = branch_rows[el.id]
+			var outp: int = p
+			var outn: int = n
+			var inp: int = node_index.get(el.nets[2], -1)
+			var inn: int = node_index.get(el.nets[3], -1)
+			if inp < 0 or inn < 0:
+				_warn("VCVS '%s' has an unconnected control terminal; ignored." % el.id)
+				return
+			mna.add_branch(outp, outn, row)
+			var gain: float = float(el.params.get("gain", 100000.0))
+			if inp > 0:
+				mna.a[row][inp - 1] -= gain
+			if inn > 0:
+				mna.a[row][inn - 1] += gain
+			mna.z[row] = 0.0
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -497,6 +515,10 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			elif level <= -0.5:
 				r = 1e8
 			return (v - vdrv) / r
+		"vcvs":
+			if branch_rows.has(el.id):
+				return x[branch_rows[el.id]]
+			return 0.0
 		"vout":
 			var vset: float = float(el.params.get("voltage", 0.0))
 			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))

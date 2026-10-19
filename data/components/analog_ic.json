@@ -109,7 +109,14 @@
         "shape": "dip8"
       },
       "mounting": "tht",
-      "simulation_status": "planned"
+      "simulation_status": "partial",
+      "simulation_backend": "mna",
+      "params": {
+        "gain": {
+          "default": 100000.0,
+          "label": "Open-loop gain"
+        }
+      }
     },
     {
       "id": "lm393",

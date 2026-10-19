@@ -58,6 +58,7 @@ const HANDLED_TYPES := [
 	"water_level_sensor", "water_flow_yfs201", "ph_sensor_module", "ec_sensor_module",
 	"solar_panel", "buck_converter_module",
 	"optocoupler", "thyristor", "triac",
+	"lm741",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -472,6 +473,10 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 			out.append(_el(cid + "#out", "resistor", [nets[2], nets[3]], {"r": 0.1 if bool(params.get("on", false)) else 1e9}))
 		"thyristor", "triac":
 			out.append(_el(cid, "resistor", nets, {"r": 0.01 if bool(params.get("triggered", params.get("fired", false))) else 1e9}))
+		"lm741":
+			# Ideal op-amp: Vout = gain * (Vin+ - Vin-), as a VCVS between OUT and V-.
+			if nets.size() >= 6:
+				out.append(_el(cid, "vcvs", [String(nets[5]), String(nets[3]), String(nets[2]), String(nets[1])], {"gain": float(params.get("gain", 100000.0))}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out
