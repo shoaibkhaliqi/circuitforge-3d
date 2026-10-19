@@ -104,6 +104,10 @@ static func initial_state(circuit) -> Dictionary:
 	var cap_v := {}
 	var ind_i := {}
 	var flip_state := {}
+	var shift_state := {}
+	var shift_clk := {}
+	var counter_state := {}
+	var counter_clk := {}
 	for el in circuit.elements:
 		if el.type == "capacitor":
 			cap_v[el.id] = float(el.params.get("ic", 0.0))
@@ -111,7 +115,13 @@ static func initial_state(circuit) -> Dictionary:
 			ind_i[el.id] = float(el.params.get("ic", 0.0))
 		elif el.type == "flipflop":
 			flip_state[el.id] = float(el.params.get("state", 0.0))
-	return {"cap_v": cap_v, "ind_i": ind_i, "flip_state": flip_state}
+		elif el.type == "shiftreg":
+			shift_state[el.id] = int(el.params.get("state", 0))
+			shift_clk[el.id] = {"shcp": 0.0, "stcp": 0.0}
+		elif el.type == "counter":
+			counter_state[el.id] = int(el.params.get("state", 0)) & 0x0f
+			counter_clk[el.id] = 0.0
+	return {"cap_v": cap_v, "ind_i": ind_i, "flip_state": flip_state, "shift_state": shift_state, "shift_clk": shift_clk, "counter_state": counter_state, "counter_clk": counter_clk}
 
 
 # ---------------------------------------------------------------------------
@@ -146,6 +156,14 @@ func _prepare(circuit) -> Dictionary:
 		if el.type == "vsource" or el.type == "inductor" or el.type == "logic" or el.type == "vcvs" or el.type == "comparator" or el.type == "flipflop":
 			branch_rows[el.id] = node_unknowns + k
 			k += 1
+		elif el.type == "shiftreg":
+			for _i in 8:
+				branch_rows["%s#Q%d" % [el.id, _i]] = node_unknowns + k
+				k += 1
+		elif el.type == "counter":
+			for _i in 4:
+				branch_rows["%s#Q%d" % [el.id, _i]] = node_unknowns + k
+				k += 1
 
 	var mna = MNA.new()
 	mna.setup(nets.size(), k)
@@ -394,6 +412,71 @@ func _stamp_element(mna, el, node_index: Dictionary, branch_rows: Dictionary, ct
 				vout2 = state_val
 			mna.add_branch(outp2, 0, row2)
 			mna.branch_extra(row2, -rout2, vout2)
+		"shiftreg":
+			var vdd_sr: float = float(el.params.get("vdd", 5.0))
+			var rout_sr: float = max(0.0, float(el.params.get("rout", 1.0)))
+			var shcp_net: String = String(el.nets[1])
+			var stcp_net: String = String(el.nets[2])
+			var mr_net: String = String(el.nets[4])
+			var shcp_v: float = float(ctx.get("guess", {}).get(shcp_net, 0.0))
+			var stcp_v: float = float(ctx.get("guess", {}).get(stcp_net, 0.0))
+			var mr_v: float = float(ctx.get("guess", {}).get(mr_net, vdd_sr))
+			var vth_sr: float = vdd_sr * 0.5
+			var state_sr: int = int(ctx.state.get("shift_state", {}).get(el.id, 0))
+			var clk_prev: Dictionary = ctx.state.get("shift_clk", {}).get(el.id, {"shcp": 0.0, "stcp": 0.0})
+			var ds_net: String = String(el.nets[0])
+			var ds_v: float = float(ctx.get("guess", {}).get(ds_net, 0.0))
+			# Detect rising edges
+			if shcp_v > vth_sr and float(clk_prev.get("shcp", 0.0)) <= vth_sr:
+				var ds_bit: int = 1 if ds_v > vth_sr else 0
+				state_sr = ((state_sr << 1) | ds_bit) & 0xff
+			if stcp_v > vth_sr and float(clk_prev.get("stcp", 0.0)) <= vth_sr:
+				ctx.state.shift_state[el.id] = state_sr
+			# MR low resets
+			if mr_v < vth_sr:
+				state_sr = 0
+				ctx.state.shift_state[el.id] = 0
+			# Store clock levels
+			if not ctx.state.has("shift_clk"):
+				ctx.state["shift_clk"] = {}
+			ctx.state.shift_clk[el.id] = {"shcp": shcp_v, "stcp": stcp_v}
+			ctx.state.shift_state[el.id] = state_sr
+			# Output Q0..Q7 (storage register = state_sr, but we use shift_state as storage)
+			var storage: int = int(ctx.state.get("shift_state", {}).get(el.id, state_sr))
+			for qi in 8:
+				var qnet: String = String(el.nets[5 + qi])
+				var qidx: int = node_index.get(qnet, -1)
+				if qidx < 0:
+					continue
+				var bitval: float = vdd_sr if ((storage >> (7 - qi)) & 1) == 1 else 0.0
+				var row: int = branch_rows["%s#Q%d" % [el.id, qi]]
+				mna.add_branch(qidx, 0, row)
+				mna.branch_extra(row, -rout_sr, bitval)
+		"counter":
+			var vdd_ct: float = float(el.params.get("vdd", 5.0))
+			var rout_ct: float = max(0.0, float(el.params.get("rout", 1.0)))
+			var clk_net: String = String(el.nets[0])
+			var mr_net: String = String(el.nets[1])
+			var clk_v: float = float(ctx.get("guess", {}).get(clk_net, 0.0))
+			var mr_v: float = float(ctx.get("guess", {}).get(mr_net, vdd_ct))
+			var vth_ct: float = vdd_ct * 0.5
+			var state_ct: int = int(ctx.state.get("counter_state", {}).get(el.id, 0)) & 0x0f
+			var clk_prev: float = float(ctx.state.get("counter_clk", {}).get(el.id, 0.0))
+			if mr_v < vth_ct:
+				state_ct = 0
+			elif clk_v > vth_ct and clk_prev <= vth_ct:
+				state_ct = (state_ct + 1) & 0x0f
+			ctx.state.counter_state[el.id] = state_ct
+			ctx.state.counter_clk[el.id] = clk_v
+			for qi in 4:
+				var qnet: String = String(el.nets[2 + qi])
+				var qidx: int = node_index.get(qnet, -1)
+				if qidx < 0:
+					continue
+				var bitval: float = vdd_ct if ((state_ct >> qi) & 1) == 1 else 0.0
+				var row: int = branch_rows["%s#Q%d" % [el.id, qi]]
+				mna.add_branch(qidx, 0, row)
+				mna.branch_extra(row, -rout_ct, bitval)
 		"wire":
 			# Wires are handled by net merging in the connectivity layer.
 			pass
@@ -570,6 +653,14 @@ func _element_current(el, V: Dictionary, branch_rows: Dictionary, x: Array, ctx:
 			if branch_rows.has(el.id):
 				return x[branch_rows[el.id]]
 			return 0.0
+		"shiftreg":
+			if branch_rows.has(el.id + "#Q0"):
+				return x[branch_rows[el.id + "#Q0"]]
+			return 0.0
+		"counter":
+			if branch_rows.has(el.id + "#Q0"):
+				return x[branch_rows[el.id + "#Q0"]]
+			return 0.0
 		"vout":
 			var vset: float = float(el.params.get("voltage", 0.0))
 			var rp: float = max(0.1, float(el.params.get("rout", 25.0)))
@@ -588,6 +679,12 @@ func _update_state(circuit, result: Dictionary, state: Dictionary) -> void:
 			if not state.has("flip_state"):
 				state["flip_state"] = {}
 			state.flip_state[el.id] = result.element_voltages.get(el.id, 0.0)
+		elif el.type == "shiftreg":
+			if not state.has("shift_state"):
+				state["shift_state"] = {}
+		elif el.type == "counter":
+			if not state.has("counter_state"):
+				state["counter_state"] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -602,7 +699,7 @@ func _is_linear(circuit) -> bool:
 
 
 func _is_nonlinear(t: String) -> bool:
-	return t == "diode" or t == "led" or t == "zener" or t == "logic" or t == "comparator" or t == "flipflop"
+	return t == "diode" or t == "led" or t == "zener" or t == "logic" or t == "comparator" or t == "flipflop" or t == "shiftreg" or t == "counter"
 
 
 func _warn(msg: String) -> void:

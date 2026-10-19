@@ -515,6 +515,16 @@ function buildDevices() {
       });
       continue;
     }
+    if (s.kind === 'ws2812b') {
+      pinDevices.push({
+        kind: 'ws2812b',
+        pin: Number(s.pin),
+        count: Math.max(1, Math.min(256, Number(s.count ?? 8))),
+        leds: [],
+        error: null,
+      });
+      continue;
+    }
     if (s.kind === 'ssd1306_spi' || s.kind === 'ili9341') {
       // A panel on the AVR's SPI peripheral. Unlike I2C there is no address to serve: the
       // bytes come from the SPI monitor and `dc` (command vs data) / `cs` (selected) are
@@ -1927,6 +1937,41 @@ process.stdout.write(
           return {
             kind: d.kind, dout: d.dout, sck: d.sck, value: d.value,
             reads: d.reads, error: d.error,
+          };
+        }
+        if (d.kind === 'ws2812b') {
+          // Decode the WS2812B bitstream from the pin's transition record: each bit is
+          // ~1.25 us total, with a short high (~0.4 us) for 0 and a long high (~0.8 us)
+          // for 1; a low gap > 50 us is a reset. 24 bits (GRB) per LED.
+          const pinTrs = transitions
+            .filter((t) => t.digital_pin === d.pin)
+            .sort((a, b) => a.t_ms - b.t_ms);
+          const bits = [];
+          let i = 0;
+          // build high-pulse durations
+          const pulses = [];
+          for (let k = 0; k < pinTrs.length - 1; k++) {
+            if (pinTrs[k].level === 1 && pinTrs[k + 1].level === 0) {
+              pulses.push(pinTrs[k + 1].t_ms - pinTrs[k].t_ms);
+            }
+          }
+          for (const dur of pulses) {
+            if (dur > 0.05) continue; // reset gap, not a bit
+            bits.push(dur >= 0.6 ? 1 : 0);
+          }
+          const leds = [];
+          for (let off = 0; off + 24 <= bits.length; off += 24) {
+            let v = 0;
+            for (let b = 0; b < 24; b++) v = (v << 1) | bits[off + b];
+            leds.push({
+              g: (v >> 16) & 0xff,
+              r: (v >> 8) & 0xff,
+              b: v & 0xff,
+            });
+          }
+          return {
+            kind: d.kind, pin: d.pin, count: d.count,
+            bits: bits.length, leds, error: d.error,
           };
         }
         return {

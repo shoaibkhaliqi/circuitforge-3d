@@ -585,8 +585,9 @@
         "shape": "dip16"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "counter_74hc161",
@@ -638,8 +639,9 @@
         "shape": "dip16"
       },
       "mounting": "tht",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "partial",
+      "arduino_compatible": true,
+      "simulation_backend": "mna"
     },
     {
       "id": "logic_level_shifter",

@@ -617,9 +617,13 @@
         "shape": "ws2812"
       },
       "mounting": "smd",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Needs a 5 V supply and a level-shifted data line; timing is timing-critical."
+      "notes": "No breadboard electrical model: the harness decodes the single-wire WS2812B bitstream (800 kHz, ~0.4 us high = 0, ~0.8 us high = 1, reset > 50 us low) on the pin the firmware drives into per-LED GRB values, reported under pin_devices. The pin must use the AVR SPI/soft path that produces the timing; a bit-banged bus slower than the part spec is not modelled.",
+      "simulation_models": [
+        "ws2812b-timing"
+      ],
+      "simulation_backend": "firmware"
     }
   ]
 }

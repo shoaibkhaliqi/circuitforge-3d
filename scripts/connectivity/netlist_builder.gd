@@ -59,6 +59,7 @@ const HANDLED_TYPES := [
 	"solar_panel", "buck_converter_module",
 	"optocoupler", "thyristor", "triac",
 	"lm741", "lm358", "lm393", "ne555", "d_flip_flop", "lm386",
+	"shift_register_74hc595", "counter_74hc161",
 ]
 
 ## Digital-output sensor types -> [OUT pin index, GND pin index] in the pin list.
@@ -495,6 +496,14 @@ func _make_elements(cid: String, type: String, nets: Array, params: Dictionary, 
 		"lm386":
 			if nets.size() >= 5:
 				out.append(_el(cid, "vcvs", [String(nets[4]), String(nets[3]), String(nets[2]), String(nets[1])], {"gain": float(params.get("gain", 20.0))}))
+		"shift_register_74hc595":
+			# 8-bit shift register: DS, SHCP, STCP, OE, MR, Q0..Q7, VCC, GND
+			if nets.size() >= 13:
+				out.append(_el(cid, "shiftreg", [String(nets[0]), String(nets[1]), String(nets[2]), String(nets[3]), String(nets[4]), String(nets[5]), String(nets[6]), String(nets[7]), String(nets[8]), String(nets[9]), String(nets[10]), String(nets[11]), String(nets[12])], {"vdd": float(params.get("vdd", 5.0)), "rout": 1.0}))
+		"counter_74hc161":
+			# 4-bit counter: CLK, MR, Q0..Q3, VCC, GND
+			if nets.size() >= 6:
+				out.append(_el(cid, "counter", [String(nets[0]), String(nets[1]), String(nets[2]), String(nets[3]), String(nets[4]), String(nets[5])], {"vdd": float(params.get("vdd", 5.0)), "rout": 1.0}))
 		_:
 			warnings.append("Component type '%s' is not yet simulatable; skipped." % type)
 	return out
