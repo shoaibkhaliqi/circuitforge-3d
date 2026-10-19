@@ -352,6 +352,22 @@ follow [Semantic Versioning](https://semver.org/).
     `planned` 91 → **90**. Honest limits: only I2C is served (not its SPI interface), and
     FIFO, the tap/free-fall/activity interrupts, self-test, the offset registers and the
     part's electrical loading are not modelled.
+  - **ADS1115 16-bit ADC** (`data/components/analog_ic.json`, `ads1115` `planned` →
+    `external`): the I2C twin of the MCP3008 read path, and both a register file and a set of
+    solved-voltage probes. The part is four 16-bit registers behind a pointer (0x00
+    conversion, 0x01 config, 0x02/0x03 thresholds) read and written MSB first; the
+    conversion is computed from the solved node voltages of the A0..A3 nets and from the
+    configuration the *firmware* writes, so the MUX bits choose single-ended A0..A3 against
+    GND (4..7) or one of the differential pairs (0..3) and the PGA bits choose
+    ±6.144/4.096/2.048/1.024/0.512/0.256 V full scale as a 16-bit two's complement code.
+    Conversion timing is not modelled, so single-shot and continuous drivers both work.
+    `ads1115_read` configures and reads A0..A3 single-ended, the A0/A1 differential pair and
+    one finer gain; `verify_ads1115.mjs` checks every code and milli-volt against the spec at
+    the settings the sketch wrote, the device-side read log, the final config/mux/PGA, a
+    positive control that reaches negative full scale and a no-device control (the bus reads
+    0xFF). A divider the solver solved was read back end to end (2.5 V → code 20000, and the
+    same value differentially against a 0 V channel). Suite 796 → **806**; harness verifiers
+    24 → **25**; catalog `external` 56 → **57**, `planned` 90 → **89**.
   - **Honest SPI trace cap**: a full-screen frame made `run_firmware`'s `spi_bytes` array
     ~1.1 MB of JSON. The trace is now capped at 4096 bytes by default (`CF_SPI_LIMIT`), with
     the true length always reported in `spi_byte_count`; the decoded device summary is the

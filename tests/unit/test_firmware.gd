@@ -312,4 +312,31 @@ func run(t) -> void:
 		t.check(absf(float(sa.get("ay", 0.0)) + 0.25) < 1e-9, "ay comes from params", str(sa))
 		t.check(absf(float(sa.get("az", 0.0)) - 1.0) < 1e-9, "az comes from params", str(sa))
 
+	# The ADS1115 is an addressed register file *and* a set of solved-voltage probes: its
+	# A0..A3 pins resolve to node voltages (the I2C twin of the MCP3008's channels), while
+	# the MUX/PGA settings that scale them are the firmware's to choose.
+	var app6 = AppService.new()
+	app6.session.add_component("ground", ["TM1"])
+	app6.session.add_component("ads1115",
+		["TP1", "TM1", "d2", "d3", "d4", "e5", "a6", "a7", "a8", "a9"], {}, "N1")
+	var built6: Dictionary = app6.session.build_circuit()
+	var ads_nets: Array = (built6.pin_nets as Dictionary).get("N1", [])
+	t.check(ads_nets.size() == 10, "ADS1115 contributes 10 nets", str(ads_nets))
+	var ads_volts := {}
+	if ads_nets.size() == 10:
+		ads_volts[String(ads_nets[6])] = 2.5
+		ads_volts[String(ads_nets[9])] = 3.3
+	var specs7: Array = app6._firmware_devices(ads_volts, built6.pin_nets, {})
+	t.check(specs7.size() == 1, "ADS1115 produces one device spec", str(specs7))
+	if specs7.size() == 1:
+		var sn: Dictionary = specs7[0]
+		t.check(String(sn.get("kind", "")) == "ads1115", "spec kind is ads1115")
+		t.check(int(sn.get("address", -1)) == 72, "default I2C address is 0x48", str(sn))
+		var ads_ain: Array = sn.get("ain", [])
+		t.check(ads_ain.size() == 4, "ADS1115 spec carries four channels", str(ads_ain))
+		if ads_ain.size() == 4:
+			t.check(absf(float(ads_ain[0]) - 2.5) < 1e-6, "A0 probes its solved net", str(ads_ain))
+			t.check(absf(float(ads_ain[3]) - 3.3) < 1e-6, "A3 probes its solved net", str(ads_ain))
+			t.check(absf(float(ads_ain[1])) < 1e-9, "an unwired channel reads 0 V", str(ads_ain))
+
 	t.done()

@@ -79,6 +79,8 @@ arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/spi_adc firmware/sketches/spi_adc
 arduino-cli compile --fqbn arduino:avr:uno \
   --output-dir firmware/build/adxl345_read firmware/sketches/adxl345_read
+arduino-cli compile --fqbn arduino:avr:uno \
+  --output-dir firmware/build/ads1115_read firmware/sketches/ads1115_read
 
 # 2. execute + inspect
 cd firmware/harness
@@ -112,6 +114,7 @@ node verify_oled_spi.mjs ../build/oled_spi/oled_spi.ino.hex
 node verify_tft.mjs ../build/tft_fill/tft_fill.ino.hex
 node verify_spi_adc.mjs ../build/spi_adc/spi_adc.ino.hex
 node verify_adxl345.mjs ../build/adxl345_read/adxl345_read.ino.hex
+node verify_ads1115.mjs ../build/ads1115_read/ads1115_read.ino.hex
 ```
 
 `verify.mjs` asserts D13 (PB5) is a clean ~500 ms square wave (edge gaps
@@ -196,6 +199,10 @@ CF_DEVICES='[{"kind":"mpu6050","address":104,"az":1,"temp_c":26.53}]' \
 CF_DEVICES='[{"kind":"adxl345","address":83,"ax":0.5,"ay":-0.25,"az":1}]' \
   node run.mjs ../build/adxl345_read/adxl345_read.ino.hex 400
 
+# ADS1115 at 0x48 with 2.5/1/0/3.3 V on A0..A3 -> 16-bit codes at the MUX/PGA the sketch writes
+CF_DEVICES='[{"kind":"ads1115","address":72,"ain":[2.5,1,0,3.3]}]' \
+  node run.mjs ../build/ads1115_read/ads1115_read.ino.hex 400
+
 # SSD1306 OLED at 0x3C -> the decoded 128x64 frame (top half lit)
 CF_DEVICES='[{"kind":"ssd1306","address":60,"cols":128,"pages":8}]' \
   node run.mjs ../build/oled_fill/oled_fill.ino.hex 600
@@ -228,7 +235,7 @@ CF_DEVICES='[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]' \
 Supported `kind`s: `pcf8574` (`state`, `inputs`), `eeprom` (`address`, `size`,
 `init`), `pcf8591` (`address`, `ain`, `vref`), `lcd1602` (`address`, `cols`, `rows`),
 `mpu6050` (`address`, `ax`..`gz`, `temp_c`), `adxl345` (`address`, `ax`, `ay`, `az`),
-`ssd1306` (`address`, `cols`, `pages`) and
+`ads1115` (`address`, `ain`), `ssd1306` (`address`, `cols`, `pages`) and
 `sht31` (`address`, `temp_c`, `humidity`, `corrupt_crc`)
 are served on the I2C bus; the EEPROM summary also returns the memory image (`mem`), the
 LCD summary the decoded `lines`, the IMU summary the decoded
@@ -239,6 +246,15 @@ registers (0x32..0x37) little-endian, and — unlike the IMU's fixed full-scale 
 come from the scale the firmware selected, so `DATA_FORMAT` FULL_RES gives 3.9 mg/LSB at
 every range and 10-bit mode gives `256 >> range` LSB/g; the summary reports the decoded
 `data_format`/`full_res`/`range_g`/`lsb_per_g` alongside `accel_raw`/`accel_g`.
+
+An `ads1115` is a register file *and* set of solved-voltage probes: A0..A3 come from the nets
+they sit on (the MCP3008's channel loop, over I2C), and the conversion code follows the MUX
+and PGA the *firmware* writes — single-ended `AINn`/GND or the differential pairs, at
+±6.144/4.096/2.048/1.024/0.512/0.256 V full scale. `ads1115_read` reads four channels, the
+A0/A1 pair and a finer gain; the summary reports `config`/`mux`/`pga`/`full_scale_v`/`ain`
+and a `reads` log of every conversion word. Conversion timing is not modelled (the code is
+ready as soon as the config is written), and the ALERT/RDY comparator and the ADDR pin are
+not modelled either.
 Other devices live on the SPI peripheral instead of the I2C bus. `ssd1306_spi` (`dc`, `cs`,
 `cols`, `pages`) decodes the MOSI byte stream, using the DC line to tell commands from data
 and CS to mark the selected transaction, and returns the same frame fields as the I2C panel.
@@ -261,9 +277,10 @@ Three *pin* devices drive MCU inputs instead, reported under `pin_devices`: `hc_
 `dht` (`pin`, `model`, `temp_c`, `humidity`) answers a one-wire start signal with a
 datasheet-timed bit train. The app does this automatically:
 `run_firmware(..., attach_devices=true)` builds the specs from the circuit's `pcf8574`,
-`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050`, `adxl345`, `sht31` and `mcp3008`
+`eeprom_i2c`, `pcf8591`, `i2c_lcd1602`, `oled_ssd1306`, `mpu6050`, `adxl345`, `ads1115`, `sht31` and `mcp3008`
 components (a `pcf8591`'s `ain` values come from the solved node voltages, and so do the
-MCP3008's eight channels, scaled to codes by its `vref` parameter), and `pin_map` resolves an
+MCP3008's eight channels and the ADS1115's four — scaled to codes by the MCP3008's `vref`
+parameter and by the ADS1115's firmware-written MUX/PGA), and `pin_map` resolves an
 `hcsr04`'s TRIG/ECHO, a `rotary_encoder`'s A/B, a `dht11`/`dht22`'s DATA or an
 `oled_ssd1306_spi`'s DC/CS from the
 netlist (the SPI panel has no address, so those two lines are how the app knows which pin

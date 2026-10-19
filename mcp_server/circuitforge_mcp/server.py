@@ -292,7 +292,12 @@ def run_firmware(
     buffer); the `mcp3008` SPI ADC, resolved the same way through its CS line, which is the
     first device that *answers* firmware reads: it serves the datasheet's three-transfer
     conversion on MISO with a 10-bit code taken from that channel's solved node voltage over
-    its `vref` parameter, recorded in `devices[].reads` as `{channel, code, volts}`; and the
+    its `vref` parameter, recorded in `devices[].reads` as `{channel, code, volts}`; the
+    `ads1115` 16-bit I2C ADC, which needs no `pin_map` (its address is a parameter) and is
+    both a register file and a set of solved-voltage probes: its A0..A3 channels come from
+    their nets and the conversion code follows the MUX/PGA the firmware writes (single-ended
+    or a differential pair, +/-6.144 down to +/-0.256 V full scale), logged per conversion
+    word in `devices[].reads` as `{mux, pga, full_scale_v, code, volts}`; and the
     `hcsr04`, whose
     TRIG/ECHO are resolved from `pin_map`) are attached to the emulated bus, so firmware
     can read/write them (device -> firmware feedback, e.g. `Wire.requestFrom`); the
@@ -324,7 +329,9 @@ def run_firmware(
     through the hardware SPI peripheral becomes the GDDRAM frame in `devices`. A
     `tft_ili9341` colour panel is resolved the same way and summarised (see above), and an
     `mcp3008` SPI ADC is resolved the same way too - without its CS line a conversion cannot
-    be framed, so the part is skipped rather than guessed at (see above).
+    be framed, so the part is skipped rather than guessed at (see above). An `ads1115` needs
+    no `pin_map` at all: it is addressed, and its A0..A3 nets are resolved like the MCP3008's
+    channels, so `attach_devices` alone is enough.
     The response adds `pin_devices`, `pin_inputs`, `servos` and `steppers`.
 
     Args:

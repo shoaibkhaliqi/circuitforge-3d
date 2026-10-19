@@ -338,7 +338,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	# `pin_map` also needs the netlist: it is how a firmware pin is drawn to the
 	# net of a servo (the pulse train's destination) as well as to a sensor's.
 	var need_netlist := not analog_map.is_empty() or attach_devices or not pin_map.is_empty()
-	var need_analog := not analog_map.is_empty() or (attach_devices and (_has_type("pcf8591") or _has_type("mcp3008")))
+	var need_analog := not analog_map.is_empty() or (attach_devices and (_has_type("pcf8591") or _has_type("mcp3008") or _has_type("ads1115")))
 	var built := {}
 	var volts_by_node := {}
 	if need_netlist:
@@ -398,7 +398,7 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	if attach_devices and not analog_map.is_empty():
 		note = "Closed loop: attached bus devices can be read/written, firmware ADC channels read the solved node voltages, and firmware-driven sensors (HC-SR04) can drive MCU input pins; no analog OUTPUT to the circuit."
 	elif attach_devices:
-		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware, an SPI OLED's frame is decoded from the SPI trace plus its DC/CS lines, and a mapped `mcp3008` ADC answers SPI reads with its channels' solved node voltages; the MCU's own ADC channels still need `analog_map`."
+		note = "Closed bus loop: attached devices (from the circuit) can be read/written by firmware, an SPI OLED's frame is decoded from the SPI trace plus its DC/CS lines, and a mapped `mcp3008` ADC answers SPI reads with its channels' solved node voltages while an `ads1115` answers I2C conversion reads the same way; the MCU's own ADC channels still need `analog_map`."
 	elif not analog_map.is_empty():
 		note = "Closed analog loop: firmware ADC channels read the solved node voltages; no analog output to the circuit."
 	if not pin_map.is_empty():
@@ -566,6 +566,21 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"vref": maxf(0.001, float(p.get("vref", 5.0))),
 						"ain": ain,
 					})
+		elif t == "ads1115":
+			# An addressed register file (like the MPU-6050/ADXL345) whose conversion is
+			# computed from the solved channel voltages: A0..A3 are probes on their nets, so
+			# firmware reads single-ended channels *and* the differential pairs at the gain
+			# it selects in the config register.
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 10:
+				var ain := []
+				for ch in 4:
+					ain.append(clampf(float(node_voltages.get(String(nets[6 + ch]), 0.0)), 0.0, 100.0))
+				out.append({
+					"kind": "ads1115",
+					"address": int(p.get("address", 72)) & 0x7F,
+					"ain": ain,
+				})
 		elif t == "mpu6050":
 			out.append({
 				"kind": "mpu6050",

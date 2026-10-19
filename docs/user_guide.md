@@ -182,7 +182,10 @@ direction on that bus is a `mcp3008` ADC: it needs its CS line mapped like the S
 DC/CS, but it *answers* firmware's reads instead of listening — each conversion returns the
 10-bit code for that channel's solved node voltage over the part's `vref` parameter, so a
 sketch can `analogRead` the whole circuit through eight extra channels
-(`firmware/sketches/spi_adc`, and `devices[].reads` in the run response).
+(`firmware/sketches/spi_adc`, and `devices[].reads` in the run response). On I2C the
+`ads1115` does the same job with no pin map at all (it has an address, so `attach_devices`
+is enough): its A0..A3 channels come from their solved nets at whichever single-ended or
+differential MUX and gain the sketch configures, 16 bits (`firmware/sketches/ads1115_read`).
 
 Add `--screenshot=<path>` to the command line to save a PNG of the window once
 the circuit has settled (useful for automated visual evidence).

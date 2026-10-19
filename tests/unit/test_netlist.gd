@@ -147,6 +147,8 @@ func run(t) -> void:
 	t.check(not NetlistBuilder.handles("mcp3008"), "mcp3008 is not mapped by the solver (the harness serves it)")
 	t.check(ComponentDB.status_of("adxl345") == "external", "adxl345 status is 'external'")
 	t.check(not NetlistBuilder.handles("adxl345"), "adxl345 is not mapped by the solver (the harness serves it)")
+	t.check(ComponentDB.status_of("ads1115") == "external", "ads1115 status is 'external'")
+	t.check(not NetlistBuilder.handles("ads1115"), "ads1115 is not mapped by the solver (the harness serves it)")
 
 	# ---- gpio drives a load (numerical) -----------------------------------
 	t.section("Netlist - gpio Thevenin behaviour")

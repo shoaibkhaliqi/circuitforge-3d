@@ -21,8 +21,8 @@ This report is deliberately blunt: it separates *what looks like a part* from
 | `full` | 25 | working solver model, covered by tests |
 | `partial` | 51 | real but approximate electrical model |
 | `visual` | 21 | rendered only, no electrical behaviour |
-| `external` | 56 | host/backend behaviour (USB, ADB, firmware) |
-| `planned` | 90 | catalogued and placeable, not simulated yet |
+| `external` | 57 | host/backend behaviour (USB, ADB, firmware) |
+| `planned` | 89 | catalogued and placeable, not simulated yet |
 | **errors** | **0** | no schema/validation problems |
 
 ## By category
@@ -126,7 +126,11 @@ ideal Thevenin DAC output driven by `aout` (or from firmware writes via
   returns the byte MISO carries, and the CS edge (not the byte values) frames a conversion.
   It serves the datasheet's three transfers (`0x01`, `0x80 | channel << 4`, a don't-care) and
   clocks out a leading zero bit plus the 10-bit code, taken from the solved voltage on that
-  channel's net over the `vref` parameter. The
+  channel's net over the `vref` parameter. The `ads1115` is the I2C twin of that read path and
+  the point where the two proven mechanisms meet: an addressed register file whose conversion
+  comes from the solved voltages on A0..A3, scaled by whatever MUX/PGA the firmware writes —
+  and because both members of a differential pair are resolved, its differential mode is
+  modelled (the MCP3008's is not). The
   `rotary_encoder` is a pin device like the HC-SR04: the harness steps an ideal
   quadrature A/B pair, so a firmware decoder can be checked. `dht11`/`dht22` are
   bidirectional one-wire pin devices: the harness answers the start signal with a

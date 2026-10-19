@@ -105,6 +105,7 @@ usart.onByteTransmit = (value) => serialBytes.push(value & 0xff);
 //   CF_DEVICES=[{"kind":"sht31","address":68,"temp_c":23,"humidity":48}]
 //   CF_DEVICES=[{"kind":"mcp3008","cs":10,"vref":5,"ain":[3.3,1.25,0,5]}]
 //   CF_DEVICES=[{"kind":"adxl345","address":83,"ax":0.5,"ay":-0.25,"az":1}]
+//   CF_DEVICES=[{"kind":"ads1115","address":72,"ain":[2.5,1,0,3.3]}]
 //
 // `hc_sr04`, `encoder` and `dht` are not I2C devices: they drive MCU *input* pins, so
 // they are listed separately as pin_devices.
@@ -650,6 +651,76 @@ function buildDevices() {
           accel_raw: [rd16(0x32), rd16(0x34), rd16(0x36)],
           accel_g: [rd16(0x32), rd16(0x34), rd16(0x36)]
             .map((raw) => Math.round((raw / lsbPerG()) * 1e6) / 1e6),
+        }),
+      });
+    } else if (s.kind === 'ads1115') {
+      // ADS1115 16-bit I2C ADC register file: four 16-bit registers selected by a pointer
+      // (0x00 conversion, 0x01 config, 0x02 Lo_thresh, 0x03 Hi_thresh), each read and
+      // written MSB first. The conversion is computed from the channel voltages the app
+      // passes as `ain` (solved node voltages) and the settings the firmware *wrote* to the
+      // config register: MUX 0..3 select the differential pairs and 4..7 select AIN0..3
+      // against GND, and the PGA bits give +/-6.144/4.096/2.048/1.024/0.512/0.256 V full
+      // scale (the reserved codes 6/7 are treated as 0.256 V). Conversion timing is not
+      // modelled - the code is ready as soon as the config is written.
+      const ain = Array.from({ length: 4 },
+        (_, i) => Number((Array.isArray(s.ain) ? s.ain : [])[i] ?? 0));
+      const DIFF_PAIRS = [[0, 1], [0, 3], [1, 3], [2, 3]];
+      const hi = new Uint8Array(4);
+      const lo = new Uint8Array(4);
+      hi[1] = 0x85; lo[1] = 0x83; // the datasheet's power-up config (0x8583)
+      const cfg16 = () => ((hi[1] << 8) | lo[1]) & 0xffff;
+      const mux = () => (cfg16() >> 12) & 0x07;
+      const pga = () => (cfg16() >> 9) & 0x07;
+      const fullScale = () => [6.144, 4.096, 2.048, 1.024, 0.512, 0.256, 0.256, 0.256][pga()];
+      const vdiff = () => {
+        const m = mux();
+        return m < 4 ? ain[DIFF_PAIRS[m][0]] - ain[DIFF_PAIRS[m][1]] : ain[m - 4];
+      };
+      const code = () => {
+        const fs = fullScale();
+        return Math.max(-32768, Math.min(32767, Math.round((vdiff() / fs) * 32768)));
+      };
+      const round6 = (v) => Math.round(v * 1e6) / 1e6;
+      const reads = [];
+      let ptr = 0;
+      let phase = 0; // 0 = the register's MSB, 1 = its LSB (then the pointer advances)
+      let first = true;
+      const advance = () => { phase = 1 - phase; if (phase === 0) ptr = (ptr + 1) & 0x03; };
+      map.set(addr, {
+        kind: 'ads1115',
+        onStart(write) { if (write) first = true; },
+        writeByte(b) {
+          b &= 0xff;
+          if (first) { ptr = b & 0x03; phase = 0; first = false; return; }
+          // The conversion register is read-only; the others are stored.
+          if (ptr !== 0x00) {
+            if (phase === 0) hi[ptr] = b; else lo[ptr] = b;
+          }
+          advance();
+        },
+        readByte() {
+          let v;
+          if (ptr === 0x00) {
+            // One entry per conversion word read, recorded when its LSB completes the word
+            // (so a driver that reads only the MSB is the documented blind spot).
+            if (phase === 1) {
+              reads.push({
+                mux: mux(), pga: pga(), full_scale_v: fullScale(),
+                code: code(), volts: round6((code() / 32768) * fullScale()),
+              });
+            }
+            v = phase === 0 ? ((code() >> 8) & 0xff) : (code() & 0xff);
+          } else {
+            v = phase === 0 ? hi[ptr] : lo[ptr];
+          }
+          advance();
+          return v;
+        },
+        summary: () => ({
+          kind: 'ads1115', address: addr, config: cfg16(),
+          mux: mux(), mux_mode: (mux() < 4 ? 'differential' : 'single-ended'),
+          pga: pga(), full_scale_v: fullScale(),
+          ain: ain.map(round6), reads, conversions: reads.length,
         }),
       });
     } else if (s.kind === 'ssd1306') {

@@ -183,8 +183,14 @@
       ],
       "model": {"shape": "breakout_module"},
       "mounting": "module",
-      "simulation_status": "planned",
-      "arduino_compatible": true
+      "simulation_status": "external",
+      "simulation_models": ["i2c-register-file", "i2c-adc-probe"],
+      "simulation_backend": "firmware",
+      "arduino_compatible": true,
+      "params": {
+        "address": {"default": 72, "label": "I2C address (7-bit)"}
+      },
+      "notes": "No breadboard electrical model of its own: the harness serves its register file on the I2C bus while firmware runs (attach_devices) - four 16-bit registers selected by a pointer (0x00 conversion, 0x01 config, 0x02/0x03 thresholds), each read and written MSB first. The conversion is computed from the solved node voltages of the A0..A3 nets (the same closed loop as the PCF8591 and the MCP3008) and from the configuration the *firmware* writes: the MUX bits choose single-ended A0..A3 against GND (MUX 4..7) or one of the differential pairs (MUX 0..3, A0/A1, A0/A3, A1/A3, A2/A3), and the PGA bits give +/-6.144/4.096/2.048/1.024/0.512/0.256 V full scale as a 16-bit two's complement code (reserved PGA codes are treated as 0.256 V). Conversion timing is not modelled - the code is ready as soon as the config is written - so a single-shot or continuous-mode driver both work, and the ALERT/RDY comparator, the ADDR pin's address selection (the address is a parameter), the input's own loading and the device's supply/electrical limits are not modelled. Pin order follows the breakout (A0..A3 last)."
     },
     {
       "id": "mcp4725",

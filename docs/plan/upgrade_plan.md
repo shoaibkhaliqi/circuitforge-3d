@@ -67,7 +67,7 @@ date as milestones land.
 | 4 | High-quality reusable 3D models for basic components | done |
 | 5 | Boards + pin metadata (Arduino/ESP/Pico/Pi/STM32/Teensy/Android) | done (sourced pin maps + helpers; 3D is representative, not dimensioned) |
 | 6 | Pin-level simulation (Stage A) + basic peripherals | done (Stage-A pin driver + truthful full/partial mapping; enforced by tests) |
-| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, and the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected |
+| 7 | Code execution backend (Stage B/C) — feasibility-gated | done (avr8js/MIT runs a compiled Uno blink deterministically on Windows; see `docs/plan/m7_firmware_backend.md`); app-side integration done (UART/I2C/SPI traces); device (PCF8574) modelled + read/written; `mcu_analog_in` feeds firmware ADC; `mcu_pwm_out` driven by `analogWrite()`; I2C EEPROM (`eeprom_i2c`) readable/writable; PCF8591 I2C ADC/DAC reads solved nodes and drives an analog output; I2C 16x2 LCD decodes display text; HC-SR04 drives an MCU input pin via pulseIn; MPU-6050 IMU serves an I2C register file; SSD1306 OLED decodes the GDDRAM frame over I2C and over SPI (DC/CS mapped like a sensor) and the ILI9341 TFT an RGB565 frame over SPI; rotary encoder steps an ideal quadrature pair; DHT11/DHT22 answer a one-wire start signal; SHT31 answers command-driven reads with CRC-8-checked words; a servo's commanded angle is decoded from the firmware's own pulse train; stepper travel is decoded from STEP/DIR pulses and from a four-phase (ULN2003) sequence; the `mcp3008` SPI ADC answers firmware reads on MISO with codes from the solved node voltages, the `adxl345` serves an accelerometer register file whose counts follow the scale the firmware selected, and the `ads1115` answers I2C conversion reads with codes from its A0..A3 solved nets at the MUX/PGA the firmware selects |
 | 8 | Sensors, displays, motors, advanced analog/digital parts | done for the firmware-free subset (resistive/analog sensors, brushed motors, 7-segment, limit switch); the protocol/display part of it is now backed by plan M7, and the motor gap is closed by the firmware-driven servos and steppers |
 | 9 | Extend MCP tools/metadata for boards, pinouts, pin states, firmware | done (43 tools: `get_board_pinout`, `get_pin_states`, `set_pin_levels`, `get_catalog_facets` and the 7 firmware tools; integration suite 29/29) |
 | 10 | Performance pass, examples, tests, Windows/Linux verification, docs | done (performance/component-count pass + dense guard, examples + gmin fix + scale test, Windows + firmware screenshot evidence, suite 776/776; Linux runtime verification blocked on WSL — ELF-validated only) |
@@ -480,6 +480,23 @@ catalog that replaces the hardcoded definition list.
   come from the sketch). Suite **796/796**; harness verifiers **24**; catalog `external`
   55 → **56**, `planned` 91 → **90**. Honest limits: only I2C is served, and the FIFO,
   tap/free-fall/activity interrupts, self-test and the offset registers are not modelled.
+- **ADS1115 16-bit ADC** (`ads1115`, `planned` → `external`): the I2C twin of the MCP3008
+  read path, and the point where the two proven mechanisms meet — an addressed register file
+  (four 16-bit registers behind a pointer: 0x00 conversion, 0x01 config, 0x02/0x03
+  thresholds, read and written MSB first) *and* solved-voltage probes (A0..A3 come from the
+  nets they sit on, like the MCP3008's channels). The conversion depends on what the
+  *firmware* wrote: the MUX bits pick single-ended A0..A3 against GND or one of the
+  differential pairs, and the PGA bits pick ±6.144/4.096/2.048/1.024/0.512/0.256 V full
+  scale as a 16-bit two's complement code. Conversion timing is not modelled, so single-shot
+  and continuous drivers both work. `ads1115_read` reads A0..A3 single-ended, the A0/A1 pair
+  and a finer gain; `verify_ads1115.mjs` checks every code and milli-volt at the settings the
+  sketch wrote, the device-side read log, the final config/MUX/PGA, a positive control that
+  reaches negative full scale and a no-device control (the bus reads 0xFF); a solved divider
+  was read back end to end (2.5 V → code 20000, and 2.5 V differentially against a 0 V
+  channel). Suite **806/806**; harness verifiers **25**; catalog `external` 56 → **57**,
+  `planned` 90 → **89**. Honest limits: the ALERT/RDY comparator, the ADDR pin's address
+  selection (the address is a parameter), the input loading and conversion timing are not
+  modelled.
 - Still planned/visual: the e-paper SPI display, and the gas/analog
   sensor modules (an SPI *ADC path* now exists — see the MCP3008 above — but those specific
   modules are not modelled). The remaining `planned`/`visual` parts generally need a model the

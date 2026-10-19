@@ -704,6 +704,48 @@ same plumbing, different map, and one property the MPU-6050 does not have.
   driver that writes them still runs — it just gets no interrupt behaviour); and the part's
   electrical loading is not modelled.
 
+## 11p. Nineteenth device: ADS1115 16-bit ADC (register file + solved-voltage probes)
+
+The `ads1115` (`planned` → `external`) is where the two proven mechanisms meet: it is an
+addressed register file like §11c/§11o *and* a set of solved-voltage probes like the
+PCF8591/§11n, and the conversion depends on what the firmware wrote — which is the "scale is
+the driver's choice" idea again, over I2C.
+
+- **Model**: four 16-bit registers behind a pointer (`0x00` conversion, `0x01` config,
+  `0x02`/`0x03` thresholds), each read and written MSB first, with the pointer advancing after
+  each 16-bit word (the conversion register is read-only, so a write to it is ignored). The
+  conversion itself is computed live: the MUX bits pick single-ended A0..A3 against GND
+  (MUX 4..7) or one of the differential pairs (0..3), and the PGA bits pick
+  ±6.144/4.096/2.048/1.024/0.512/0.256 V full scale (reserved codes treated as 0.256 V), and
+  the code is the 16-bit two's complement of `vdiff / full_scale × 32768`, clamped.
+- **Path**: A0..A3 are the last four pins, so the app resolves each to its solved node voltage
+  (exactly the MCP3008's channel loop) and adds the part to the `need_analog` set; the address
+  is a parameter (default `0x48`). Because *both* members of a pair are resolved, the
+  differential MUX codes are right for free — that is why the differential mode the MCP3008
+  could not model *is* modelled here.
+- **Timing is not modelled, deliberately**: the code is ready as soon as the config is
+  written, so a single-shot driver (write config, read conversion) and a continuous-mode
+  driver both work, and the app never has to know the data rate. Each conversion-register read
+  is logged (`reads[] = {mux, pga, full_scale_v, code, volts}`) when its LSB completes the
+  word — that is the device-side witness the verifier compares against.
+- **Verified**: `firmware/sketches/ads1115_read` configures and reads A0..A3 against GND at
+  ±4.096 V, the A0/A1 differential pair at the same gain, and A1 again at ±1.024 V — six
+  conversions, each printing its code and the same reading in millivolts computed from the
+  gain the sketch selected. `verify_ads1115.mjs` recomputes every code and milli-volt from the
+  spec (`2.5 V → 20000`, `1 V → 8000`, `0 V → 0`, `3.3 V → 26400`, `A0-A1 → 12000`,
+  `1 V at ±1.024 V → 32000`), checks the device-side `reads` log, the final
+  config/MUX/PGA, and a **positive control** that includes a negative-full-scale reading
+  (`-1.024 V → -32768`); the **negative control** runs the same firmware with **no device
+  attached** — the bus then reads 0xFF, so every conversion is -1 and the sketch cannot have
+  invented the codes. A divider the solver solved was read back end to end (2.5 V → code
+  20000, and 2.5 V differentially against a 0 V channel) before the change was committed. The
+  app-side channel resolution and the part's status/handles() pair are unit tested.
+- **Limits (honest)**: the ALERT/RDY comparator and the threshold registers' behaviour are not
+  modelled (the registers are stored, so a driver that writes them still runs), the ADDR pin's
+  address selection is not modelled (the address is a parameter), conversion timing and the
+  data-rate corner are not modelled, and the input's own loading and the device's
+  supply/electrical limits are not modelled.
+
 ## 12. Recommendation
 
 The originally suggested `simavr` (GPL) spike is superseded by the working
@@ -743,7 +785,10 @@ on MISO with codes derived from the solved node voltages, so an ADC front-end is
 same loop and the SPI surface is no longer write-only. The ADXL345 (§11o) then shows the
 byte-addressable register file (§11c) is a general pattern rather than one part's accident —
 and adds a twist: its scale is whatever `DATA_FORMAT` the firmware wrote, recomputed at read
-time. Remaining work: the gas/analog modules
+time. The ADS1115 (§11p) then closes the loop over I2C as well — an addressed register file
+*and* solved-voltage probes in one part, whose MUX/PGA the firmware selects, so differential
+measurement (which the MCP3008 could not model) comes out right because both members of each
+pair are resolved. Remaining work: the gas/analog modules
 (which now have an ADC path to hang off, but no models of their own), a 1-Wire slave for parts
 like the DS18B20, and a
 streaming/interactive mode if a blocking run proves too coarse (§13). If the app-side
