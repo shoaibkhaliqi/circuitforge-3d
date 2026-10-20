@@ -87,8 +87,8 @@ var light_mode := 0
 var _hole_nets: Dictionary = {}     # hole id -> net name
 var _pin_nets: Dictionary = {}      # component id -> array of net names
 var _net_members: Dictionary = {}   # net name -> array of hole ids
-var _wire_points: Dictionary = {}   # net name -> sampled polyline (for click picking)
-var _wire_net := ""                 # net revealed by clicking a wire
+var _wire_points: Dictionary = {}   # wire id -> sampled polyline (for click picking)
+var _wire_pick := ""                # wire picked by the last click
 
 
 func _ready() -> void:
@@ -930,16 +930,12 @@ func _handle_click(pos: Vector2) -> void:
 
 	if hole != "":
 		var cid = _component_at_hole(hole)
-		_wire_net = ""
+		_wire_pick = ""
 		session.select(cid)
 	else:
 		# Not on a hole: a wire may have been clicked (its arc bends above the
-		# board). Selecting it reveals the net it joins.
-		var net := _pick_wire(from, dir)
-		if net != "":
-			_wire_net = net
-		else:
-			_wire_net = ""
+		# board). Selecting it reveals the net it joins; Delete removes it.
+		_wire_pick = _pick_wire(from, dir)
 		session.select("")
 	_refresh_net_highlight()
 
@@ -1193,11 +1189,13 @@ func _refresh_net_highlight() -> void:
 		if status_net != null:
 			status_net.text = "Net %s  (%d terminal%s)" % [net, members.size(), "s" if members.size() != 1 else ""]
 		return
-	if _wire_net != "" and _net_members.has(_wire_net):
-		var members2: Array = _net_members.get(_wire_net, [])
+	if _wire_pick != "" and _wire_net_of(_wire_pick) != "" and session_has_wire(_wire_pick):
+		var net3 := _wire_net_of(_wire_pick)
+		var members2: Array = _net_members.get(net3, [])
 		bb_view.set_highlight(members2, [])
 		if status_net != null:
-			status_net.text = "Wire on net %s  (%d terminal%s)" % [_wire_net, members2.size(), "s" if members2.size() != 1 else ""]
+			var wid := _wire_pick
+			status_net.text = "Wire %s on net %s  (%d terminal%s)" % [wid, net3, members2.size(), "s" if members2.size() != 1 else ""]
 		return
 	var nets := _selection_nets()
 	if nets.is_empty():
@@ -1218,15 +1216,15 @@ func _draw_wire(w: Dictionary, record: bool = false) -> void:
 	var b = _endpoint_world(w.b)
 	if a == null or b == null:
 		return
-	_wire_curve(a, b, _wire_color(w), wire_root, w if record else null)
+	_wire_curve(a, b, _wire_color(w), wire_root, String(w.id) if record else "")
 
 
-## Nearest sampled wire polyline to a pointer ray; returns its net name (or "").
+## Nearest sampled wire polyline to a pointer ray; returns the wire id (or "").
 func _pick_wire(from: Vector3, dir: Vector3) -> String:
 	var best := ""
 	var best_d := 0.035
-	for net in _wire_points.keys():
-		var pts: PackedVector3Array = _wire_points[net]
+	for wid in _wire_points.keys():
+		var pts: PackedVector3Array = _wire_points[wid]
 		for i in pts.size():
 			var p := pts[i]
 			var v := p - from
@@ -1237,8 +1235,26 @@ func _pick_wire(from: Vector3, dir: Vector3) -> String:
 			var d := cp.distance_to(p)
 			if d < best_d:
 				best_d = d
-				best = String(net)
+				best = String(wid)
 	return best
+
+
+## The net a wire joins (from the last real netlist build).
+func _wire_net_of(id: String) -> String:
+	for w in session.project.wires:
+		if String(w.id) == id:
+			var net := _endpoint_net(w.a)
+			if net == "":
+				net = _endpoint_net(w.b)
+			return net
+	return ""
+
+
+func session_has_wire(id: String) -> bool:
+	for w in session.project.wires:
+		if String(w.id) == id:
+			return true
+	return false
 
 
 func _ep_key(ep) -> String:
@@ -1278,27 +1294,21 @@ func _endpoint_net(ep) -> String:
 
 
 ## Draw a wire as a shallow arched curve (insulation sags, then lifts at the ends).
-func _wire_curve(a: Vector3, b: Vector3, color: Color, parent: Node3D, w: Variant = null) -> void:
+func _wire_curve(a: Vector3, b: Vector3, color: Color, parent: Node3D, key: String = "") -> void:
 	var segs := 12
 	var lift := 0.015 + a.distance_to(b) * 0.05
 	var prev := a + Vector3(0, 0.012, 0)
-	# Recording a sparse polyline per net lets clicks find the wire's net.
-	var net := ""
-	if w != null:
-		net = _endpoint_net(w.get("a", {}))
-		if net == "":
-			net = _endpoint_net(w.get("b", {}))
 	var pts := PackedVector3Array()
 	for i in range(1, segs + 1):
 		var t := float(i) / float(segs)
 		var p := a.lerp(b, t)
 		p.y += 0.012 + sin(t * PI) * lift
 		_cylinder_between(prev, p, 0.0105, color, parent)
-		if net != "":
+		if key != "":
 			pts.append(p)
 		prev = p
-	if net != "" and pts.size() >= 2:
-		_wire_points[net] = pts
+	if key != "" and pts.size() >= 2:
+		_wire_points[key] = pts
 
 
 func _endpoint_world(ep) -> Variant:
@@ -1553,6 +1563,10 @@ func _on_duplicate() -> void:
 func _on_delete() -> void:
 	if session.selected_id != "":
 		session.remove_component(session.selected_id)
+	elif _wire_pick != "" and session_has_wire(_wire_pick):
+		session.remove_wire(_wire_pick)
+		_wire_pick = ""
+		_on_status("Wire removed (Ctrl+Z to undo).")
 
 func _on_undo() -> void:
 	session.undo()
@@ -1750,6 +1764,7 @@ Instruments: Scope plots transient traces; Meter reads a net or component.
 Logic: AND / OR / NOT / NAND / NOR / XOR / Buffer gates use 5 V logic levels.
 
 Camera: right-drag = orbit, middle-drag = pan, wheel = zoom.
+Wires: click a wire to reveal its net; press Delete to remove the clicked wire.
 Shortcuts: Esc cancel, W wire, R rotate, Delete delete, Space run DC,
            F frame all, P top view, F1 help,
            Ctrl+S save, Ctrl+Shift+S save as, Ctrl+O open, Ctrl+N new,

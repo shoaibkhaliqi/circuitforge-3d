@@ -303,6 +303,16 @@ func add_wire(a: Dictionary, b: Dictionary) -> String:
 	return wid
 
 
+func remove_wire(id: String) -> void:
+	for i in project.wires.size():
+		if String(project.wires[i].id) == id:
+			_push_undo()
+			project.wires.remove_at(i)
+			changed.emit()
+			status_message.emit("Wire %s removed" % id)
+			return
+
+
 func _has_wire(id: String) -> bool:
 	for w in project.wires:
 		if String(w.id) == id:
