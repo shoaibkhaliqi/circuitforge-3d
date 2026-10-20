@@ -758,7 +758,7 @@ func _on_frame_all() -> void:
 		else:
 			merged = merged.merge(box)
 	if first:
-		camera.focus_on(Vector3.ZERO, 3.2)
+		camera.focus_on(Vector3.ZERO, 2.4)
 	else:
 		camera.frame_box(merged.position, merged.end)
 

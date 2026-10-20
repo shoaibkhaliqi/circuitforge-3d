@@ -97,28 +97,20 @@ func _build_base() -> void:
 	var lx := (-edge + chan_l) * 0.5
 	var lw := chan_l + edge
 	_add_box(Vector3(lw, plate_h, length - 0.05), Vector3(lx, surf - plate_h * 0.5, 0),
-			Color(0.91, 0.89, 0.85), 0.72)
+			Color(0.84, 0.83, 0.79), 0.85)
 	var rx := (chan_r + edge) * 0.5
 	var rw := edge - chan_r
 	_add_box(Vector3(rw, plate_h, length - 0.05), Vector3(rx, surf - plate_h * 0.5, 0),
-			Color(0.91, 0.89, 0.85), 0.72)
+			Color(0.84, 0.83, 0.79), 0.85)
 
 	# Rail colour lines: thin printed stripes alongside each power rail, in
 	# segments of five holes - the way real rails group into five-hole blocks.
-	var strip_colors := {"TP": Color(0.72, 0.18, 0.18), "BP": Color(0.72, 0.18, 0.18),
-			"TM": Color(0.20, 0.32, 0.66), "BM": Color(0.20, 0.32, 0.66)}
-	for p in RAIL_X.keys():
-		var seg_len := PITCH * 5.0
-		var blocks := int(ceil(float(rows) / 5.0))
-		for b in blocks:
-			var z0 := -(float(rows) * PITCH) * 0.5 + float(b) * seg_len
-			var zn := minf(z0 + seg_len - PITCH * 0.5, float(rows) * PITCH * 0.5 - PITCH * 0.15)
-			if zn - z0 < PITCH * 0.2:
-				continue
-			var seg := _add_box(Vector3(0.02, 0.004, zn - z0),
-					Vector3(RAIL_X[p], surf + 0.002, (z0 + zn) * 0.5),
-					strip_colors[p], 0.85)
-			seg.name = "RailStripe_%s_%d" % [p, b]
+	# Printed rail lines: one continuous line along each rail pair on the outer
+	# edges, red = positive rail, blue = negative rail, like a real board print.
+	var line_col_p := Color(0.66, 0.16, 0.16)
+	var line_col_n := Color(0.17, 0.28, 0.60)
+	_add_box(Vector3(0.018, 0.004, length - 0.18), Vector3(-0.80, surf + 0.002, 0), line_col_p, 0.9)
+	_add_box(Vector3(0.018, 0.004, length - 0.18), Vector3(0.80, surf + 0.002, 0), line_col_n, 0.9)
 
 
 func _add_box(size: Vector3, pos: Vector3, color: Color, rough: float) -> MeshInstance3D:
@@ -178,8 +170,8 @@ func _build_holes() -> void:
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.016
-	cyl.bottom_radius = 0.016
+	cyl.top_radius = 0.019
+	cyl.bottom_radius = 0.019
 	cyl.height = 0.03
 	cyl.radial_segments = 14
 	mm.mesh = cyl

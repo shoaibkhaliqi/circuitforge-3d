@@ -5,7 +5,7 @@ extends Camera3D
 ## without synthesising input events.
 
 var target := Vector3.ZERO
-var distance := 3.2
+var distance := 2.4
 var yaw := deg_to_rad(-35.0)
 var pitch := deg_to_rad(32.0)
 var min_distance := 0.6

@@ -271,21 +271,27 @@ static func _leads(frame: Node3D, span: float, body_len: float, pin_along: Array
 # --- core type bodies -------------------------------------------------------
 
 static func _body_resistor(frame: Node3D, span: float, pin_along: Array, value: float) -> void:
-	var body_len := maxf(span * 0.62, 0.05)
-	_leads(frame, span, body_len, pin_along)
-	_add(frame, _cyl(0.018, body_len, 20), _material(TYPE_COLORS["resistor"], 0.5), Vector3(0, 0.018, 0), Vector3(90, 0, 0))
+	# Real 1/4 W axial proportions (pitch 0.1 == 2.54 mm): a ~10 mm body floats
+	# above the board, taller than the hole span, with leads dropping at the
+	# two holes - exactly how a resistor breadboards.
+	var body_len := maxf(span * 1.15, 0.22)
+	var radius := 0.044
+	_add(frame, _cyl(radius, body_len, 20), _material(TYPE_COLORS["resistor"], 0.5), Vector3(0, radius, 0), Vector3(90, 0, 0))
+	for z in pin_along:
+		var zf := float(z)
+		_add(frame, _cyl(0.007, radius, 10), _material(LEAD, 0.35, 0.7), Vector3(0, radius * 0.5, zf), Vector3(0, 0, -90))
 	var bands := resistor_bands(value)
 	for i in bands.size():
-		var t := -body_len * 0.34 + float(i) * body_len * 0.22
-		_add(frame, _cyl(0.019, body_len * 0.08, 20), _material(bands[i], 0.45), Vector3(0, 0.018, t), Vector3(90, 0, 0))
+		var t := -body_len * 0.30 + float(i) * body_len * 0.20
+		_add(frame, _cyl(radius + 0.0025, body_len * 0.055, 20), _material(bands[i], 0.45), Vector3(0, radius, t), Vector3(90, 0, 0))
 
 
 static func _body_capacitor(frame: Node3D, span: float, pin_along: Array) -> void:
 	var body_len := maxf(span * 0.5, 0.045)
-	_leads(frame, span, body_len, pin_along)
-	# ceramic disc lying flat, leads emerge from the edge to the pins
-	_add(frame, _cyl(0.026, 0.014, 24), _material(TYPE_COLORS["capacitor"], 0.5), Vector3(0, 0.02, 0))
-	_add(frame, _cyl(0.0265, 0.003, 24), _material(Color(0.55, 0.30, 0.08), 0.5), Vector3(0, 0.026, 0))
+	# Ceramic disc standing on edge between the two holes, coated tan.
+	_leads(frame, span, 0.02, pin_along)
+	_add(frame, _cyl(0.044, 0.018, 24), _material(TYPE_COLORS["capacitor"], 0.5), Vector3(0, 0.047, 0), Vector3(0, 0, 90))
+	_add(frame, _cyl(0.0455, 0.003, 24), _material(Color(0.55, 0.30, 0.08), 0.5), Vector3(0, 0.047, 0), Vector3(0, 0, 90))
 
 
 static func _body_inductor(frame: Node3D, span: float, pin_along: Array) -> void:
@@ -369,9 +375,13 @@ static func _body_led(frame: Node3D, span: float, pin_along: Array, current: flo
 	var emission := 0.0
 	if lit:
 		emission = clampf(1.0 + current * 40.0, 1.0, 3.0)
-	_add(frame, _cyl(0.018, 0.02, 20), _material(base_col, 0.4, 0.0, emission * 0.6), Vector3(0, 0.018, 0))
-	_add(frame, _sphere(0.018), _material(base_col.lerp(Color(1, 1, 1), 0.15 if lit else 0.0), 0.25, 0.0, emission), Vector3(0, 0.032, 0), Vector3.ZERO, Vector3(1, 0.8, 1))
-	_add(frame, _box(Vector3(0.02, 0.002, 0.006)), _material(Color(0.1, 0.1, 0.1), 0.5), Vector3(0, 0.012, body_len * 0.45))
+	# Real 5mm LED proportions (one pitch = 2.54 mm): flange at the board,
+	# ~4 mm straight barrel, hemispherical dome, flat side marking the cathode.
+	_add(frame, _cyl(0.115, 0.007, 24), _material(base_col, 0.35, 0.0, emission * 0.5), Vector3(0, 0.0035, 0))
+	_add(frame, _cyl(0.088, 0.155, 24), _material(base_col, 0.30, 0.0, emission * 0.7), Vector3(0, 0.0845, 0))
+	_add(frame, _sphere(0.088), _material(base_col.lerp(Color(1, 1, 1), 0.2 if lit else 0.0), 0.25, 0.0, emission),
+			Vector3(0, 0.162, 0), Vector3.ZERO, Vector3(1, 0.6, 1))
+	_add(frame, _box(Vector3(0.006, 0.14, 0.05)), _material(Color(0.42, 0.05, 0.06), 0.4), Vector3(0.084, 0.095, 0))
 
 
 static func _body_diode(frame: Node3D, span: float, pin_along: Array, is_zener: bool) -> void:
@@ -459,6 +469,10 @@ static func _body_by_shape(type: String, frame: Node3D, span: float, pin_along: 
 			_body_sot223(frame, span, pin_along)
 		"servo", "servo_large":
 			_body_servo(frame, span, pin_along, shape)
+		"electrolytic_can":
+			_body_electrolytic(frame, span, pin_along, false)
+		"supercap_can":
+			_body_electrolytic(frame, span, pin_along, true)
 		"seven_segment":
 			_body_seven_segment(frame, span, pin_along)
 		"ws2812", "led_5mm", "led_dome", "rgb_led":
@@ -481,7 +495,7 @@ static func _body_by_shape(type: String, frame: Node3D, span: float, pin_along: 
 			if shape.begins_with("dip") or shape.begins_with("dip_socket"):
 				_body_dip(frame, span, pin_along, label)
 			elif _matches(shape, BOARD_HINTS):
-				_body_board(frame, span, pin_along, label)
+				_body_board(frame, span, pin_along, label, type)
 			elif _matches(shape, MODULE_HINTS) or pin_along.size() >= 6:
 				_body_module(frame, span, pin_along, label, PCB_GREEN)
 			else:
@@ -535,22 +549,42 @@ static func _body_servo(frame: Node3D, span: float, pin_along: Array, shape: Str
 
 
 static func _body_seven_segment(frame: Node3D, span: float, pin_along: Array) -> void:
-	var body_len := maxf(span * 0.5, 0.06)
+	var body_len := maxf(span * 0.55, 0.12)
 	_leads(frame, span, body_len, pin_along)
-	_add(frame, _box(Vector3(0.05, 0.02, body_len)), _material(Color(0.12, 0.12, 0.14), 0.5), Vector3(0, 0.012, 0))
-	var seg_col := Color(0.75, 0.10, 0.10)
-	# seven bars approximated on the top face
-	_add(frame, _box(Vector3(0.03, 0.003, 0.004)), _material(seg_col, 0.4, 0.0, 0.6), Vector3(0, 0.023, -body_len * 0.22))
-	_add(frame, _box(Vector3(0.03, 0.003, 0.004)), _material(seg_col, 0.4, 0.0, 0.6), Vector3(0, 0.023, body_len * 0.22))
-	_add(frame, _box(Vector3(0.004, 0.003, 0.028)), _material(seg_col, 0.4, 0.0, 0.6), Vector3(-0.014, 0.023, 0))
-	_add(frame, _box(Vector3(0.004, 0.003, 0.028)), _material(seg_col, 0.4, 0.0, 0.6), Vector3(0.014, 0.023, 0))
+	_add(frame, _box(Vector3(0.06, 0.028, body_len)), _material(Color(0.10, 0.10, 0.12), 0.5), Vector3(0, 0.014, 0))
+	# recessed light face so unlit segments stay crisp against it
+	_add(frame, _box(Vector3(0.042, 0.004, body_len * 0.8)), _material(Color(0.03, 0.03, 0.04), 0.6), Vector3(0, 0.029, 0))
+	var seg_mat := _material(Color(0.80, 0.12, 0.12), 0.4, 0.0, 0.7)
+	var hz := body_len * 0.4
+	_add(frame, _box(Vector3(0.026, 0.004, 0.005)), seg_mat, Vector3(0, 0.031, -hz))     # a
+	_add(frame, _box(Vector3(0.026, 0.004, 0.005)), seg_mat, Vector3(0, 0.031, 0.0))     # g
+	_add(frame, _box(Vector3(0.026, 0.004, 0.005)), seg_mat, Vector3(0, 0.031, hz))      # d
+	_add(frame, _box(Vector3(0.005, 0.004, 0.024)), seg_mat, Vector3(-0.013, 0.031, -hz * 0.5))  # f
+	_add(frame, _box(Vector3(0.005, 0.004, 0.024)), seg_mat, Vector3(0.013, 0.031, -hz * 0.5))   # b
+	_add(frame, _box(Vector3(0.005, 0.004, 0.024)), seg_mat, Vector3(-0.013, 0.031, hz * 0.5))   # e
+	_add(frame, _box(Vector3(0.005, 0.004, 0.024)), seg_mat, Vector3(0.013, 0.031, hz * 0.5))    # c
+	_add(frame, _box(Vector3(0.005, 0.004, 0.005)), seg_mat, Vector3(0.014, 0.031, hz * 1.07))   # dp
+
+
+## Radial electrolytic / supercap can standing between its two holes: shrink
+## sleeve, metal top with the vent impression, printed minus stripe.
+static func _body_electrolytic(frame: Node3D, span: float, pin_along: Array, big: bool) -> void:
+	_leads(frame, span, 0.0, pin_along)
+	var r := 0.055 if not big else 0.075
+	var h := 0.09 if not big else 0.14
+	_add(frame, _cyl(r, h, 24), _material(Color(0.09, 0.10, 0.14), 0.45), Vector3(0, h * 0.5 + 0.004, 0))
+	_add(frame, _cyl(r * 0.96, 0.004, 24), _material(METAL, 0.3, 0.7), Vector3(0, h + 0.004, 0))
+	_add(frame, _box(Vector3(r * 1.3, 0.002, 0.005)), _material(Color(0.30, 0.32, 0.34), 0.4), Vector3(0, h + 0.002, 0))
+	_add(frame, _box(Vector3(0.010, h * 0.6, 0.014)), _material(Color(0.88, 0.88, 0.9), 0.5), Vector3(r * 0.93, h * 0.55, 0))
 
 
 static func _body_led_package(frame: Node3D, span: float, pin_along: Array, _def: Dictionary) -> void:
-	var body_len := maxf(span * 0.6, 0.05)
+	var body_len := maxf(span * 0.5, 0.05)
 	_leads(frame, span, body_len, pin_along)
-	_add(frame, _cyl(0.012, 0.02, 16), _material(Color(0.85, 0.85, 0.88), 0.4), Vector3(0, 0.012, -body_len * 0.3))
-	_add(frame, _sphere(0.012), _material(Color(0.12, 0.12, 0.14), 0.4), Vector3(0, 0.012, -body_len * 0.3))
+	# 5050-style SMD tile: metal base, black face, brighter light centre.
+	_add(frame, _box(Vector3(0.062, 0.006, body_len)), _material(Color(0.85, 0.85, 0.88), 0.4), Vector3(0, 0.003, 0))
+	_add(frame, _box(Vector3(0.05, 0.012, body_len * 0.8)), _material(Color(0.08, 0.08, 0.10), 0.5), Vector3(0, 0.012, 0))
+	_add(frame, _box(Vector3(0.024, 0.004, body_len * 0.42)), _material(Color(1.0, 1.0, 1.0), 0.3, 0.0, 0.35), Vector3(0, 0.019, 0))
 
 
 static func _body_module(frame: Node3D, span: float, pin_along: Array, label: String, pcb: Color) -> void:
@@ -569,16 +603,38 @@ static func _body_module(frame: Node3D, span: float, pin_along: Array, label: St
 	frame.add_child(mark)
 
 
-static func _body_board(frame: Node3D, span: float, pin_along: Array, label: String) -> void:
+## PCB colour by board family: Arduino boards are their documented teal-blue,
+## Raspberry Pi / Teensy are dark green, Pico/XIAO/BlackPill/ESP32 modules are
+## matte black, the BluePill is blue. Falls back to the generic PCB blue.
+static func _board_pcb_color(a_type: String) -> Color:
+	var t := a_type.to_lower()
+	if t.contains("bluepill"):
+		return Color(0.12, 0.24, 0.62)
+	if t.contains("blackpill") or t.contains("pico") or t.contains("xiao") or t.contains("esp32"):
+		return Color(0.075, 0.08, 0.095)
+	if t.contains("pi") or t.contains("teensy"):
+		return Color(0.11, 0.29, 0.18)
+	return PCB_BLUE
+
+
+static func _body_board(frame: Node3D, span: float, pin_along: Array, label: String, a_type: String = "") -> void:
 	var body_len := maxf(span * 0.85, 0.1)
 	var width := 0.11
+	var def := ComponentDB.get_def(a_type)
 	_leads(frame, span, body_len, pin_along)
-	_add(frame, _box(Vector3(width, 0.008, body_len)), _material(PCB_BLUE, 0.6), Vector3(0, 0.004, 0))
+	_add(frame, _box(Vector3(width, 0.008, body_len)), _material(_board_pcb_color(a_type), 0.6), Vector3(0, 0.004, 0))
 	# two header strips (one per long edge)
 	_add(frame, _box(Vector3(0.016, 0.014, body_len * 0.9)), _material(HEADER_BLACK, 0.5), Vector3(-width * 0.5 + 0.01, 0.012, 0))
 	_add(frame, _box(Vector3(0.016, 0.014, body_len * 0.9)), _material(HEADER_BLACK, 0.5), Vector3(width * 0.5 - 0.01, 0.012, 0))
 	# big IC / shield footprint
 	_add(frame, _box(Vector3(0.05, 0.012, body_len * 0.4)), _material(BODY_BLACK, 0.5), Vector3(0, 0.013, -body_len * 0.1))
+	# documented USB connector on the headerless end
+	var bi = def.get("board_info", {})
+	var usb := ""
+	if typeof(bi) == TYPE_DICTIONARY:
+		usb = String(bi.get("usb", ""))
+	if usb != "" and usb != "none":
+		_add(frame, _box(Vector3(0.05, 0.030, 0.034)), _material(METAL, 0.3, 0.65), Vector3(0, 0.016, -body_len * 0.5 - 0.014))
 	var mark := Label3D.new()
 	lbl_setup(mark, label)
 	mark.position = Vector3(0, 0.06, 0)
