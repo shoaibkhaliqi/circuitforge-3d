@@ -23,6 +23,8 @@ var preview_root: Node3D
 var viewport3d: SubViewport
 var _hover_hole := ""
 var _screenshot_path := ""
+var _fps_report := 0.0     # >0: averaged FPS for this many seconds, then quit
+var _stress := 0           # >0: generate a synthetic stress circuit of N parts
 
 const WIRE_PALETTE := [
 	Color(0.93, 0.32, 0.30), Color(0.30, 0.55, 0.95), Color(0.95, 0.74, 0.25),
@@ -133,6 +135,18 @@ func _open_from_command_line() -> void:
 			elif i + 1 < args.size():
 				i += 1
 				_screenshot_path = String(args[i])
+		elif a.begins_with("--fps-report"):
+			if a.contains("="):
+				_fps_report = maxf(a.substr(a.find("=") + 1).to_float(), 0.5)
+			elif i + 1 < args.size():
+				i += 1
+				_fps_report = maxf(String(args[i]).to_float(), 0.5)
+		elif a.begins_with("--stress"):
+			if a.contains("="):
+				_stress = a.substr(a.find("=") + 1).to_int()
+			elif i + 1 < args.size():
+				i += 1
+				_stress = String(args[i]).to_int()
 		elif not a.begins_with("--"):
 			path = a
 		i += 1
@@ -146,8 +160,81 @@ func _open_from_command_line() -> void:
 			_on_run_transient()
 		else:
 			_on_run_dc()
-	if _screenshot_path != "":
+	if _stress > 0:
+		_generate_stress(_stress)
+		_on_run_dc()
+	# The FPS report runs the full measured window and quits itself; the plain
+	# screenshot path captures after 18 frames and quits as before.
+	if _fps_report > 0.0:
+		_run_fps_report()
+	elif _screenshot_path != "":
 		_capture_screenshot()
+
+
+## Fill the board with resistors at every second row plus cross-column wires,
+## to stress the visual rebuild, highlights and netlist at an unrealistic size.
+func _generate_stress(count: int) -> void:
+	var placed := 0
+	for col in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]:
+		var r := 1
+		while r < bb_view.rows and placed < count:
+			var h1 := "%s%d" % [col, r]
+			var h2 := "%s%d" % [col, r + 1]
+			if _component_at_hole(h1) == "" and _component_at_hole(h2) == "":
+				session.add_component("resistor", [h1, h2])
+				placed += 1
+			r += 2
+	var wires := 0
+	for r in range(1, bb_view.rows + 1):
+		if wires >= count:
+			break
+		session.add_wire({"kind": "hole", "id": "TP%d" % r}, {"kind": "hole", "id": "BM%d" % r})
+		wires += 1
+	session.select("")
+	_on_status("Stress circuit generated: %d resistors, %d wires." % [placed, wires])
+
+
+## Average real rendered FPS over a window plus CPU-side scene costs. Runs the
+## app windowed (never headless): headless FPS numbers are meaningless.
+func _run_fps_report() -> void:
+	for i in 30:
+		await get_tree().process_frame
+	var t0 := Time.get_ticks_usec()
+	_rebuild_3d()
+	var rebuild_ms := (Time.get_ticks_usec() - t0) / 1000.0
+	var samples := 0
+	var acc := 0.0
+	var best := 1e12
+	var worst := 0.0
+	var n_runs := int(ceil(_fps_report / 0.5))
+	for i in n_runs:
+		var t1 := Time.get_ticks_usec()
+		for f in 30:
+			await get_tree().process_frame
+		var wall := (Time.get_ticks_usec() - t1) / 1e6
+		var fps := 30.0 / maxf(wall, 1e-6)
+		acc += fps
+		samples += 1
+		best = minf(best, fps)
+		worst = maxf(worst, fps)
+	var prims := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
+	var draw_calls := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+	var objs := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_OBJECTS_IN_FRAME)
+	var proc_ms := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var phys_ms := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	var line := ("fps-report result: {\"components\": %d, \"wires\": %d, \"fps_avg\": %.1f, \"fps_min\": %.1f,"
+		+ " \"fps_max\": %.1f, \"rebuild_ms\": %.1f, \"process_ms_per_frame\": %.2f, \"physics_ms_per_frame\": %.3f,"
+		+ " \"primitives_in_frame\": %d, \"draw_calls\": %d, \"objects_in_frame\": %d}")
+	print(line % [
+		session.project.components.size(), session.project.wires.size(),
+		acc / maxf(1.0, float(samples)), best, worst, rebuild_ms, proc_ms, phys_ms,
+		prims, draw_calls, objs,
+	])
+	if _screenshot_path != "":
+		# combined invocation: capture a screenshot of the same scene, then quit
+		_capture_screenshot()
+		return
+	get_tree().quit()
 
 
 func _capture_screenshot() -> void:
@@ -942,6 +1029,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					_on_redo()
 					return
 		match ek.keycode:
+			KEY_ESCAPE:
+				_cancel_interaction()
 			KEY_DELETE:
 				_on_delete()
 			KEY_W:
@@ -950,6 +1039,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_on_rotate()
 			KEY_SPACE:
 				_on_run_dc()
+			KEY_F:
+				_on_frame_all()
+			KEY_P:
+				camera.set_preset("top")
 			KEY_F1:
 				_show_help()
 
@@ -1371,7 +1464,24 @@ func _on_wire_mode() -> void:
 	pending_type = ""
 	wire_start = null
 	_clear_preview()
-	_on_status("Wire mode %s." % ("ON - click two holes" if wire_mode else "OFF"))
+	if wire_mode:
+		_on_status("Wire mode ON - click the first terminal, then the second one. Esc or W cancels.")
+	else:
+		_on_status("Wire mode OFF.")
+	_refresh_statusbar()
+
+
+## Cancel whatever placement/wiring interaction is in progress.
+func _cancel_interaction() -> void:
+	if pending_type != "":
+		pending_type = ""
+		_clear_preview()
+		_on_status("Placement cancelled.")
+	elif wire_mode:
+		wire_mode = false
+		wire_start = null
+		_clear_preview()
+		_on_status("Wire mode OFF.")
 	_refresh_statusbar()
 
 func _on_rotate() -> void:
@@ -1566,18 +1676,25 @@ func _show_help() -> void:
 	dlg.title = "CircuitForge 3D - Help"
 	dlg.dialog_text = """CircuitForge 3D quick start
 
-1. Pick a component in the left library.
-2. Click a breadboard hole to place it (pins land on the next rows).
-3. Use Wire mode: click two holes to join them.
-4. Place a Ground component on the net you want as 0 V.
+1. Pick a component in the left library (search box filters by name or part number).
+2. Click a breadboard hole to place it - the ghost turns green when the spot is free.
+3. Use Wire mode: click the first terminal, then the second one.
+4. Place a Ground component on the net you want as 0 V (the solver needs one).
 5. Press Run DC to solve, or Run Transient for waveforms.
 6. Select a component to edit its value in the Properties panel.
+7. Hover any board hole to highlight its whole electrical net and see its name.
+
+Only wires and component pins make electrical connections - two holes in the
+same column strip (a-e / f-j) are already joined inside the breadboard, and
+the centre channel separates the two halves.
 
 Instruments: Scope plots transient traces; Meter reads a net or component.
 Logic: AND / OR / NOT / NAND / NOR / XOR / Buffer gates use 5 V logic levels.
 
 Camera: right-drag = orbit, middle-drag = pan, wheel = zoom.
-Shortcuts: W wire, R rotate, Delete delete, Space run DC, F1 help,
-           Ctrl+S save, Ctrl+Shift+S save as, Ctrl+O open, Ctrl+Z/Y undo/redo."""
+Shortcuts: Esc cancel, W wire, R rotate, Delete delete, Space run DC,
+           F frame all, P top view, F1 help,
+           Ctrl+S save, Ctrl+Shift+S save as, Ctrl+O open, Ctrl+N new,
+           Ctrl+Z/Y undo/redo."""
 	add_child(dlg)
 	dlg.popup_centered()
