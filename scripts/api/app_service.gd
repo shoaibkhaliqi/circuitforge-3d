@@ -254,6 +254,10 @@ func get_board_pinout(type: String) -> Dictionary:
 			"'%s' is not a development board." % type,
 			"Use get_component_catalog with mounting=\"board\" to list boards.")
 	var s := BoardPins.summary(type)
+	# Join the backend's actual FQBN so callers know what to compile sketches
+	# for; an empty string always means "no firmware backend for this SoC"
+	# (honest absence, never a fake claim).
+	s["firmware_fqbn"] = FirmwareBackend.board_fqbn(type)
 	return _ok(s)
 
 

@@ -8,7 +8,7 @@
 6. **Firmware requires Node.js** — optional external dependency; Godot suite runs without it.
 7. **Firmware is AVR-only** — ESP32, STM32, RP2040 not supported.
 8. **No real-time simulation** — DC/transient only, no real-time clock.
-9. **Development boards are pinout/external-terminal models** — 20 boards are implemented as documented pinouts and external terminals; only ATmega328P-based boards (Uno R3, Nano, Pro Mini) are firmware-capable via the optional AVR backend, and no board CPU/OS is simulated.
+9. **Development boards are pinout/external-terminal models** — 20 boards are implemented as documented pinouts, documented identity (`board_info`: MCU, logic level, USB, programming, fixed interface mappings) and external terminals; only ATmega328P-based boards (Uno R3, Nano, Pro Mini) are firmware-capable via the optional AVR backend, and no board CPU/OS is simulated.
 10. **Connectors, parallel LCD, and external sensors/actuators** are visual/backend-driven rather than electrically simulated.
 11. **Performance on minimum hardware** not yet measured.
 12. **WS2812B and PMS5003** are decoded from firmware pin transitions / UART bytes; they have no breadboard electrical model.

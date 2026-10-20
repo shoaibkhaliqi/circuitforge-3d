@@ -241,8 +241,8 @@ func _run_electrical(t) -> void:
 	uno_holes[8] = "e4"
 	app.session.add_component("arduino_uno_r3", uno_holes, {}, "U1")
 	app.session.add_component("led", ["c2", "TM1"], {}, "L1")
-	var sr: Dictionary = app.session.save_project(ROUNDTRIP_PATH)
-	t.check(bool(sr.get("ok", false)), "a project with a placed board saves", str(sr))
+	var saved_ok: bool = app.session.save_project(ROUNDTRIP_PATH)
+	t.check(saved_ok, "a project with a placed board saves")
 	var app2 = AppService.new()
 	var loaded: bool = app2.session.load_project(ROUNDTRIP_PATH)
 	t.check(loaded, "a project with a placed board loads back")
@@ -256,3 +256,22 @@ func _run_electrical(t) -> void:
 	var u2_nets: Array = (built2.pin_nets as Dictionary).get("U1", [])
 	t.check(u2_nets.size() == 29 and String(u2_nets[0]) == "a1",
 		"the reloaded board maps into the netlist identically", str(u2_nets))
+
+	t.section("Boards - API surface (pinout + capabilities)")
+	var api = AppService.new()
+	var pin_r: Dictionary = api.get_board_pinout("arduino_uno_r3")
+	t.check(bool(pin_r.get("success", false)), "the API exposes a board pinout")
+	t.check(String(pin_r.get("firmware_fqbn", "x")) == "arduino:avr:uno",
+		"the API joins the backend FQBN", str(pin_r.get("firmware_fqbn")))
+	t.check((pin_r.get("board_info", {}) as Dictionary).get("mcu") == "ATmega328P",
+		"the API exposes the documented identity")
+	var esp_r: Dictionary = api.get_board_pinout("esp32_devkit_v1")
+	t.check(bool(esp_r.get("success", false)) and String(esp_r.get("firmware_fqbn", "x")) == "",
+		"a non-AVR board reports an empty (honest) FQBN", str(esp_r.get("firmware_fqbn")))
+	var not_board: Dictionary = api.get_board_pinout("resistor")
+	t.check((not not_board.get("success", true))
+		and String((not_board.get("error", {}) as Dictionary).get("code", "")) == "NOT_A_BOARD",
+		"a non-board type is rejected with NOT_A_BOARD")
+	var caps_r: Dictionary = api.get_firmware_capabilities()
+	t.check((caps_r.get("board_types", {}) as Dictionary).size() == 3,
+		"the capabilities payload lists the firmware-capable boards", str(caps_r.get("board_types")))

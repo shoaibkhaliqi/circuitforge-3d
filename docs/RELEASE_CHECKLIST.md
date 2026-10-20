@@ -9,8 +9,12 @@
 - [x] MCP server starts and stops cleanly
 
 ### Tests
-- [x] Complete test suite: 875/875 passed
-- [x] Component catalog validation: 0 errors (243 entries)
+- [x] Complete test suite: 1392/1392 passed
+- [x] MCP integration tests (real protocol, real engine): 29/29 passed
+- [x] Component catalog validation: 0 errors
+- [x] Development boards: all 20 boards verified (documented pinouts, `board_info`
+      identity, per-board electrical terminal + save/load tests, honest firmware
+      capability split) - see `docs/boards_status.md`
 - [x] No TODO/FIXME/HACK in codebase
 - [x] No secrets/credentials committed
 

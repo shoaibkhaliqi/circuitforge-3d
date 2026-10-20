@@ -218,11 +218,17 @@ def get_catalog_facets() -> dict[str, Any]:
 
 @mcp.tool(annotations=_ro(), structured_output=True)
 def get_board_pinout(type: str) -> dict[str, Any]:
-    """Return a development board's documented pin map, grouped by type.
+    """Return a development board's documented pin map, identity and interfaces.
 
     Covers Arduino, ESP, Pico, Raspberry Pi, STM32, Teensy and similar boards.
-    The pin map is descriptive metadata (name, electrical type, header position);
-    it does not imply the board is simulated.
+    The payload carries the header pins (name, electrical type, header position,
+    and the pin's own voltage where the name states one), the documented board
+    identity (MCU part, core, clock, logic level, USB connector, programming
+    interface), the manufacturer-documented fixed interface mappings (i2c, spi,
+    uart, pwm, analog_in -> pin names), the honest capability split:
+    `simulation_status` (always "external" - the board's MCU is not a solver
+    element), `simulation_backend` ("firmware" or "none"), and `firmware_fqbn`
+    (the FQBN to compile sketches for, empty when no backend supports the SoC).
 
     Args:
         type: Board type id (e.g. "arduino_uno_r3", "esp32_devkit_v1").
@@ -248,8 +254,9 @@ def get_firmware_capabilities() -> dict[str, Any]:
 
     The firmware backend is external and optional: it runs a compiled Arduino
     Intel-HEX on avr8js (MIT) through Node. Returns availability, the engine and
-    its license, the boards covered (AVR/Arduino only) and, when unavailable, why
-    (e.g. Node not installed). Nothing GPL is bundled.
+    its license, the boards covered (AVR/Arduino only), `board_types` (the
+    catalog board ids whose sketches can execute, each mapped to its FQBN) and,
+    when unavailable, why (e.g. Node not installed). Nothing GPL is bundled.
     """
     return _wrap(call_engine("get_firmware_capabilities"))
 
@@ -339,8 +346,9 @@ def run_firmware(
         ms: Emulated run length in milliseconds (1..10000).
         attach_devices: Attach the circuit's bus devices so firmware can read them.
         analog_map: Firmware analog pin -> `mcu_analog_in` component id.
-        pin_map: Firmware digital pin -> component id wired to a firmware-driven pin
-            sensor's TRIG/ECHO (e.g. an HC-SR04).
+        pin_map: Firmware digital pin -> component id (optionally suffixed with
+            ":pin_name" to target one named board header pin, e.g.
+            `{"9": "U1:D9"}` binds firmware pin 9 to board U1's D9 pin only).
     """
     return _wrap(call_engine("run_firmware", {
         "hex_path": hex_path, "ms": ms, "attach_devices": attach_devices,
@@ -507,7 +515,9 @@ def apply_firmware_pins(
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
         pin_map: Firmware pin -> mcu_pin component_id, e.g. {"13": "P1"} ("13",
-            "D13" and "A0" are accepted).
+            "D13" and "A0" are accepted). A value may also be "cid:pin_name"
+            to bind exactly one named board header pin, e.g. {"13": "U1:D13"}
+            (a pin name that the board does not have matches nothing).
         ms: Emulated run length in milliseconds (1..10000).
         at_ms: Sample time in ms; -1 means the end of the run.
         simulate: Run a DC simulation after applying the levels.
@@ -567,7 +577,9 @@ def apply_firmware_pwm(
 
     Args:
         hex_path: Path to a compiled Arduino Intel-HEX.
-        pin_map: Firmware pin/digital-pin -> `mcu_pwm_out` id, e.g. {"9": "PWM1"}.
+        pin_map: Firmware pin/digital-pin -> `mcu_pwm_out` id (or "cid:pin_name"
+            to bind one named board header pin), e.g. {"9": "PWM1"} or
+            {"9": "U1:D9"}.
         ms: Emulated run length in milliseconds (1..10000).
         vlogic: Full-scale (100% duty) voltage of the pin, in volts (default 5).
         simulate: Run a DC simulation after applying the average voltages.
@@ -598,7 +610,8 @@ def apply_firmware_servo(
         hex_path: Path to a compiled Arduino Intel-HEX.
         pin_map: Firmware pin/digital-pin -> either the `servo_sg90`/`servo_mg996r` id itself
             ({"9": "S1"}) or, like `run_firmware`, the component on the servo's PWM net —
-            usually the circuit's virtual `mcu_pin` ({"9": "P1"}).
+            usually the circuit's virtual `mcu_pin` ({"9": "P1"}). A value may also be
+            "cid:pin_name" to bind exactly one named board header pin, e.g. {"9": "U1:D9"}.
         ms: Emulated run length in milliseconds (1..10000; 50 Hz needs one frame per pulse).
         simulate: Run a DC simulation after applying the angles (the circuit does not change).
         expected_revision: Optional optimistic-concurrency guard.
@@ -631,7 +644,8 @@ def apply_firmware_stepper(
         hex_path: Path to a compiled Arduino Intel-HEX.
         pin_map: Firmware pin -> the component on the driver's input net — the STEP (and DIR)
             net, or IN1..IN4 — usually the circuit's virtual `mcu_pin`s, e.g.
-            {"3": "P1", "2": "P2"}.
+            {"3": "P1", "2": "P2"}. A value may also be "cid:pin_name" to bind
+            exactly one named board header pin, e.g. {"3": "U1:D3"}.
         ms: Emulated run length in milliseconds (1..10000).
         microsteps: Override for a STEP/DIR driver's `microsteps` parameter (0 = use the
             part's; ignored by a four-phase move, which is already in half steps).

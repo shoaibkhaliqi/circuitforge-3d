@@ -152,17 +152,31 @@ async def main() -> int:
                 pin = await call_ok(s, "get_board_pinout", {"type": "arduino_uno_r3"})
                 counts = pin.get("counts", {})
                 groups = pin.get("groups", {})
+                bi = pin.get("board_info", {})
                 ok = (pin.get("type") == "arduino_uno_r3"
                       and pin.get("pin_count", 0) >= 20
                       and counts.get("ground", 0) >= 1
                       and counts.get("power", 0) >= 1
                       and isinstance(groups, dict)
                       and "GND" in groups.get("ground", [])
-                      and bool(pin.get("references")))
-                record("B3. Board pinout metadata", ok,
-                       f"pins={pin.get('pin_count')} counts={counts}")
+                      and bool(pin.get("references"))
+                      # documented identity + honest capability split
+                      and bi.get("mcu") == "ATmega328P"
+                      and float(bi.get("logic_voltage", 0)) == 5.0
+                      and pin.get("interfaces", {}).get("i2c") == ["A4", "A5"]
+                      and pin.get("simulation_status") == "external"
+                      and pin.get("simulation_backend") == "firmware"
+                      and pin.get("firmware_fqbn") == "arduino:avr:uno")
+                board2 = await call_ok(s, "get_board_pinout", {"type": "esp32_devkit_v1"})
+                ok2 = (board2.get("pin_count", 0) == 30
+                       and board2.get("simulation_backend") == "none"
+                       and board2.get("firmware_fqbn") == ""
+                       and board2.get("board_info", {}).get("mcu") == "ESP32-WROOM-32")
+                record("B3. Board pinout metadata (+ identity/backend)", ok and ok2,
+                       f"pins={pin.get('pin_count')} fqbn={pin.get('firmware_fqbn')} "
+                       f"esp32_pins={board2.get('pin_count')}")
             except Exception as exc:
-                record("B3. Board pinout metadata", False, repr(exc))
+                record("B3. Board pinout metadata (+ identity/backend)", False, repr(exc))
 
             # ---------------------------------------------------- Test B4
             try:
@@ -188,18 +202,23 @@ async def main() -> int:
             try:
                 cap = await call_ok(s, "get_firmware_capabilities")
                 avail = cap.get("available")
+                board_types = cap.get("board_types", {})
                 honest = (isinstance(avail, bool)
                           and cap.get("engine") == "avr8js"
                           and cap.get("engine_license") == "MIT"
                           and isinstance(cap.get("boards"), list)
+                          and isinstance(board_types, dict)
+                          and board_types.get("arduino_uno_r3") == "arduino:avr:uno"
+                          and len(board_types) == 3
                           and (avail or bool(cap.get("unavailable_reasons"))))
                 err = await call_err(s, "run_firmware", {"hex_path": "does/not/exist.hex"})
                 code = err["error"]["code"]
                 err_ok = code == "FIRMWARE_ERROR" if avail else code == "FIRMWARE_UNAVAILABLE"
-                record("B5. Firmware backend (optional, honest)", honest and err_ok,
-                       f"available={avail} engine={cap.get('engine')} err={code}")
+                record("B5. Firmware backend (optional, honest, board_types)", honest and err_ok,
+                       f"available={avail} engine={cap.get('engine')} "
+                       f"board_types={len(board_types)} err={code}")
             except Exception as exc:
-                record("B5. Firmware backend (optional, honest)", False, repr(exc))
+                record("B5. Firmware backend (optional, honest, board_types)", False, repr(exc))
 
             # ---------------------------------------------------- Test B6
             try:

@@ -167,19 +167,31 @@ catalog that replaces the hardcoded definition list.
 - Evidence: `docs/plan/m7_package_models.png`.
 - Regression: **377 / 377 tests pass**, headless load exits 0.
 
-### Milestone 5 — board pin metadata (done)
+### Milestone 5 — board pin metadata + documented identity (done)
 - `scripts/components/board_pins.gd`: board-aware helpers over the documented pin
   maps — `all_boards`, `is_board`, `pinout`, `named`/`first`/`by_type`,
   `groups` (digital/analog/power/ground/other), `counts`, `issues` (structural
-  checks) and `summary` (a presentation payload).
-- Provenance: every board now carries a `references` citation (official vendor
-  documentation / datasheets); the Android USB host shield too. No pin values were
-  invented — the maps are the ones already documented in `data/components/`.
-- Exposed as `get_board_pinout` in the local API and the MCP server
-  (**34 tools**; the integration suite now runs Tests A–J + B2 + B3 = 13/13).
-- New `tests/unit/test_factory.gd`-style suite `tests/unit/test_boards.gd`:
-  discovery, per-board consistency, group/count arithmetic, the documented Uno R3
-  map, summary payload, and provenance for every board.
+  checks, including interface↔pinout coherence and logic-voltage sanity),
+  `board_info`/`interfaces`/`interface_pins` and `summary` (a presentation payload).
+- Every board carries `board_info`: MCU part, core, clock, logic level (5 V or
+  3.3 V), USB connector, programming interface and the manufacturer-documented
+  fixed interface-to-pin mappings (`i2c`/`spi`/`uart`/`pwm`/`analog_in`).
+- Provenance: every board cites a `references` source (official vendor
+  documentation / datasheets). No pin values were invented; header sizes were
+  CORRECTED against the documentation (Pico/Pico2 40 incl. ADC_VREF, all three
+  Pi SBCs 40 incl. ID_SD/ID_SC and two 3V3 pins, ESP32 DevKit V1 30 with GND on
+  both sides, classic Nano 30 with AREF and RESET on both sides).
+- Honest capability split in the data: `simulation_status: "external"` for every
+  board, `simulation_backend: "firmware"` only for the ATmega328P boards (Uno
+  R3/Nano/Pro Mini — real FQBNs in `FirmwareBackend.BOARDS`), `"none"` elsewhere;
+  `get_board_pinout` joins `firmware_fqbn` ("" honestly means "no backend").
+- Exposed as `get_board_pinout` in the local API and the MCP server; the
+  integration suite runs Tests A–J + B2/B3 + firmware = 29/29 against the real
+  engine, and `get_firmware_capabilities` reports `board_types`.
+- Per-board tests in `tests/unit/test_boards.gd`: discovery, per-board
+  consistency, documented header sizes, identity/interface mappings, backend
+  honesty, electrical terminals in the netlist for EVERY board, save/load
+  round trip, and the API surface.
 - **Honest scope**: this is descriptive metadata. Boards remain
   `simulation_status: planned` and are never reported as simulated.
 - Regression: **485 / 485 tests pass**, MCP **13 / 13**, headless load exits 0.

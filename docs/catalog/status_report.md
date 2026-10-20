@@ -153,8 +153,12 @@ why it is `partial` rather than `external`: it has a real (if ideal) electrical 
   four-phase `uln2003_driver` is measured from the phase sequence instead: each valid
   pattern change is worth the shortest move around the drive cycle, so wave, full-step and
   half-step sketches all decode to half steps.
-- Boards, phones, TV boxes and instruments are `planned`/`external` on purpose.
-  A board's 3D model is **not** a CPU. An optional firmware backend now exists (AVR
+- Boards are `external` on purpose. A board's 3D model is **not** a CPU. Each of the
+  20 carries a documented pinout, an identity block (`board_info` — MCU part, core,
+  clock, logic level, USB, programming and the documented interface mappings), and its
+  header pins are real terminals in the netlist; per-board details, corrected header
+  sizes and the firmware-backend split live in `docs/boards_status.md`. An optional
+  firmware backend now exists (AVR
   firmware on the MIT avr8js engine): it drives `mcu_pin`s and `mcu_pwm_out`
   (`analogWrite()` duty) from firmware output, and reads the circuit back into the
   firmware through `mcu_analog_in` (`analogRead()`), served I2C devices
