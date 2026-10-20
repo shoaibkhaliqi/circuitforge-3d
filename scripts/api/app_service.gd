@@ -358,15 +358,19 @@ func run_firmware(hex_path: String, ms: int = 2000, attach_devices: bool = false
 	var analog_applied := []
 	var pin_applied := []
 	for key in pin_map.keys():
-		var cid := String(pin_map[key])
+		var target := _pin_target(pin_map[key])
 		var dnum := _digital_pin(key)
-		var c = session.find_component(cid)
+		var c = session.find_component(target.cid)
 		if dnum < 0:
-			pin_applied.append({"pin": String(key), "component_id": cid, "skipped": "not a Uno digital pin (0..19)"})
+			pin_applied.append({"pin": String(key), "component_id": target.cid, "skipped": "not a Uno digital pin (0..19)"})
 		elif c == null:
-			pin_applied.append({"pin": String(key), "component_id": cid, "skipped": "component not found"})
+			pin_applied.append({"pin": String(key), "component_id": target.cid, "skipped": "component not found"})
+		elif target.pin == -2:
+			pin_applied.append({"pin": String(key), "digital_pin": dnum, "component_id": target.cid,
+				"skipped": "component has no pin named '%s'" % target.name})
 		else:
-			pin_applied.append({"pin": String(key), "digital_pin": dnum, "component_id": cid})
+			pin_applied.append({"pin": String(key), "digital_pin": dnum, "component_id": target.cid,
+				"component_pin": target.name if target.pin >= 0 else ""})
 	for key in analog_map.keys():
 		var ch := _adc_channel(key)
 		var cid := String(analog_map[key])
@@ -763,14 +767,47 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 ## itself: its own nets carry no information about which pin drives them).
 func _net_pin(net: String, pin_map: Dictionary, pin_nets: Dictionary, exclude := "") -> int:
 	for key in pin_map.keys():
-		var cid := String(pin_map[key])
+		var target := _pin_target(pin_map[key])
+		var cid: String = target.cid
 		if cid == exclude and exclude != "":
 			continue
 		var nets: Array = (pin_nets as Dictionary).get(cid, [])
+		if target.pin >= 0:
+			# Pin-specific mapping ("cid:pin_name"): only that named pin's net
+			# carries this firmware pin. This is what boards need, where a
+			# whole-component scan would be ambiguous.
+			if target.pin < nets.size() and String(nets[target.pin]) == net:
+				return _digital_pin(key)
+			continue
+		if target.pin == -2:
+			continue   # named pin not on the component: never matches
 		for n in nets:
 			if String(n) == net:
 				return _digital_pin(key)
 	return -1
+
+
+## Resolve a `pin_map` VALUE to the component (and optional named pin) it names.
+## A value is either "<component_id>" (any pin of that component may carry this
+## firmware pin's net - the convention for small two-pin parts) or
+## "<component_id>:<pin_name>" which binds the firmware pin to ONE named pin -
+## the form boards need (e.g. "Uno1:D13" so firmware pin 13 talks to that exact
+## header pin). Returns {cid, pin (-1 any, -2 not-found, >=0 index), name}.
+func _pin_target(value) -> Dictionary:
+	var s := String(value)
+	var colon := s.find(":")
+	if colon < 0:
+		return {"cid": s, "pin": -1, "name": ""}
+	var cid := s.substr(0, colon)
+	var pin_name := s.substr(colon + 1)
+	var c = session.find_component(cid) if session != null else null
+	if c == null:
+		return {"cid": cid, "pin": -2, "name": pin_name}
+	var def := ComponentDB.get_def(String(c.type))
+	for i in def.pins.size():
+		if String(def.pins[i].get("name", "")) == pin_name:
+			return {"cid": cid, "pin": i, "name": pin_name}
+	return {"cid": cid, "pin": -2, "name": pin_name}
 
 
 ## True for the catalog types a servo pulse train can be decoded for.

@@ -496,10 +496,100 @@ func run(t) -> void:
 		t.check(int(ws_dev.get("pin", -1)) == 8, "DIN pin resolved from pin_map", str(ws_dev))
 		t.check(int(ws_dev.get("count", -1)) == 4, "count comes from params", str(ws_dev))
 
+	_run_board_pinmap_tests(t)
 	_run_ws2812_tests(t)
 	_run_pms5003_tests(t)
 
 	t.done()
+
+
+## Board-aware firmware pin mapping: `pin_map` values of the form
+## "<board_id>:<pin_name>" bind a firmware pin to ONE named header pin, so
+## several pins of one board can be wired to different devices at the same time.
+func _run_board_pinmap_tests(t) -> void:
+	t.section("Firmware - board pin mapping")
+
+	var appB = AppService.new()
+	appB.session.add_component("ground", ["TM1"])
+
+	# An Uno R3 placed with only D8 and D13 sitting in breadboard holes.
+	var uno_holes: Array = []
+	for i in 29:
+		uno_holes.append("")
+	uno_holes[8] = "b7"       # catalog pin index 8 is "D8"
+	uno_holes[13] = "b12"     # index 13 is "D13"
+	appB.session.add_component("arduino_uno_r3", uno_holes, {}, "U1")
+
+	# A strip whose DIN is wired to the board's D8 header pin...
+	appB.session.add_component("ws2812b", ["TP4", "TM2", "TM3", "d2"], {"count": 3}, "ST1")
+	appB.session.add_wire({"kind": "pin", "component": "U1", "pin": 8},
+		{"kind": "pin", "component": "ST1", "pin": 3})
+	# ...and a servo whose signal wire runs to the board's D13 header pin.
+	appB.session.add_component("servo_sg90", ["d6", "TM4", "TP7"], {"angle": 90}, "SV1")
+	appB.session.add_wire({"kind": "pin", "component": "U1", "pin": 13},
+		{"kind": "pin", "component": "SV1", "pin": 2})
+
+	var builtB: Dictionary = appB.session.build_circuit()
+	var specsB: Array = appB._firmware_devices({}, builtB.pin_nets,
+		{"8": "U1:D8", "13": "U1:D13", "9": "U1:D9"})
+	t.check(specsB.size() >= 1, "the strip's device spec is produced", str(specsB))
+	for s in specsB:
+		if String(s.get("kind", "")) == "ws2812b":
+			t.check(int(s.get("pin", -1)) == 8,
+				"strip DIN rides the board's D8 (its own named pin), not another", str(s))
+
+	# Servo decode must also ride its OWN named pin (wired to D13): ~1.5 ms
+	# pulses at 50 Hz read as a mid-scale angle.
+	var fake_sweep := []
+	var tsec := 0.0
+	for i in 5:
+		fake_sweep.append({"t_ms": tsec, "digital_pin": 13, "level": 1})
+		tsec += 1.5
+		fake_sweep.append({"t_ms": tsec, "digital_pin": 13, "level": 0})
+		tsec += 18.5
+	var servos: Array = appB._firmware_servos(fake_sweep, builtB.pin_nets, {"13": "U1:D13"})
+	t.check(servos.size() == 1, "servo decoded through its named board pin", str(servos))
+	if servos.size() == 1:
+		t.check(int(servos[0].get("digital_pin", -1)) == 13, "servo rides firmware pin 13", str(servos[0]))
+		t.check(absf(float(servos[0].get("angle_deg", 0.0)) - 92.5) < 2.0,
+			"1.5 ms pulses read as a mid-scale angle", str(servos[0]))
+
+	# A pin name the component does not have maps to nothing (and reports why).
+	var none: Array = appB._firmware_devices({}, builtB.pin_nets, {"8": "U1:A0"})
+	var strip_found := false
+	for s in none:
+		if String(s.get("kind", "")) == "ws2812b":
+			strip_found = true
+	t.check(not strip_found, "a wrong pin name matches no device", str(none))
+
+	# The legacy whole-component form still works for small two-pin parts.
+	var appL = AppService.new()
+	appL.session.add_component("ground", ["TM1"])
+	appL.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")     # HX711 DT driver
+	appL.session.add_component("mcu_pin", ["b3", "TM7"], {}, "P2")     # SCK driver
+	appL.session.add_component("hx711", ["TM4", "a2", "a3", "TP4", "d5", "d6", "d7", "d8"], {"value": 7}, "H1")
+	var builtL: Dictionary = appL.session.build_circuit()
+	var specsL: Array = appL._firmware_devices({}, builtL.pin_nets, {"9": "P1", "10": "P2"})
+	var hx_found := false
+	for s in specsL:
+		if String(s.get("kind", "")) == "hx711" and int(s.get("dout", -1)) == 9 and int(s.get("sck", -1)) == 10:
+			hx_found = true
+	t.check(hx_found, "legacy pin_map (component id) still resolves", str(specsL))
+
+	t.section("Firmware - board backend honesty")
+	t.check(FirmwareBackend.board_fqbn("arduino_uno_r3") == "arduino:avr:uno",
+		"Uno R3 has an AVR FQBN")
+	t.check(FirmwareBackend.board_fqbn("arduino_nano") == "arduino:avr:nano",
+		"Nano has an AVR FQBN")
+	t.check(FirmwareBackend.board_fqbn("arduino_pro_mini") == "arduino:avr:pro",
+		"Pro Mini has an AVR FQBN")
+	t.check(FirmwareBackend.board_fqbn("esp32_devkit_v1") == "",
+		"an ESP32 board has no firmware backend")
+	t.check(FirmwareBackend.board_fqbn("resistor") == "",
+		"non-board types have no firmware backend")
+	var cap: Dictionary = FirmwareBackend.capabilities()
+	var bt: Dictionary = cap.get("board_types", {})
+	t.check(bt.size() == 3, "capabilities list 3 firmware-capable boards", str(bt.keys()))
 
 
 ## WS2812B decode: emulate the transitions a strip send produces - one high

@@ -19,6 +19,14 @@ const HARNESS_REL := "res://firmware/harness/run.mjs"
 const ENGINE := "avr8js"
 const ENGINE_LICENSE := "MIT"
 const BOARDS := ["arduino:avr:uno", "arduino:avr:nano", "arduino:avr:pro"]
+## Catalog board ids the firmware backend can execute sketches for, each mapped
+## to its avr8js-compatible FQBN. Everything else reports honestly that its
+## CPU/SoC has no compatible emulator (see get_board_pinout / capabilities).
+const BOARD_TYPES := {
+	"arduino_uno_r3": "arduino:avr:uno",
+	"arduino_nano": "arduino:avr:nano",
+	"arduino_pro_mini": "arduino:avr:pro",
+}
 const MIN_MS := 1
 const MAX_MS := 10000
 const MAX_SERIAL_CHARS := 20000
@@ -64,10 +72,19 @@ static func capabilities() -> Dictionary:
 		"node": node,
 		"harness": harness,
 		"boards": BOARDS,
+		# Catalog board types that can execute their sketches (type -> FQBN);
+		# absent means "pinout only, no firmware backend for this SoC".
+		"board_types": BOARD_TYPES,
 		"stage": "Stage B: firmware drives digital pins and bus devices, reads solved ADC inputs, and pin sensors drive MCU inputs; no analog output feedback",
 		"max_ms": MAX_MS,
 		"unavailable_reasons": reasons,
 	}
+
+
+## The FQBN a catalog board type's sketches compile for, or "" when the firmware
+## backend cannot execute that board's MCU (report that honestly, never fake it).
+static func board_fqbn(type: String) -> String:
+	return String(BOARD_TYPES.get(type, ""))
 
 
 ## Normalise a firmware pin key ("13", "D13", "A0") to the Arduino digital number,
