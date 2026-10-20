@@ -562,11 +562,13 @@
       "pins": [
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -603,12 +605,27 @@
       "mounting": "board",
       "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "USB host behaviour requires a dedicated backend; not yet implemented. (No electrical model: backend/external part.)",
+      "notes": "Electrical pinout (MAX3421E USB host controller over SPI) and physical model are implemented; the shield itself has no MCU - firmware runs on the host Arduino board through the optional AVR backend.",
       "references": [
         "Arduino USB Host Shield 2.0 - shield documentation",
         "Android Open Accessory (AOA) protocol - Android developer documentation"
       ],
-      "simulation_backend": "firmware"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "MAX3421E (USB host controller, no general-purpose MCU)",
+        "core": "USB host controller",
+        "logic_voltage": 5.0,
+        "usb": "USB-A host port",
+        "programming": "n/a - peripheral; driven over SPI by a host board",
+        "interfaces": {
+          "spi": [
+            "SS",
+            "SCK",
+            "MOSI",
+            "MISO"
+          ]
+        }
+      }
     }
   ]
 }

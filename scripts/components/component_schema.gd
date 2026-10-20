@@ -93,6 +93,35 @@ static func _normalize_params(v) -> Dictionary:
 	return out
 
 
+## Documented board identity + peripheral mappings (development boards).
+## Everything is documentation data - never a guess: MCU part number, core,
+## clock, logic level, USB connector, programming interface, and the fixed
+## interface-to-header-pin mappings the manufacturer documents, e.g.
+## {"i2c": ["A4", "A5"], "spi": ["D10", "D11", "D12", "D13"]}.
+static func _normalize_board_info(v) -> Dictionary:
+	var o := {}
+	if typeof(v) != TYPE_DICTIONARY:
+		return o
+	for key in ["mcu", "core", "usb", "programming"]:
+		o[key] = String(v.get(key, ""))
+	if v.has("cpu_mhz"):
+		o["cpu_mhz"] = float(v.get("cpu_mhz"))
+	if v.has("logic_voltage"):
+		o["logic_voltage"] = float(v.get("logic_voltage"))
+	var ifc: Variant = v.get("interfaces", {})
+	if typeof(ifc) == TYPE_DICTIONARY:
+		var out := {}
+		for bus in ifc.keys():
+			var pins: Variant = ifc[bus]
+			if typeof(pins) == TYPE_ARRAY:
+				var arr := []
+				for p in pins:
+					arr.append(String(p))
+				out[String(bus)] = arr
+		o["interfaces"] = out
+	return o
+
+
 ## Return a fully-populated definition dictionary (all keys present).
 static func normalize(d: Dictionary) -> Dictionary:
 	var o := {}
@@ -121,6 +150,7 @@ static func normalize(d: Dictionary) -> Dictionary:
 	o["protocols"] = _string_array(d.get("protocols", []))
 	o["interfaces"] = _string_array(d.get("interfaces", []))
 	o["arduino_compatible"] = bool(d.get("arduino_compatible", false))
+	o["board_info"] = _normalize_board_info(d.get("board_info", {}))
 	o["model"] = d.get("model", {})
 	o["notes"] = String(d.get("notes", ""))
 	o["references"] = _string_array(d.get("references", []))

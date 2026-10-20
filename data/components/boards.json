@@ -106,11 +106,13 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -147,7 +149,47 @@
       "references": [
         "Arduino Uno Rev3 - Arduino official hardware documentation"
       ],
-      "simulation_backend": "firmware"
+      "simulation_backend": "firmware",
+      "board_info": {
+        "mcu": "ATmega328P",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "USB-B",
+        "programming": "USB bootloader + ICSP",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "A4",
+            "A5"
+          ],
+          "spi": [
+            "D10",
+            "D11",
+            "D12",
+            "D13"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_uno_r4_wifi",
@@ -253,11 +295,13 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -285,7 +329,8 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         }
       ],
       "model": {
@@ -298,7 +343,47 @@
       "references": [
         "Arduino Uno R4 WiFi - Arduino official hardware documentation"
       ],
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "Renesas RA4M1",
+        "core": "Arm Cortex-M4",
+        "cpu_mhz": 48,
+        "logic_voltage": 5.0,
+        "usb": "USB-C",
+        "programming": "USB DFU bootloader",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "A4",
+            "A5"
+          ],
+          "spi": [
+            "D10",
+            "D11",
+            "D12",
+            "D13"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_nano",
@@ -411,11 +496,17 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
+        },
+        {
+          "name": "AREF",
+          "type": "input"
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -424,6 +515,10 @@
         {
           "name": "GND",
           "type": "ground"
+        },
+        {
+          "name": "RST",
+          "type": "input"
         },
         {
           "name": "RST",
@@ -440,7 +535,47 @@
         "Arduino Nano - Arduino official hardware documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend (ATmega328P). Board pins are external terminals, not an internal circuit model.",
-      "simulation_backend": "firmware"
+      "simulation_backend": "firmware",
+      "board_info": {
+        "mcu": "ATmega328P",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "Mini-USB (CH340 bridge)",
+        "programming": "USB bootloader + ICSP",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "A4",
+            "A5"
+          ],
+          "spi": [
+            "D10",
+            "D11",
+            "D12",
+            "D13"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_mega2560",
@@ -745,11 +880,13 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -786,7 +923,77 @@
         "Arduino Mega 2560 Rev3 - Arduino official hardware documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ATmega2560",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "USB-B",
+        "programming": "USB bootloader + ICSP",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "uart1": [
+            "D18",
+            "D19"
+          ],
+          "uart2": [
+            "D16",
+            "D17"
+          ],
+          "uart3": [
+            "D14",
+            "D15"
+          ],
+          "i2c": [
+            "D20",
+            "D21"
+          ],
+          "spi": [
+            "D50",
+            "D51",
+            "D52",
+            "D53"
+          ],
+          "pwm": [
+            "D2",
+            "D3",
+            "D4",
+            "D5",
+            "D6",
+            "D7",
+            "D8",
+            "D9",
+            "D10",
+            "D11",
+            "D12",
+            "D13",
+            "D44",
+            "D45",
+            "D46"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6",
+            "A7",
+            "A8",
+            "A9",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_leonardo",
@@ -891,11 +1098,13 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -932,7 +1141,42 @@
         "Arduino Leonardo - Arduino official hardware documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ATmega32U4",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "Micro-USB",
+        "programming": "USB (Caterina) bootloader",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "D2",
+            "D3"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11",
+            "D13"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_micro",
@@ -1037,11 +1281,13 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -1062,7 +1308,42 @@
         "Arduino Micro - Arduino official hardware documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ATmega32U4",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "Micro-USB",
+        "programming": "USB (Caterina) bootloader",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "D2",
+            "D3"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11",
+            "D13"
+          ]
+        }
+      }
     },
     {
       "id": "arduino_pro_mini",
@@ -1199,8 +1480,50 @@
       "references": [
         "Arduino Pro Mini - Arduino official hardware documentation"
       ],
-      "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend (ATmega328P). Board pins are external terminals, not an internal circuit model.",
-      "simulation_backend": "firmware"
+      "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend compiling for arduino:avr:pro at its default 16 MHz 5 V module (8 MHz 3.3 V variants exist and differ in timing). Board pins are external terminals, not an internal circuit model.",
+      "simulation_backend": "firmware",
+      "board_info": {
+        "mcu": "ATmega328P",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "none (FTDI or ISP programmer required)",
+        "programming": "FTDI header + ICSP",
+        "interfaces": {
+          "uart": [
+            "D0",
+            "D1"
+          ],
+          "i2c": [
+            "A4",
+            "A5"
+          ],
+          "spi": [
+            "D10",
+            "D11",
+            "D12",
+            "D13"
+          ],
+          "pwm": [
+            "D3",
+            "D5",
+            "D6",
+            "D9",
+            "D10",
+            "D11"
+          ],
+          "analog_in": [
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6",
+            "A7"
+          ]
+        }
+      }
     },
     {
       "id": "esp8266_nodemcu",
@@ -1292,7 +1615,8 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -1325,7 +1649,34 @@
         "NodeMCU ESP8266 - Espressif ESP8266 documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ESP8266EX",
+        "core": "ESP8266 (L106)",
+        "cpu_mhz": 80,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB (CH340 bridge)",
+        "programming": "USB (esptool)",
+        "interfaces": {
+          "uart": [
+            "TX",
+            "RX"
+          ],
+          "i2c": [
+            "D2",
+            "D1"
+          ],
+          "spi": [
+            "D8",
+            "D5",
+            "D6",
+            "D7"
+          ],
+          "analog_in": [
+            "A0"
+          ]
+        }
+      }
     },
     {
       "id": "esp32_devkit_v1",
@@ -1347,7 +1698,12 @@
       "pins": [
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
+        },
+        {
+          "name": "GND",
+          "type": "ground"
         },
         {
           "name": "GND",
@@ -1472,7 +1828,37 @@
       "references": [
         "ESP32-DevKitC V4 - Espressif ESP32 documentation"
       ],
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ESP32-WROOM-32",
+        "core": "Xtensa LX6",
+        "cpu_mhz": 240,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB (CP210x bridge)",
+        "programming": "USB (esptool)",
+        "interfaces": {
+          "uart": [
+            "TX0",
+            "RX0"
+          ],
+          "i2c": [
+            "D21",
+            "D22"
+          ],
+          "spi": [
+            "D5",
+            "D23",
+            "D19",
+            "D18"
+          ],
+          "analog_in": [
+            "VP",
+            "VN",
+            "D34",
+            "D35"
+          ]
+        }
+      }
     },
     {
       "id": "esp32_c3_devkit",
@@ -1493,7 +1879,8 @@
       "pins": [
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -1505,7 +1892,8 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GPIO0",
@@ -1586,7 +1974,21 @@
         "ESP32-C3-DevKitM-1 - Espressif ESP32-C3 documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ESP32-C3",
+        "core": "RISC-V",
+        "cpu_mhz": 160,
+        "logic_voltage": 3.3,
+        "usb": "USB-C (native USB + UART bridge)",
+        "programming": "USB (esptool)",
+        "interfaces": {
+          "uart": [
+            "TX",
+            "RX"
+          ]
+        }
+      }
     },
     {
       "id": "rp2040_pico",
@@ -1709,8 +2111,13 @@
           "type": "analog"
         },
         {
+          "name": "ADC_VREF",
+          "type": "input"
+        },
+        {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "3V3_EN",
@@ -1722,7 +2129,8 @@
         },
         {
           "name": "VBUS",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -1771,7 +2179,36 @@
         "Raspberry Pi Pico - RP2040 datasheet"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "RP2040",
+        "core": "Arm Cortex-M0+",
+        "cpu_mhz": 125,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB",
+        "programming": "UF2 (BOOTSEL)",
+        "interfaces": {
+          "uart": [
+            "GP0",
+            "GP1"
+          ],
+          "i2c": [
+            "GP4",
+            "GP5"
+          ],
+          "spi": [
+            "GP17",
+            "GP19",
+            "GP18",
+            "GP16"
+          ],
+          "analog_in": [
+            "GP26",
+            "GP27",
+            "GP28"
+          ]
+        }
+      }
     },
     {
       "id": "rp2350_pico2",
@@ -1894,8 +2331,13 @@
           "type": "analog"
         },
         {
+          "name": "ADC_VREF",
+          "type": "input"
+        },
+        {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "3V3_EN",
@@ -1907,7 +2349,8 @@
         },
         {
           "name": "VBUS",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -1956,7 +2399,36 @@
         "Raspberry Pi Pico 2 - RP2350 datasheet"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "RP2350",
+        "core": "Arm Cortex-M33",
+        "cpu_mhz": 150,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB",
+        "programming": "UF2 (BOOTSEL)",
+        "interfaces": {
+          "uart": [
+            "GP0",
+            "GP1"
+          ],
+          "i2c": [
+            "GP4",
+            "GP5"
+          ],
+          "spi": [
+            "GP17",
+            "GP19",
+            "GP18",
+            "GP16"
+          ],
+          "analog_in": [
+            "GP26",
+            "GP27",
+            "GP28"
+          ]
+        }
+      }
     },
     {
       "id": "raspberry_pi_4b",
@@ -2082,15 +2554,23 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
+        },
+        {
+          "name": "3V3",
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -2125,12 +2605,12 @@
           "type": "ground"
         },
         {
-          "name": "SDA1",
-          "type": "bidirectional"
+          "name": "ID_SD",
+          "type": "input"
         },
         {
-          "name": "SCL1",
-          "type": "bidirectional"
+          "name": "ID_SC",
+          "type": "input"
         }
       ],
       "model": {
@@ -2142,7 +2622,31 @@
       "references": [
         "Raspberry Pi 4 Model B - Raspberry Pi 40-pin GPIO documentation"
       ],
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "BCM2711",
+        "core": "Arm Cortex-A72",
+        "cpu_mhz": 1500,
+        "logic_voltage": 3.3,
+        "usb": "USB-C power + 2x USB 3.0 / 2x USB 2.0",
+        "programming": "boots an OS (SD card)",
+        "interfaces": {
+          "i2c": [
+            "GPIO2",
+            "GPIO3"
+          ],
+          "uart": [
+            "GPIO14",
+            "GPIO15"
+          ],
+          "pwm": [
+            "GPIO12",
+            "GPIO13",
+            "GPIO18",
+            "GPIO19"
+          ]
+        }
+      }
     },
     {
       "id": "raspberry_pi_zero_2w",
@@ -2268,15 +2772,23 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
+        },
+        {
+          "name": "3V3",
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -2309,6 +2821,14 @@
         {
           "name": "GND",
           "type": "ground"
+        },
+        {
+          "name": "ID_SD",
+          "type": "input"
+        },
+        {
+          "name": "ID_SC",
+          "type": "input"
         }
       ],
       "model": {
@@ -2320,7 +2840,25 @@
         "Raspberry Pi Zero 2 W - Raspberry Pi 40-pin GPIO documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "RP3A0",
+        "core": "Arm Cortex-A53",
+        "cpu_mhz": 1000,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB power + Micro-USB data",
+        "programming": "boots an OS (SD card)",
+        "interfaces": {
+          "i2c": [
+            "GPIO2",
+            "GPIO3"
+          ],
+          "uart": [
+            "GPIO14",
+            "GPIO15"
+          ]
+        }
+      }
     },
     {
       "id": "raspberry_pi_5",
@@ -2446,15 +2984,23 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
+        },
+        {
+          "name": "3V3",
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -2487,6 +3033,14 @@
         {
           "name": "GND",
           "type": "ground"
+        },
+        {
+          "name": "ID_SD",
+          "type": "input"
+        },
+        {
+          "name": "ID_SC",
+          "type": "input"
         }
       ],
       "model": {
@@ -2498,7 +3052,25 @@
         "Raspberry Pi 5 - Raspberry Pi 40-pin GPIO documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "BCM2712",
+        "core": "Arm Cortex-A76",
+        "cpu_mhz": 2400,
+        "logic_voltage": 3.3,
+        "usb": "2x USB-C power + 2x USB 3.0 / 2x USB 2.0",
+        "programming": "boots an OS (SD card)",
+        "interfaces": {
+          "i2c": [
+            "GPIO2",
+            "GPIO3"
+          ],
+          "uart": [
+            "GPIO14",
+            "GPIO15"
+          ]
+        }
+      }
     },
     {
       "id": "stm32_bluepill_f103",
@@ -2520,7 +3092,8 @@
       "pins": [
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -2536,7 +3109,8 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "VBAT",
@@ -2693,7 +3267,31 @@
         "STM32F103C8T6 (Blue Pill) - STMicroelectronics reference manual"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "STM32F103C8T6",
+        "core": "Arm Cortex-M3",
+        "cpu_mhz": 72,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB",
+        "programming": "SWD (ST-Link) or serial bootloader",
+        "interfaces": {
+          "uart": [
+            "PA9",
+            "PA10"
+          ],
+          "i2c": [
+            "PB6",
+            "PB7"
+          ],
+          "spi": [
+            "PA4",
+            "PA7",
+            "PA6",
+            "PA5"
+          ]
+        }
+      }
     },
     {
       "id": "stm32_blackpill_f411",
@@ -2715,7 +3313,8 @@
       "pins": [
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -2727,7 +3326,8 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "VBAT",
@@ -2880,7 +3480,31 @@
         "STM32F411CEU6 (Black Pill) - STMicroelectronics reference manual"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "STM32F411CEU6",
+        "core": "Arm Cortex-M4F",
+        "cpu_mhz": 100,
+        "logic_voltage": 3.3,
+        "usb": "USB-C",
+        "programming": "SWD (ST-Link) or DFU bootloader",
+        "interfaces": {
+          "uart": [
+            "A9",
+            "A10"
+          ],
+          "i2c": [
+            "B6",
+            "B7"
+          ],
+          "spi": [
+            "A4",
+            "A7",
+            "A6",
+            "A5"
+          ]
+        }
+      }
     },
     {
       "id": "teensy_4_1",
@@ -2901,7 +3525,8 @@
       "pins": [
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -3066,7 +3691,37 @@
         "Teensy 4.1 - PJRC Teensy documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "NXP i.MX RT1062",
+        "core": "Arm Cortex-M7",
+        "cpu_mhz": 600,
+        "logic_voltage": 3.3,
+        "usb": "Micro-USB",
+        "programming": "USB HID bootloader",
+        "interfaces": {
+          "uart": [
+            "0",
+            "1"
+          ],
+          "i2c": [
+            "18",
+            "19"
+          ],
+          "spi": [
+            "10",
+            "11",
+            "12",
+            "13"
+          ],
+          "analog_in": [
+            "14",
+            "15",
+            "16",
+            "17"
+          ]
+        }
+      }
     },
     {
       "id": "seeeduino_xiao",
@@ -3131,7 +3786,8 @@
         },
         {
           "name": "3V3",
-          "type": "power"
+          "type": "power",
+          "voltage": 3.3
         },
         {
           "name": "GND",
@@ -3139,7 +3795,8 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         }
       ],
       "model": {
@@ -3152,7 +3809,36 @@
         "Seeed Studio XIAO - Seeed Studio wiki"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "SAMD21G18A",
+        "core": "Arm Cortex-M0+",
+        "cpu_mhz": 48,
+        "logic_voltage": 3.3,
+        "usb": "USB-C",
+        "programming": "USB (SAMD21 UF2/SAM-BA bootloader)",
+        "interfaces": {
+          "i2c": [
+            "D4",
+            "D5"
+          ],
+          "uart": [
+            "D6",
+            "D7"
+          ],
+          "spi": [
+            "D10",
+            "D9",
+            "D8"
+          ],
+          "analog_in": [
+            "D0",
+            "D1",
+            "D2",
+            "D3"
+          ]
+        }
+      }
     },
     {
       "id": "digispark_attiny85",
@@ -3196,7 +3882,8 @@
         },
         {
           "name": "5V",
-          "type": "power"
+          "type": "power",
+          "voltage": 5.0
         },
         {
           "name": "GND",
@@ -3213,7 +3900,22 @@
         "Digispark ATtiny85 - original Digistump documentation"
       ],
       "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
-      "simulation_backend": "none"
+      "simulation_backend": "none",
+      "board_info": {
+        "mcu": "ATtiny85",
+        "core": "AVR",
+        "cpu_mhz": 16,
+        "logic_voltage": 5.0,
+        "usb": "Micro-USB (V-USB software stack)",
+        "programming": "USB (micronucleus bootloader)",
+        "interfaces": {
+          "pwm": [
+            "P0",
+            "P1",
+            "P4"
+          ]
+        }
+      }
     }
   ]
 }

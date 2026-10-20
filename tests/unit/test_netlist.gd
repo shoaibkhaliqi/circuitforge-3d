@@ -503,14 +503,36 @@ func run(t) -> void:
 		t.near(pd_res.node_voltages["a4"], 4.0 * 500.0 / 1500.0,
 			"a powered-down DAC loads the node instead of driving it", 1e-2)
 
-	# ---- unhandled parts warn instead of pretending -----------------------
-	t.section("Netlist - unmapped parts are skipped with a warning")
-	r = builder.build(bb, [_place("J1", "arduino_uno_r3", ["a1", "a9"], {})], [])
-	t.check(_by_id(r, "J1") == null, "planned board produces no element")
-	var warned := false
-	for w in r.warnings:
+	# ---- boards are external terminals on the net graph ---------------------
+	t.section("Netlist - development boards are terminals, not elements")
+	# A board pin sitting in a column shares that column's net with whatever
+	# else sits there (breadboard columns of 5 are one node each).
+	var board_holes: Array = []
+	for i in 29:
+		board_holes.append("")
+	board_holes[0] = "a1"   # D0, in the a1..e1 column strip
+	var board_r = builder.build(bb, [_place("J1", "arduino_uno_r3", board_holes, {}),
+		_place("R1", "resistor", ["b1", "c2"], {})], [])
+	t.check(_by_id(board_r, "J1") == null,
+		"the board emits no solver element of its own")
+	var j1_nets: Array = (board_r.pin_nets as Dictionary).get("J1", [])
+	t.check(j1_nets.size() == 29, "every board header pin appears in pin_nets", str(j1_nets.size()))
+	var r1_nets: Array = (board_r.pin_nets as Dictionary).get("R1", [])
+	if j1_nets.size() == 29 and r1_nets.size() == 2:
+		t.check(String(j1_nets[0]) == String(r1_nets[0]),
+			"the wired board pin shares the resistor's net", "%s vs %s" % [j1_nets[0], r1_nets[0]])
+	t.check((board_r.warnings as Array).is_empty(),
+		"an integrated terminal part raises no warning", str(board_r.warnings))
+
+	var board_extra = builder.build(bb, [_place("J2", "esp32_devkit_v1", ["a1"], {})], [])
+	t.check(_by_id(board_extra, "J2") == null, "a non-AVR board also stays element-free")
+	t.check(((board_extra.pin_nets as Dictionary).get("J2", []) as Array).size() == 30,
+		"the ESP32 DevKit's 30 header pins all map into the netlist",
+		str((board_extra.pin_nets as Dictionary).get("J2", []).size()))
+	var no_warn := true
+	for w in board_extra.warnings:
 		if String(w).contains("not yet simulatable"):
-			warned = true
-	t.check(warned, "a warning is emitted for the skipped part")
+			no_warn = false
+	t.check(no_warn, "no 'not yet simulatable' warning for a terminal-integrated board")
 
 	t.done()

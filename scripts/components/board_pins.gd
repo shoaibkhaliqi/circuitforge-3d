@@ -94,6 +94,28 @@ static func counts(type: String) -> Dictionary:
 	}
 
 
+## The `board_info` block of a definition (empty when the type is unknown).
+## It carries the documented identity: MCU part, core, clock, logic level,
+## USB connector and the programming interface - plus the fixed peripheral
+## mappings (`interfaces`) the manufacturer documents, e.g.
+## {"i2c": ["A4", "A5"], "spi": ["D10", "D11", "D12", "D13"]}.
+static func board_info(type: String) -> Dictionary:
+	var def := ComponentDB.get_def(type)
+	var bi: Dictionary = def.get("board_info", {})
+	return bi if typeof(bi) == TYPE_DICTIONARY else {}
+
+
+## The documented peripheral-to-header-pin mappings, or {}.
+static func interfaces(type: String) -> Dictionary:
+	return board_info(type).get("interfaces", {})
+
+
+## The named pins of one documented interface ("uart", "i2c", "spi", ...).
+static func interface_pins(type: String, bus: String) -> Array:
+	var out: Array = interfaces(type).get(bus, [])
+	return out if typeof(out) == TYPE_ARRAY else []
+
+
 ## Consistency checks for a board's pin map (empty list = fine).
 static func issues(type: String) -> Array:
 	var out := []
@@ -118,6 +140,20 @@ static func issues(type: String) -> Array:
 		seen[pid] = true
 	if c["digital"] == 0 and c["analog"] == 0:
 		out.append("no digital or analog pins")
+	# A documented board_info block must be coherent when present: interface
+	# pins have to exist in the pinout and the logic level must be stated.
+	# board_info itself is optional (a board can be pinout-only).
+	var bi := board_info(type)
+	if not bi.is_empty():
+		var names := _names(pins)
+		for bus in interfaces(type):
+			for pn in interface_pins(type, String(bus)):
+				if not names.has(String(pn)):
+					out.append("%s interface names missing pin '%s'" % [bus, pn])
+		# Logic level must be a documented operating voltage, not a guess.
+		var lv: Variant = bi.get("logic_voltage", 0.0)
+		if not (typeof(lv) in [TYPE_FLOAT, TYPE_INT]) or float(lv) <= 0.0:
+			out.append("board_info.logic_voltage must be positive")
 	return out
 
 
@@ -149,6 +185,13 @@ static func summary(type: String) -> Dictionary:
 		"groups": groups(type),
 		"counts": counts(type),
 		"issues": issues(type),
+		# Documented identity + capability split (see board_info()).
+		"board_info": board_info(type),
+		"interfaces": interfaces(type),
+		# Honest capability vocabulary: the MCU itself is never simulated in the
+		# netlist; firmware execution is the optional external backend's job.
+		"simulation_status": String(def.get("simulation_status", "")),
+		"simulation_backend": String(def.get("simulation_backend", "")),
 		"notes": String(def.get("notes", "")),
 		"references": def.get("references", []),
 	}

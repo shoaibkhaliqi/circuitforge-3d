@@ -177,6 +177,14 @@ func build(breadboard, placements: Array, wires: Array) -> Dictionary:
 				"usb_c_receptacle", "audio_jack_35", "rj45_jack", "db9_female",
 				"ic_socket_dip8", "ic_socket_dip16", "banana_plug", "alligator_clip"]:
 			continue  # Connectors are ideal terminals; no solver element.
+		if String(def.get("mounting", "")) == "board" or String(def.get("category", "")) == "Board":
+			# Development boards are external-terminal parts too: their header
+			# pins join the net graph (and pin_nets) exactly like connectors.
+			# The MCU behind the pins is not a circuit element of its own - its
+			# firmware runs through the optional backend (FirmwareBackend), and
+			# that is claimed by simulation_status "external", so this is not a
+			# silently skipped simulatable part.
+			continue
 		var els := _make_elements(cid, type, nets, p.get("params", {}), warnings)
 		for e in els:
 			circuit.add_element(e)
