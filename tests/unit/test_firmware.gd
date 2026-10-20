@@ -481,4 +481,166 @@ func run(t) -> void:
 		t.check(int(bm.get("address", -1)) == 118, "default I2C address is 0x76", str(bm))
 		t.check(absf(float(bm.get("temp_c", 0.0)) - 25.0) < 1e-6, "temp comes from params", str(bm))
 
+	# WS2812B: DIN resolved from pin_map like HX711's two pins.
+	var app17 = AppService.new()
+	app17.session.add_component("ground", ["TM1"])
+	app17.session.add_component("mcu_pin", ["b2", "TM6"], {}, "P1")      # DIN driver
+	app17.session.add_component("ws2812b",
+		["TP4", "TM2", "TM3", "d2"], {"count": 4}, "ST1")
+	var built17: Dictionary = app17.session.build_circuit()
+	var specs18: Array = app17._firmware_devices({}, built17.pin_nets, {"8": "P1"})
+	t.check(specs18.size() == 1, "WS2812B produces one device spec", str(specs18))
+	if specs18.size() == 1:
+		var ws_dev: Dictionary = specs18[0]
+		t.check(String(ws_dev.get("kind", "")) == "ws2812b", "spec kind is ws2812b")
+		t.check(int(ws_dev.get("pin", -1)) == 8, "DIN pin resolved from pin_map", str(ws_dev))
+		t.check(int(ws_dev.get("count", -1)) == 4, "count comes from params", str(ws_dev))
+
+	_run_ws2812_tests(t)
+	_run_pms5003_tests(t)
+
 	t.done()
+
+
+## WS2812B decode: emulate the transitions a strip send produces - one high
+## pulse per bit (0.8 us encodes 1, 0.3 us encodes 0), ~1.1 us idle low, and a
+## >50 us reset between frames. Timestamps carry the cycle-precise t_us.
+func _ws_trs(fill: Array, t_start := 0.0) -> Dictionary:
+	var out := []
+	var t := t_start
+	for bit in fill:
+		var high := 0.8 if bit == 1 else 0.3
+		out.append({"digital_pin": 8, "level": 1, "t_us": t, "t_ms": t / 1000.0})
+		t += high
+		out.append({"digital_pin": 8, "level": 0, "t_us": t, "t_ms": t / 1000.0})
+		t += 1.1
+	return {"trs": out, "end_us": t}
+
+
+func _ws_bytes(r: int, g: int, b: int) -> Array:
+	var bits := []
+	for byte in [g, r, b]:      # wire order is GRB, MSB first
+		for i in range(7, -1, -1):
+			bits.append((byte >> i) & 1)
+	return bits
+
+
+func _run_ws2812_tests(t) -> void:
+	t.section("Firmware - WS2812B decode")
+
+	# 3 pixels: red, green, blue.
+	var r1: Dictionary = _ws_trs(_ws_bytes(255, 0, 0))
+	var r2: Dictionary = _ws_trs(_ws_bytes(0, 255, 0), r1["end_us"])
+	var r3: Dictionary = _ws_trs(_ws_bytes(0, 0, 255), r2["end_us"])
+	var frame_one: Array = r1["trs"]
+	frame_one.append_array(r2["trs"])
+	frame_one.append_array(r3["trs"])
+	var leds := FirmwareBackend.ws2812_leds(frame_one, 8)
+	t.check(leds.size() == 3, "three pixels decoded", str(leds))
+	if leds.size() == 3:
+		t.check(int(leds[0]["r"]) == 255 and int(leds[0]["g"]) == 0 and int(leds[0]["b"]) == 0,
+			"pixel 1 is red (GRB byte order)", str(leds[0]))
+		t.check(int(leds[1]["g"]) == 255 and int(leds[1]["r"]) == 0 and int(leds[1]["b"]) == 0,
+			"pixel 2 is green", str(leds[1]))
+		t.check(int(leds[2]["b"]) == 255 and int(leds[2]["r"]) == 0 and int(leds[2]["g"]) == 0,
+			"pixel 3 is blue", str(leds[2]))
+
+	# A second frame after a >50 us reset replaces the strip's state - but only
+	# once IT is latched too: until its reset arrives the strip keeps showing
+	# the previous frame, exactly like hardware. Frame 2 is three white pixels.
+	var white: Array = _ws_bytes(255, 255, 255)
+	var t_gap: float = r3["end_us"] + 100.0                    # gap latches frame 1
+	var w1: Dictionary = _ws_trs(white, t_gap)
+	var w2: Dictionary = _ws_trs(white, w1["end_us"])
+	var w3: Dictionary = _ws_trs(white, w2["end_us"])
+	var r5: Dictionary = _ws_trs(white, w3["end_us"] + 100.0)  # gap latches frame 2
+	var two_trs: Array = frame_one.duplicate(true)
+	two_trs.append_array(w1["trs"])   # the first rise is the reset gap's far edge
+	two_trs.append_array(w2["trs"])
+	two_trs.append_array(w3["trs"])
+	two_trs.append_array(r5["trs"])
+	var leds_two := FirmwareBackend.ws2812_leds(two_trs, 8)
+	t.check(leds_two.size() == 3, "second frame decodes three pixels", str(leds_two))
+	if leds_two.size() == 3:
+		t.check(int(leds_two[0]["r"]) == 255 and int(leds_two[0]["g"]) == 255,
+			"after a latch the LAST frame is the strip's state", str(leds_two))
+
+	# An unterminated partial frame decodes nothing (a real strip shows nothing).
+	var partial: Dictionary = _ws_trs(_ws_bytes(255, 0, 0).slice(0, 10))
+	t.check(FirmwareBackend.ws2812_leds(partial["trs"], 8).is_empty(),
+		"incomplete frame has no latched pixels")
+
+	# The t_ms-only fallback (older capture files, 1 us grid) still decodes.
+	var ms_only := []
+	for tr in frame_one:
+		ms_only.append({"t_ms": float(tr["t_us"]) / 1000.0, "digital_pin": 8, "level": tr["level"]})
+	var ms_leds := FirmwareBackend.ws2812_leds(ms_only, 8)
+	t.check(ms_leds.size() == 3 and int(ms_leds[2]["b"]) == 255,
+		"decode works from t_ms stamps alone", str(ms_leds))
+
+
+func _pms_frame(pm10: int, pm25: int, pm100: int) -> PackedByteArray:
+	# 32-byte PMS5003 passive frame: 0x42 0x4D, length 0x001C, 26 payload bytes,
+	# 2-byte checksum (sum of the first 30 bytes, little details module-defined).
+	var b := PackedByteArray()
+	b.append(0x42)
+	b.append(0x4D)
+	b.append(0x00)
+	b.append(0x1C)
+	b.resize(30)   # zero payload; exact fields set below
+	b[4] = (pm10 >> 8) & 0xff
+	b[5] = pm10 & 0xff
+	b[6] = (pm25 >> 8) & 0xff
+	b[7] = pm25 & 0xff
+	b[8] = (pm100 >> 8) & 0xff
+	b[9] = pm100 & 0xff
+	var sum := 0
+	for i in 30:
+		sum += b[i]
+	b.append((sum >> 8) & 0xff)
+	b.append(sum & 0xff)
+	return b
+
+
+func _run_pms5003_tests(t) -> void:
+	t.section("Firmware - PMS5003 frame decode")
+	var good: PackedByteArray = _pms_frame(12, 34, 56)
+	var frames: Array = FirmwareBackend.pms5003_decode(good)
+	t.check(frames.size() == 1, "one valid frame decoded", str(frames.size()))
+	if frames.size() == 1:
+		var f: Dictionary = frames[0]
+		t.check(bool(f["checksum_ok"]), "checksum validates", str(f))
+		t.check(int(f["pm1_0"]) == 12, "PM1.0 field decoded", str(f))
+		t.check(int(f["pm2_5"]) == 34, "PM2.5 field decoded", str(f))
+		t.check(int(f["pm10"]) == 56, "PM10 field decoded", str(f))
+
+	# Corrupt one payload byte: the checksum must fail.
+	var bad: PackedByteArray = good.duplicate()
+	bad[6] = 99
+	var badframes: Array = FirmwareBackend.pms5003_decode(bad)
+	t.check(badframes.size() == 1, "corrupted frame still yields one entry", str(badframes))
+	if badframes.size() == 1:
+		t.check(not bool(badframes[0]["checksum_ok"]), "corrupted frame fails its checksum")
+		t.check(not bool(badframes[0]["valid"]), "corrupted frame is not valid")
+
+	# Hidden frames inside noise: the parser re-syncs on the 0x42 0x4D header.
+	var noisy := PackedByteArray()
+	for i in 7:
+		noisy.append((i * 37) & 0xff)
+	noisy.append_array(good)
+	noisy.append(0xff)
+	noisy.append_array(good)
+	var resync: Array = FirmwareBackend.pms5003_decode(noisy)
+	t.check(resync.size() == 2, "frames re-sync inside a noisy stream", str(resync.size()))
+	t.check(bool(resync[0]["checksum_ok"]) or bool(resync[1]["checksum_ok"]),
+		"recovers a valid frame after stray bytes")
+
+	# Incomplete tail: ignored, no half frame.
+	var short := PackedByteArray()
+	for i in 20:
+		short.append(0x42 if i < 2 else i)
+	t.check(FirmwareBackend.pms5003_decode(short).is_empty(), "truncated frame is skipped")
+
+	# Hex-string input (serial bytes as text).
+	var hf: Array = FirmwareBackend.pms5003_decode(good.hex_encode())
+	t.check(hf.size() == 1 and bool(hf[0]["checksum_ok"]), "hex string input decodes", str(hf.size()))

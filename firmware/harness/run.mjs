@@ -1176,7 +1176,7 @@ function buildDevices() {
       const tempC = Number(s.temp_c ?? 23);
       const humPct = Number(s.humidity ?? 48);
       const pressHpa = Number(s.pressure ?? 1013.25);
-      const tempRaw = Math.max(0, Math.min(0xfffff, Math.round(((tempC + 45) / 175) * 0xfffff));
+      const tempRaw = Math.max(0, Math.min(0xfffff, Math.round(((tempC + 45) / 175) * 0xfffff)));
       const pressRaw = Math.max(0, Math.min(0xfffff, Math.round((pressHpa / 1013.25) * 0x60000)));
       const humRaw = Math.max(0, Math.min(0xffff, Math.round((humPct / 100) * 0xffff)));
       const regs = new Uint8Array(0x100);
@@ -1401,6 +1401,9 @@ for (const [letter, port] of Object.entries(ports)) {
         const key = `${letter}${bit}`;
         transitions.push({
           t_ms: Math.round((cpu.cycles / F_CPU) * 1000 * 1000) / 1000,
+          // Sub-microsecond timestamp (cycle-precise at F_CPU = 62.5 ns steps),
+          // so fast bit-banged protocols like WS2812B keep their pulse widths.
+          t_us: (cpu.cycles * 1e6) / F_CPU,
           port: letter,
           bit,
           digital_pin: UNO_PIN[key] ?? null,
@@ -1805,6 +1808,11 @@ for (const d of pinDevices) {
     wirePolls.push(poll);
     continue;
   }
+  if (d.kind === 'ws2812b') {
+    // Output-only device: the strip's colours are decoded from the recorded
+    // transitions in summary(); nothing needs to answer the MCU in real time.
+    continue;
+  }
   const trig = pinByNumber.get(d.trig);
   const echo = pinByNumber.get(d.echo);
   if (!trig || !echo) {
@@ -1944,27 +1952,40 @@ process.stdout.write(
           // Decode the WS2812B bitstream from the pin's transition record: each bit is
           // ~1.25 us total, with a short high (~0.4 us) for 0 and a long high (~0.8 us)
           // for 1; a low gap > 50 us is a reset. 24 bits (GRB) per LED.
+          // Walk the transition stream in order: a falling edge measures the
+          // high pulse (the bit), a rising edge measures the low gap that
+          // preceded it (a gap > 50 us is the reset/latch that discards the
+          // frame before it). Sub-us pulse widths need the cycle-precise
+          // t_us stamp; older capture files only have t_ms (1 us grid).
+          const timeOf = (tr) => Number(tr.t_us ?? (Number(tr.t_ms) * 1000.0));
           const pinTrs = transitions
             .filter((t) => t.digital_pin === d.pin)
-            .sort((a, b) => a.t_ms - b.t_ms);
-          const bits = [];
-          let i = 0;
-          // build high-pulse durations
-          const pulses = [];
-          for (let k = 0; k < pinTrs.length - 1; k++) {
-            if (pinTrs[k].level === 1 && pinTrs[k + 1].level === 0) {
-              pulses.push(pinTrs[k + 1].t_ms - pinTrs[k].t_ms);
+            .sort((a, b) => timeOf(a) - timeOf(b));
+          const segments = [];
+          let seg = [];
+          for (let k = 1; k < pinTrs.length; k++) {
+            const prev = pinTrs[k - 1];
+            const cur = pinTrs[k];
+            if (cur.level === 1 && prev.level === 0) {
+              // Low gap between the previous falling edge and this rising edge.
+              const lowUs = timeOf(cur) - timeOf(prev);
+              if (lowUs > 50.0) {
+                if (seg.length >= 24) segments.push(seg); // one latched frame
+                seg = [];
+              }
+            } else if (cur.level === 0 && prev.level === 1) {
+              const highUs = timeOf(cur) - timeOf(prev);
+              seg.push(highUs >= 0.5 ? 1 : 0);
             }
           }
-          for (const dur of pulses) {
-            const us = dur * 1000.0;
-            if (us > 50.0) continue; // reset gap, not a bit
-            bits.push(us >= 0.5 ? 1 : 0);
-          }
+          // The currently driven frame (a full 24-bit LED starts exactly like
+          // hardware shows nothing until the frame latches).
+          let frameBits = seg;
+          if (segments.length > 0) frameBits = segments[segments.length - 1];
           const leds = [];
-          for (let off = 0; off + 24 <= bits.length; off += 24) {
+          for (let off = 0; off + 24 <= frameBits.length; off += 24) {
             let v = 0;
-            for (let b = 0; b < 24; b++) v = (v << 1) | bits[off + b];
+            for (let b = 0; b < 24; b++) v = (v << 1) | frameBits[off + b];
             leds.push({
               g: (v >> 16) & 0xff,
               r: (v >> 8) & 0xff,
@@ -1973,7 +1994,7 @@ process.stdout.write(
           }
           return {
             kind: d.kind, pin: d.pin, count: d.count,
-            bits: bits.length, leds, error: d.error,
+            bits: frameBits.length, leds: leds.slice(0, d.count), error: d.error,
           };
         }
         return {

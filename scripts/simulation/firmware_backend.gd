@@ -444,6 +444,12 @@ static func pins_touched(transitions: Array) -> Array:
 ## per-LED GRB bytes. `pin` is the firmware digital pin driving DIN. A short high
 ## pulse (~0.4 us) is a 0, a long high pulse (~0.8 us) is a 1, and a low gap
 ## above 50 us is a reset/latch. 24 bits (GRB) make one LED.
+##
+## Returns the bits of the strip's CURRENT frame: a reset gap latches (and
+## discards) the frame before it, so only the bits after the last reset are
+## reported - the same semantics the AVR harness uses. Sub-us pulse widths need
+## the cycle-precise `t_us` stamp; older capture files beware the 1 us grid of
+## `t_ms` (it still decodes, just coarser).
 static func ws2812_bits(transitions: Array, pin: int) -> Array:
 	var trs := []
 	for tr in transitions:
@@ -452,17 +458,31 @@ static func ws2812_bits(transitions: Array, pin: int) -> Array:
 		if int(tr.get("digital_pin", -1)) != pin:
 			continue
 		trs.append(tr)
-	trs.sort_custom(func(a, b): return float(a.get("t_ms", 0.0)) < float(b.get("t_ms", 0.0)))
-	var pulses := []
-	for i in range(trs.size() - 1):
-		if int(trs[i].get("level", 0)) == 1 and int(trs[i + 1].get("level", 0)) == 0:
-			pulses.append((float(trs[i + 1].get("t_ms", 0.0)) - float(trs[i].get("t_ms", 0.0))) * 1000.0)
-	var bits := []
-	for dur in pulses:
-		if dur > 50.0:
-			continue # reset gap
-		bits.append(1 if dur >= 0.5 else 0)
-	return bits
+	trs.sort_custom(func(a, b): return _ws_time(a) < _ws_time(b))
+	var latched := []   # completed frames (>= 24 bits), oldest first
+	var seg := []       # bits of the frame currently being driven
+	for i in range(1, trs.size()):
+		var prev: Dictionary = trs[i - 1]
+		var cur: Dictionary = trs[i]
+		var prev_level := int(prev.get("level", 0))
+		var cur_level := int(cur.get("level", 0))
+		var width_us: float = _ws_time(cur) - _ws_time(prev)
+		if cur_level == 1 and prev_level == 0:
+			if width_us > 50.0:      # reset gap: latch and discard
+				if seg.size() >= 24:
+					latched.append(seg)
+				seg = []
+		elif cur_level == 0 and prev_level == 1:
+			seg.append(1 if width_us >= 0.5 else 0)
+	if latched.size() > 0:
+		return latched[latched.size() - 1]
+	return seg
+
+
+static func _ws_time(tr: Dictionary) -> float:
+	if tr.has("t_us"):
+		return float(tr.get("t_us"))
+	return float(tr.get("t_ms", 0.0)) * 1000.0
 
 
 static func _ws2812_leds_from_bits(bits: Array) -> Array:
@@ -532,7 +552,7 @@ static func _pms_bytes(data) -> PackedByteArray:
 					break
 			if allhex:
 				for i in range(0, hex.length(), 2):
-					out.append(int("0x" + hex.substr(i, 2)))
+					out.append(hex.substr(i, 2).hex_to_int())
 				return out
 		for i in s.length():
 			out.append(s.unicode_at(i) & 0xff)
