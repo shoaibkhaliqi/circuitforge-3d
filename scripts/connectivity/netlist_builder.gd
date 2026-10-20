@@ -78,6 +78,19 @@ const DIGITAL_OUT_PINS := {
 const PCF8574_PORT_PINS := [3, 4, 5, 6, 8, 9, 10, 11]
 const PCF8574_VSS := 7
 
+## Component types where two pins sitting on the SAME net is almost certainly
+## an accidental short (the part's body bridges two points that one wire already
+## joins). Switches/headers/connectors/bus parts are deliberately excluded:
+## for them a shared net is either harmless or by design.
+const SHORTABLE_TYPES := [
+	"resistor", "shunt_resistor", "polyfuse",
+	"capacitor", "electrolytic_capacitor", "film_capacitor", "tantalum_capacitor", "supercapacitor",
+	"inductor", "ferrite_bead",
+	"led", "led_green", "led_blue", "led_ir",
+	"diode", "rectifier_diode", "schottky_diode", "zener",
+	"potentiometer", "trimmer",
+]
+
 
 static func handles(type: String) -> bool:
 	return HANDLED_TYPES.has(type)
@@ -169,6 +182,18 @@ func build(breadboard, placements: Array, wires: Array) -> Dictionary:
 			var nm: String = names.get(r, r)
 			nets.append(nm)
 			pnets.append(nm)
+		# Accidental-short detection: for parts whose pins must sit on distinct
+		# nets, two pins sharing one net means the part is shorted around.
+		# This is real information the netlist already has (names come out of the
+		# union-find), so warning about it is honest - not a visual guess.
+		if type in SHORTABLE_TYPES:
+			var seen_n := {}
+			for i in pnets.size():
+				var nm := String(pnets[i])
+				if seen_n.has(nm):
+					warnings.append("Component %s pins %d and %d share net '%s' (likely an accidental short)." % [cid, int(seen_n[nm]) + 1, i + 1, nm])
+				else:
+					seen_n[nm] = i
 		pin_nets[cid] = pnets
 		if type == "ground":
 			continue  # Ground only defines the reference node.
@@ -197,7 +222,18 @@ func build(breadboard, placements: Array, wires: Array) -> Dictionary:
 		"net_names": names.values(),
 		"uf": uf,
 		"ground_net": "0" if ground_root != "" else "",
+		# Every board hole -> the net name it belongs to (UI net highlighting).
+		# The union-find already holds all holes, so this costs nothing extra.
+		"hole_nets": _hole_nets(breadboard, uf, names),
 	}
+
+
+## Map hole id -> stable net name (the smallest hole in the merged group).
+func _hole_nets(breadboard, uf, names: Dictionary) -> Dictionary:
+	var out := {}
+	for h in breadboard.all_holes():
+		out[h] = String(names.get(uf.find(h), ""))
+	return out
 
 
 func _endpoint_node(ep: Dictionary, uf) -> String:

@@ -25,3 +25,6 @@ opencode.json
 *.uid
 
 
+
+# opencode harness session state (local only)
+.opencode/

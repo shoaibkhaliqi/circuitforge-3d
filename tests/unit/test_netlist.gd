@@ -535,4 +535,40 @@ func run(t) -> void:
 			no_warn = false
 	t.check(no_warn, "no 'not yet simulatable' warning for a terminal-integrated board")
 
+	# ---- net membership + accidental-short detection -------------------------
+	t.section("Netlist - net membership for every board hole")
+	var r5 = builder.build(bb, [_place("V1", "vsource", ["TP1", "TM1"], {})], [])
+	var hn: Dictionary = r5.hole_nets
+	t.check(not hn.is_empty(), "the build returns hole_nets for the whole board")
+	t.check(String(hn.get("a1", "")) == "a1", "an untouched column maps to its own net",
+		str(hn.get("a1", "")))
+	t.check(String(hn.get("b1", "")) == "a1", "the other four holes of the strip agree",
+		str(hn.get("b1", "")))
+	t.check(String(hn.get("TP1", "")) == "TP1", "a rail hole maps to the rail net",
+		str(hn.get("TP1", "")))
+
+	t.section("Netlist - accidental shorts are detected, honestly")
+	# A resistor with both legs in one column strip is shorted around: the build
+	# must warn (and still emit the element - no silent fixing).
+	var r6 = builder.build(bb, [_place("R1", "resistor", ["b1", "d1"], {})], [])
+	t.check(((r6.warnings as Array).size() == 1
+		and String(r6.warnings[0]).contains("likely an accidental short")),
+		"a shorted resistor is reported as an accidental short", str(r6.warnings))
+	t.check(_by_id(r6, "R1") != null, "a shorted resistor still gets its element (honest)")
+	t.check(((r6.pin_nets as Dictionary).get("R1", []) as Array)[0] ==
+		String(((r6.pin_nets as Dictionary).get("R1", []) as Array)[1]),
+		"both shorted pins really are on the same net")
+	# Same part in separate columns produces no warning.
+	var r7 = builder.build(bb, [_place("R2", "resistor", ["b1", "c2"], {})], [])
+	t.check((r7.warnings as Array).is_empty(),
+		"a correctly placed resistor raises no short warning", str(r7.warnings))
+	t.check(_by_id(r7, "R2") != null, "a correctly placed resistor gets its element")
+	# A potentiometer wired as a rheostat (leg 3 unplaced) must NOT warn.
+	var r8 = builder.build(bb, [_place("RP1", "potentiometer", ["b1", "c2", ""], {})], [])
+	t.check((r8.warnings as Array).is_empty(),
+		"a rheostat-wired potentiometer raises no warning", str(r8.warnings))
+	# Switches/connectors are exempt by design.
+	var r9 = builder.build(bb, [_place("S1", "switch", ["b1", "d1"], {})], [])
+	t.check((r9.warnings as Array).is_empty(), "a switch is exempt (a shared net is its job)")
+
 	t.done()

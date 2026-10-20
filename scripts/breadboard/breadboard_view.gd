@@ -13,6 +13,11 @@ var rows := 30
 var rail_split := false
 var hole_positions: Dictionary = {}     # hole id -> local Vector3
 var _hole_order: Array = []
+var _mm: MultiMesh = null               # hole instancer; per-instance colours power the net highlight
+
+const HOLE_COLOR := Color(0.09, 0.09, 0.10)
+const HOLE_ACCENT := Color(0.25, 0.62, 0.95)
+const HOLE_STRONG := Color(0.55, 0.90, 1.0)
 
 
 func _ready() -> void:
@@ -62,19 +67,28 @@ func _build_base() -> void:
 	var surf := 0.0                       # top surface height
 	var plate_h := 0.012
 
-	# Bottom foot, slightly larger and darker: reads as a bevel + shadow.
-	_add_box(Vector3(width + 0.04, 0.02, length + 0.04), Vector3(0, -0.12, 0),
-			Color(0.50, 0.48, 0.44), 0.95)
+	# Metal base plate (3M-style boards have one), reads as a believable underside.
+	var back := 0.028
+	_add_box(Vector3(width + 0.02, back, length + 0.02), Vector3(0, -back * 0.5 - 0.004, 0),
+			Color(0.62, 0.63, 0.66), 0.35)
+	# Four rubber feet under the plate so the board sits on the mat, not in it.
+	for fx in [-0.78, 0.78]:
+		for fz in [-1, 1]:
+			var foot := _add_box(Vector3(0.1, 0.026, 0.1),
+					Vector3(fx, -back - 0.013, fz * (length * 0.5 - 0.12)),
+					Color(0.06, 0.06, 0.07), 0.95)
+			foot.name = "Foot"
 
-	# Main body (top just under the plates).
+	# Main body (top just under the plates). Warm white engineering plastic.
 	_add_box(Vector3(width, 0.1, length), Vector3(0, surf - plate_h - 0.05, 0),
-			Color(0.80, 0.78, 0.72), 0.9)
+			Color(0.87, 0.85, 0.80), 0.85)
 
-	# Recessed centre channel: a dark floor sitting below the surface.
+	# Recessed centre channel: dark notch below the surface, split by the tiny
+	# tongue real boards have between the DIP straddling position.
 	var chan_x := 0.05
-	var chan_w := 0.16
+	var chan_w := 0.13
 	_add_box(Vector3(chan_w, 0.03, length - 0.2), Vector3(chan_x, surf - 0.02, 0),
-			Color(0.40, 0.39, 0.37), 0.95)
+			Color(0.30, 0.29, 0.27), 0.95)
 
 	# Two top plates with a chamfered (inset) rim, split by the centre channel.
 	var edge := width * 0.5 - 0.025
@@ -83,18 +97,28 @@ func _build_base() -> void:
 	var lx := (-edge + chan_l) * 0.5
 	var lw := chan_l + edge
 	_add_box(Vector3(lw, plate_h, length - 0.05), Vector3(lx, surf - plate_h * 0.5, 0),
-			Color(0.86, 0.84, 0.78), 0.85)
+			Color(0.91, 0.89, 0.85), 0.72)
 	var rx := (chan_r + edge) * 0.5
 	var rw := edge - chan_r
 	_add_box(Vector3(rw, plate_h, length - 0.05), Vector3(rx, surf - plate_h * 0.5, 0),
-			Color(0.86, 0.84, 0.78), 0.85)
+			Color(0.91, 0.89, 0.85), 0.72)
 
-	# Rail colour strips printed just above the surface: red = positive, blue = negative.
-	var strip_colors := {"TP": Color(0.78, 0.20, 0.20), "BP": Color(0.78, 0.20, 0.20),
-			"TM": Color(0.20, 0.32, 0.78), "BM": Color(0.20, 0.32, 0.78)}
+	# Rail colour lines: thin printed stripes alongside each power rail, in
+	# segments of five holes - the way real rails group into five-hole blocks.
+	var strip_colors := {"TP": Color(0.72, 0.18, 0.18), "BP": Color(0.72, 0.18, 0.18),
+			"TM": Color(0.20, 0.32, 0.66), "BM": Color(0.20, 0.32, 0.66)}
 	for p in RAIL_X.keys():
-		_add_box(Vector3(0.042, 0.004, length - 0.2), Vector3(RAIL_X[p], surf + 0.002, 0),
-				strip_colors[p], 0.7)
+		var seg_len := PITCH * 5.0
+		var blocks := int(ceil(float(rows) / 5.0))
+		for b in blocks:
+			var z0 := -(float(rows) * PITCH) * 0.5 + float(b) * seg_len
+			var zn := minf(z0 + seg_len - PITCH * 0.5, float(rows) * PITCH * 0.5 - PITCH * 0.15)
+			if zn - z0 < PITCH * 0.2:
+				continue
+			var seg := _add_box(Vector3(0.02, 0.004, zn - z0),
+					Vector3(RAIL_X[p], surf + 0.002, (z0 + zn) * 0.5),
+					strip_colors[p], 0.85)
+			seg.name = "RailStripe_%s_%d" % [p, b]
 
 
 func _add_box(size: Vector3, pos: Vector3, color: Color, rough: float) -> MeshInstance3D:
@@ -152,6 +176,7 @@ func _add_label(text: String, pos: Vector3, px: float, color: Color) -> void:
 func _build_holes() -> void:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
 	var cyl := CylinderMesh.new()
 	cyl.top_radius = 0.016
 	cyl.bottom_radius = 0.016
@@ -163,13 +188,36 @@ func _build_holes() -> void:
 		var pos: Vector3 = hole_positions[_hole_order[i]]
 		# Recessed: the dark cylinder's top sits flush with the board surface.
 		mm.set_instance_transform(i, Transform3D(Basis(), pos + Vector3(0, -0.015, 0)))
+		mm.set_instance_color(i, HOLE_COLOR)
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = mm
 	var hm := StandardMaterial3D.new()
-	hm.albedo_color = Color(0.09, 0.09, 0.10)
+	hm.albedo_color = Color.WHITE
+	hm.vertex_color_use_as_albedo = true
 	hm.roughness = 0.95
 	node.material_override = hm
 	add_child(node)
+	_mm = mm
+
+
+## Highlight holes in the electrical net under the pointer. `strong` (optional)
+## marks the exact hole/pin the user is pointing at. Called with empty arrays
+## to reset to the board's plain look.
+func set_highlight(highlighted: Array = [], strong: Array = []) -> void:
+	if _mm == null:
+		return
+	var highlight_set := {}
+	for h in highlighted:
+		highlight_set[String(h)] = true
+	var strong_set := {}
+	for h in strong:
+		strong_set[String(h)] = true
+	for i in _hole_order.size():
+		var h: String = _hole_order[i]
+		var c := HOLE_ACCENT if highlight_set.has(h) else HOLE_COLOR
+		if strong_set.has(h):
+			c = HOLE_STRONG
+		_mm.set_instance_color(i, c)
 
 
 # ---------------------------------------------------------------------------

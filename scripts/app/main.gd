@@ -41,6 +41,7 @@ var workspace: Control
 var status_state: Label
 var status_msg: Label
 var status_tool: Label
+var status_net: Label
 var status_zoom: Label
 var status_warn: Label
 var cat_filter: OptionButton
@@ -78,6 +79,12 @@ var meter_label: RichTextLabel
 var quit_dialog: ConfirmationDialog
 var env: Environment
 var light_mode := 0
+
+# Electrical-net bookkeeping for the visual layer (filled on every rebuild from
+# the real netlist build - the highlight and wire colours ARE the netlist).
+var _hole_nets: Dictionary = {}     # hole id -> net name
+var _pin_nets: Dictionary = {}      # component id -> array of net names
+var _net_members: Dictionary = {}   # net name -> array of hole ids
 
 
 func _ready() -> void:
@@ -173,9 +180,31 @@ func _build_world() -> void:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.5, 0.52, 0.6)
 	e.ambient_light_energy = 0.6
+	# Clarity-first realism: contact shadows ground parts on the board, filmic
+	# tone response keeps plastics and LED emission reading naturally.
+	e.ssao_enabled = true
+	e.ssao_radius = 0.12
+	e.ssao_intensity = 1.4
+	e.ssao_detail = 0.8
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env_node.environment = e
 	viewport3d.add_child(env_node)
 	env = e
+
+	# The bench: an anti-static mat under the board so the work area sits in a
+	# believable space instead of floating in a void; it also receives the
+	# sun's shadows, which sells the depth better than any extra light would.
+	var mat := MeshInstance3D.new()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(16, 10)
+	mat.mesh = plane
+	var mm := StandardMaterial3D.new()
+	mm.albedo_color = Color(0.10, 0.105, 0.125)
+	mm.roughness = 0.97
+	mm.metallic = 0.0
+	mat.material_override = mm
+	mat.position = Vector3(0, -0.062, 0)
+	viewport3d.add_child(mat)
 
 	var sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-55, -35, 0)
@@ -472,6 +501,9 @@ func _build_statusbar() -> PanelContainer:
 	status_tool = Label.new()
 	status_tool.add_theme_color_override("font_color", Design.TEXT_DIM)
 	hb.add_child(status_tool)
+	status_net = Label.new()
+	status_net.add_theme_color_override("font_color", Design.ACCENT_SOFT)
+	hb.add_child(status_net)
 	status_zoom = Label.new()
 	status_zoom.add_theme_color_override("font_color", Design.TEXT_DIM)
 	hb.add_child(status_zoom)
@@ -843,37 +875,37 @@ func _tint_ghost(node: Node, color: Color) -> void:
 
 
 ## Show a translucent placement ghost (green = valid, red = blocked) or a wire
-## rubber-band while the pointer is over the board.
+## rubber-band while the pointer is over the board. Hovering ANY board position
+## keeps the electrical net alive: the net under the pointer stays highlighted.
 func _update_preview(pos: Vector2) -> void:
 	if preview_root == null or bb_view == null or camera == null:
 		return
 	_clear_preview()
 	var placing: bool = pending_type != ""
 	var wiring: bool = wire_mode and wire_start != null
-	if not placing and not wiring:
-		return
 	var local := _work_pos(pos)
 	var from = camera.project_ray_origin(local)
 	var dir = camera.project_ray_normal(local)
 	var hole = bb_view.ray_nearest_hole(from, dir, 0.08)
 	_hover_hole = hole
-	if hole == "":
-		return
 	if placing:
-		var pc = ComponentDB.pin_count(pending_type)
-		var holes = bb_view.default_holes(pending_type, pc, hole)
-		var valid := true
-		for h in holes:
-			if _component_at_hole(String(h)) != "":
-				valid = false
-		var ghost = ComponentFactory.build(pending_type, _holes_to_positions(holes), false, {})
-		_tint_ghost(ghost, Design.OK if valid else Design.ERR)
-		preview_root.add_child(ghost)
+		if hole != "":
+			var pc = ComponentDB.pin_count(pending_type)
+			var holes = bb_view.default_holes(pending_type, pc, hole)
+			var valid := true
+			for h in holes:
+				if _component_at_hole(String(h)) != "":
+					valid = false
+			var ghost = ComponentFactory.build(pending_type, _holes_to_positions(holes), false, {})
+			_tint_ghost(ghost, Design.OK if valid else Design.ERR)
+			preview_root.add_child(ghost)
 	elif wiring:
-		var a = _endpoint_world(wire_start)
-		if a != null and bb_view.hole_positions.has(hole):
-			_cylinder_between(a, bb_view.hole_positions[hole] + Vector3(0, 0.01, 0),
-					0.008, Design.ACCENT, preview_root)
+		if hole != "" and wire_start != null:
+			var a = _endpoint_world(wire_start)
+			if a != null and bb_view.hole_positions.has(hole):
+				_cylinder_between(a, bb_view.hole_positions[hole] + Vector3(0, 0.01, 0),
+						0.008, Design.ACCENT, preview_root)
+	_refresh_net_highlight()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -937,9 +969,29 @@ func _on_selection_changed(_id: String) -> void:
 	_rebuild_3d()
 
 
+func _on_simulation_updated(res: Dictionary) -> void:
+	# Re-bake the 3D visuals: the factory reads I/V from the result, so LEDs
+	# light up, labels update and switches show their driven state right after
+	# a solve - not only after the next edit.
+	_rebuild_3d()
+	_update_labels()
+	_show_measurements(res)
+	_show_diagnostics(res)
+	_refresh_meter()
+	_refresh_statusbar()
+
+
 func _rebuild_3d() -> void:
 	if comp_root == null:
 		return
+	# Rebuild the net bookkeeping from the real netlist first: the wire colours
+	# and the hover/selection net highlight are derived from it, so what the
+	# user sees is the built netlist, not a decoration pretending to be one.
+	var built = session.build_circuit()
+	_hole_nets = built.get("hole_nets", {})
+	_pin_nets = built.get("pin_nets", {})
+	_net_members = _net_members_from(_hole_nets)
+
 	# Child nodes may be posted for deferred deletion; free them immediately so a
 	# rapid sequence of edits cannot stack duplicate visuals for a frame.
 	for c in comp_root.get_children():
@@ -980,6 +1032,65 @@ func _rebuild_3d() -> void:
 		_draw_wire(w)
 
 	_update_labels()
+	_refresh_net_highlight()
+
+
+# --- electrical net overlay ---------------------------------------------------
+
+## Invert the hole->net map into net->members.
+func _net_members_from(hole_nets: Dictionary) -> Dictionary:
+	var members := {}
+	for h in hole_nets.keys():
+		var n := String(hole_nets[h])
+		if n == "":
+			continue
+		if not members.has(n):
+			members[n] = []
+		members[n].append(String(h))
+	return members
+
+
+## The nets the selected component's pins sit on (empty when nothing selected).
+func _selection_nets() -> Array:
+	if session == null or String(session.selected_id) == "":
+		return []
+	for comp in session.project.components:
+		if String(comp.id) != String(session.selected_id):
+			continue
+		var nets := []
+		for h in comp.holes:
+			var n := String(_hole_nets.get(String(h), ""))
+			if n != "" and not nets.has(n):
+				nets.append(n)
+		return nets
+	return []
+
+
+## Reapply the point highlight: hover wins, then the selected component's nets,
+## then a clean board. This is what keeps "what I see" == "what the netlist is".
+func _refresh_net_highlight() -> void:
+	if bb_view == null:
+		return
+	var h := String(_hover_hole)
+	if h != "" and _hole_nets.get(h, "") != "":
+		var net := String(_hole_nets.get(h, ""))
+		var members: Array = _net_members.get(net, [])
+		bb_view.set_highlight(members, [h])
+		if status_net != null:
+			status_net.text = "Net %s  (%d terminal%s)" % [net, members.size(), "s" if members.size() != 1 else ""]
+		return
+	var nets := _selection_nets()
+	if nets.is_empty():
+		bb_view.set_highlight([], [])
+		if status_net != null:
+			status_net.text = ""
+		return
+	var holes := []
+	for n in nets:
+		holes.append_array(_net_members.get(String(n), []))
+	bb_view.set_highlight(holes, [])
+	if status_net != null:
+		status_net.text = "Selected nets: %s" % ", ".join(nets)
 
 
 func _draw_wire(w: Dictionary) -> void:
@@ -999,9 +1110,31 @@ func _ep_key(ep) -> String:
 	return "c:" + String(ep.get("component", "")) + ":" + str(ep.get("pin", 0))
 
 
+## Wire colour follows the ELECTRICAL net: two wires on the same net match,
+## distinct nets get distinct colours, so the drawing agrees with the netlist.
+## (Falls back to the endpoint hash if the net is not yet known.)
 func _wire_color(w: Dictionary) -> Color:
+	var net := _endpoint_net(w.get("a", {}))
+	if net == "":
+		net = _endpoint_net(w.get("b", {}))
+	if net != "":
+		return WIRE_PALETTE[absi(net.hash()) % WIRE_PALETTE.size()]
 	var key := _ep_key(w.get("a")) + "|" + _ep_key(w.get("b"))
 	return WIRE_PALETTE[absi(key.hash()) % WIRE_PALETTE.size()]
+
+
+## Net name an endpoint belongs to, from the last real netlist build.
+func _endpoint_net(ep) -> String:
+	if typeof(ep) != TYPE_DICTIONARY:
+		return ""
+	if String(ep.get("kind", "")) == "hole":
+		return String(_hole_nets.get(String(ep.get("id", "")), ""))
+	var cid := String(ep.get("component", ""))
+	var pin := int(ep.get("pin", 0))
+	var nets: Array = _pin_nets.get(cid, [])
+	if pin >= 0 and pin < nets.size():
+		return String(nets[pin])
+	return ""
 
 
 ## Draw a wire as a shallow arched curve (insulation sags, then lifts at the ends).
@@ -1273,7 +1406,7 @@ func _on_stop() -> void:
 	_on_status("Simulation results cleared.")
 
 func _on_reset_view() -> void:
-	camera.focus_on(Vector3.ZERO, 3.2)
+	camera.focus_on(Vector3(0, 0, 0), 2.4)
 
 func _on_toggle_scope() -> void:
 	scope_window.visible = not scope_window.visible
@@ -1342,14 +1475,6 @@ func _refresh_meter() -> void:
 # ---------------------------------------------------------------------------
 # Simulation results
 # ---------------------------------------------------------------------------
-
-func _on_simulation_updated(res: Dictionary) -> void:
-	_update_labels()
-	_show_measurements(res)
-	_show_diagnostics(res)
-	_refresh_meter()
-	_refresh_statusbar()
-
 
 func _show_measurements(res: Dictionary) -> void:
 	if measure_label == null:
