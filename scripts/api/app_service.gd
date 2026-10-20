@@ -744,6 +744,16 @@ func _firmware_devices(node_voltages := {}, pin_nets := {}, pin_map := {}) -> Ar
 						"pin": dq,
 						"temp_c": clampf(float(p.get("temp_c", 23.0)), -55.0, 125.0),
 					})
+		elif t == "ws2812b":
+			var nets: Array = (pin_nets as Dictionary).get(String(c.get("id", "")), [])
+			if nets.size() >= 4:
+				var din := _net_pin(String(nets[3]), pin_map, pin_nets)
+				if din >= 0:
+					out.append({
+						"kind": "ws2812b",
+						"pin": din,
+						"count": clampi(int(p.get("count", p.get("led_count", 8))), 1, 256),
+					})
 	return out
 
 

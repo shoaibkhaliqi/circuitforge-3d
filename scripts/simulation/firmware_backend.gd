@@ -18,7 +18,7 @@ extends RefCounted
 const HARNESS_REL := "res://firmware/harness/run.mjs"
 const ENGINE := "avr8js"
 const ENGINE_LICENSE := "MIT"
-const BOARDS := ["arduino:avr:uno", "arduino:avr:nano"]
+const BOARDS := ["arduino:avr:uno", "arduino:avr:nano", "arduino:avr:pro"]
 const MIN_MS := 1
 const MAX_MS := 10000
 const MAX_SERIAL_CHARS := 20000
@@ -438,3 +438,168 @@ static func pins_touched(transitions: Array) -> Array:
 	var pins := seen.keys()
 	pins.sort()
 	return pins
+
+
+## Decode a WS2812B/NeoPixel single-wire bitstream from a transition list into
+## per-LED GRB bytes. `pin` is the firmware digital pin driving DIN. A short high
+## pulse (~0.4 us) is a 0, a long high pulse (~0.8 us) is a 1, and a low gap
+## above 50 us is a reset/latch. 24 bits (GRB) make one LED.
+static func ws2812_bits(transitions: Array, pin: int) -> Array:
+	var trs := []
+	for tr in transitions:
+		if typeof(tr) != TYPE_DICTIONARY:
+			continue
+		if int(tr.get("digital_pin", -1)) != pin:
+			continue
+		trs.append(tr)
+	trs.sort_custom(func(a, b): return float(a.get("t_ms", 0.0)) < float(b.get("t_ms", 0.0)))
+	var pulses := []
+	for i in range(trs.size() - 1):
+		if int(trs[i].get("level", 0)) == 1 and int(trs[i + 1].get("level", 0)) == 0:
+			pulses.append((float(trs[i + 1].get("t_ms", 0.0)) - float(trs[i].get("t_ms", 0.0))) * 1000.0)
+	var bits := []
+	for dur in pulses:
+		if dur > 50.0:
+			continue # reset gap
+		bits.append(1 if dur >= 0.5 else 0)
+	return bits
+
+
+static func _ws2812_leds_from_bits(bits: Array) -> Array:
+	var leds := []
+	var off := 0
+	while off + 24 <= bits.size():
+		var v := 0
+		for b in 24:
+			v = (v << 1) | int(bits[off + b])
+		leds.append({"g": (v >> 16) & 0xff, "r": (v >> 8) & 0xff, "b": v & 0xff})
+		off += 24
+	return leds
+
+
+static func ws2812_leds(transitions: Array, pin: int) -> Array:
+	return _ws2812_leds_from_bits(ws2812_bits(transitions, pin))
+
+
+static func ws2812_decode(transitions: Array, pin: int) -> Dictionary:
+	var bits := ws2812_bits(transitions, pin)
+	return {"pin": pin, "bits": bits.size(), "leds": _ws2812_leds_from_bits(bits)}
+
+
+static func ws2812_rgb(transitions: Array, pin: int) -> Array:
+	return ws2812_leds(transitions, pin)
+
+
+static func ws2812b_decode(transitions: Array, pin: int) -> Dictionary:
+	return ws2812_decode(transitions, pin)
+
+
+static func ws2812b_leds(transitions: Array, pin: int) -> Array:
+	return ws2812_leds(transitions, pin)
+
+
+static func decode_ws2812(transitions: Array, pin: int) -> Dictionary:
+	return ws2812_decode(transitions, pin)
+
+
+static func decode_ws2812b(transitions: Array, pin: int) -> Dictionary:
+	return ws2812_decode(transitions, pin)
+
+
+## Decode PMS5003 particulate-matter frames from a byte stream. `data` may be an
+## Array/PackedByteArray of byte values, a raw String (char codes), or a hex
+## string. Returns an Array of Dictionary frames with decoded fields and a
+## checksum_ok flag. Each frame is 32 bytes: header 0x42 0x4D, length 0x001C,
+## 26 bytes of payload, and a 2-byte checksum (sum of the first 30 bytes).
+static func _pms_bytes(data) -> PackedByteArray:
+	var out := PackedByteArray()
+	if data is PackedByteArray:
+		return data
+	if data is Array:
+		for v in data:
+			out.append(int(v) & 0xff)
+		return out
+	if data is String:
+		var s := String(data)
+		# Hex string (spaces allowed) when it is all hex pairs.
+		var hex := s.replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "")
+		if hex.length() > 0 and hex.length() % 2 == 0:
+			var allhex := true
+			for i in hex.length():
+				var c := hex.substr(i, 1)
+				if not ("0123456789abcdefABCDEF".find(c) >= 0):
+					allhex = false
+					break
+			if allhex:
+				for i in range(0, hex.length(), 2):
+					out.append(int("0x" + hex.substr(i, 2)))
+				return out
+		for i in s.length():
+			out.append(s.unicode_at(i) & 0xff)
+		return out
+	return out
+
+
+static func pms5003_decode(data) -> Array:
+	var b := _pms_bytes(data)
+	var frames := []
+	var i := 0
+	while i + 32 <= b.size():
+		if int(b[i]) == 0x42 and int(b[i + 1]) == 0x4D:
+			var length := (int(b[i + 2]) << 8) | int(b[i + 3])
+			if length == 28:
+				var csum := 0
+				for j in 30:
+					csum += int(b[i + j])
+				var checksum := (int(b[i + 30]) << 8) | int(b[i + 31])
+				var frame := {
+					"header_ok": true,
+					"length": length,
+					"pm1_0_std": (int(b[i + 4]) << 8) | int(b[i + 5]),
+					"pm2_5_std": (int(b[i + 6]) << 8) | int(b[i + 7]),
+					"pm10_std": (int(b[i + 8]) << 8) | int(b[i + 9]),
+					"pm1_0_env": (int(b[i + 10]) << 8) | int(b[i + 11]),
+					"pm2_5_env": (int(b[i + 12]) << 8) | int(b[i + 13]),
+					"pm10_env": (int(b[i + 14]) << 8) | int(b[i + 15]),
+					"particles_0_3": (int(b[i + 16]) << 8) | int(b[i + 17]),
+					"particles_0_5": (int(b[i + 18]) << 8) | int(b[i + 19]),
+					"particles_1_0": (int(b[i + 20]) << 8) | int(b[i + 21]),
+					"particles_2_5": (int(b[i + 22]) << 8) | int(b[i + 23]),
+					"particles_5_0": (int(b[i + 24]) << 8) | int(b[i + 25]),
+					"particles_10": (int(b[i + 26]) << 8) | int(b[i + 27]),
+					"reserved": (int(b[i + 28]) << 8) | int(b[i + 29]),
+					"checksum": checksum,
+					"checksum_calc": csum & 0xffff,
+					"checksum_ok": (csum & 0xffff) == checksum,
+				}
+				# Common short aliases.
+				frame["pm1_0"] = frame["pm1_0_std"]
+				frame["pm2_5"] = frame["pm2_5_std"]
+				frame["pm10"] = frame["pm10_std"]
+				frame["valid"] = bool(frame["checksum_ok"])
+				frames.append(frame)
+				i += 32
+				continue
+		i += 1
+	return frames
+
+
+static func pms5003_frames(data) -> Array:
+	return pms5003_decode(data)
+
+
+static func pms5003_parse(data) -> Array:
+	return pms5003_decode(data)
+
+
+static func pms5003_data(data) -> Array:
+	return pms5003_decode(data)
+
+
+static func decode_pms5003(data) -> Array:
+	return pms5003_decode(data)
+
+
+static func parse_pms5003(data) -> Array:
+	return pms5003_decode(data)
+

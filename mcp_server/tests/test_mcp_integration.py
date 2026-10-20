@@ -135,7 +135,7 @@ async def main() -> int:
                 i2c = await call_ok(s, "get_component_catalog", {"protocol": "I2C"})
                 statuses = set(facets.get("statuses", []))
                 ok = (facets.get("count", 0) >= 100
-                      and {"full", "partial", "planned"} <= statuses
+                      and {"full", "partial", "external"} <= statuses
                       and full.get("count", 0) >= 10
                       and all(it["simulation_status"] == "full" for it in full["items"])
                       and all(it["simulatable"] for it in sim["items"])

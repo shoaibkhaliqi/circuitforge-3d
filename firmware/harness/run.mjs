@@ -1895,6 +1895,7 @@ process.stdout.write(
       cycles: cpu.cycles,
       serial: Buffer.from(serialBytes).toString('utf8'),
       serial_bytes: serialBytes.length,
+      serial_raw: Array.from(serialBytes),
       i2c,
       devices: [...devices.values()]
         .map((d) => (d.summary ? d.summary() : { kind: d.kind }))
@@ -1956,8 +1957,9 @@ process.stdout.write(
             }
           }
           for (const dur of pulses) {
-            if (dur > 0.05) continue; // reset gap, not a bit
-            bits.push(dur >= 0.6 ? 1 : 0);
+            const us = dur * 1000.0;
+            if (us > 50.0) continue; // reset gap, not a bit
+            bits.push(us >= 0.5 ? 1 : 0);
           }
           const leds = [];
           for (let off = 0; off + 24 <= bits.length; off += 24) {

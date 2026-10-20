@@ -141,12 +141,13 @@
         "shape": "uno"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Pin labels follow the documented Uno R3 headers. Firmware execution requires an external backend (see milestone 7).",
+      "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend (ATmega328P). Board pins are external terminals, not an internal circuit model.",
       "references": [
         "Arduino Uno Rev3 - Arduino official hardware documentation"
-      ]
+      ],
+      "simulation_backend": "firmware"
     },
     {
       "id": "arduino_uno_r4_wifi",
@@ -291,12 +292,13 @@
         "shape": "uno"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "Header labels are compatible with the Uno footprint. Firmware execution requires an external backend.",
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
       "references": [
         "Arduino Uno R4 WiFi - Arduino official hardware documentation"
-      ]
+      ],
+      "simulation_backend": "none"
     },
     {
       "id": "arduino_nano",
@@ -432,12 +434,13 @@
         "shape": "nano"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Arduino Nano - Arduino official hardware documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend (ATmega328P). Board pins are external terminals, not an internal circuit model.",
+      "simulation_backend": "firmware"
     },
     {
       "id": "arduino_mega2560",
@@ -777,12 +780,13 @@
         "shape": "mega"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Arduino Mega 2560 Rev3 - Arduino official hardware documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "arduino_leonardo",
@@ -922,12 +926,13 @@
         "shape": "uno"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Arduino Leonardo - Arduino official hardware documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "arduino_micro",
@@ -1051,12 +1056,13 @@
         "shape": "micro"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Arduino Micro - Arduino official hardware documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "arduino_pro_mini",
@@ -1188,12 +1194,13 @@
         "shape": "pro_mini"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Arduino Pro Mini - Arduino official hardware documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; firmware execution is supported through the optional AVR/avr8js backend (ATmega328P). Board pins are external terminals, not an internal circuit model.",
+      "simulation_backend": "firmware"
     },
     {
       "id": "esp8266_nodemcu",
@@ -1312,12 +1319,13 @@
         "shape": "nodemcu"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "NodeMCU ESP8266 - Espressif ESP8266 documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "esp32_devkit_v1",
@@ -1458,12 +1466,13 @@
         "shape": "esp32_devkit"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
-      "notes": "GPIO number labels follow the DOIT DevKit V1 layout; some pins are input-only or have boot-strapping functions.",
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
       "references": [
         "ESP32-DevKitC V4 - Espressif ESP32 documentation"
-      ]
+      ],
+      "simulation_backend": "none"
     },
     {
       "id": "esp32_c3_devkit",
@@ -1571,12 +1580,13 @@
         "shape": "esp32_devkit"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "ESP32-C3-DevKitM-1 - Espressif ESP32-C3 documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "rp2040_pico",
@@ -1755,12 +1765,13 @@
         "shape": "pico"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Raspberry Pi Pico - RP2040 datasheet"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "rp2350_pico2",
@@ -1939,12 +1950,13 @@
         "shape": "pico"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Raspberry Pi Pico 2 - RP2350 datasheet"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "raspberry_pi_4b",
@@ -2125,11 +2137,12 @@
         "shape": "pi_4b"
       },
       "mounting": "board",
-      "simulation_status": "planned",
-      "notes": "GPIO header labels are the BCM GPIO numbers at the 40-pin header positions.",
+      "simulation_status": "external",
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
       "references": [
         "Raspberry Pi 4 Model B - Raspberry Pi 40-pin GPIO documentation"
-      ]
+      ],
+      "simulation_backend": "none"
     },
     {
       "id": "raspberry_pi_zero_2w",
@@ -2302,11 +2315,12 @@
         "shape": "pi_zero"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "references": [
         "Raspberry Pi Zero 2 W - Raspberry Pi 40-pin GPIO documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "raspberry_pi_5",
@@ -2479,11 +2493,12 @@
         "shape": "pi_5"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "references": [
         "Raspberry Pi 5 - Raspberry Pi 40-pin GPIO documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "stm32_bluepill_f103",
@@ -2672,12 +2687,13 @@
         "shape": "bluepill"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "STM32F103C8T6 (Blue Pill) - STMicroelectronics reference manual"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "stm32_blackpill_f411",
@@ -2858,12 +2874,13 @@
         "shape": "blackpill"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "STM32F411CEU6 (Black Pill) - STMicroelectronics reference manual"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "teensy_4_1",
@@ -3043,12 +3060,13 @@
         "shape": "teensy41"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Teensy 4.1 - PJRC Teensy documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "seeeduino_xiao",
@@ -3128,12 +3146,13 @@
         "shape": "xiao"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Seeed Studio XIAO - Seeed Studio wiki"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     },
     {
       "id": "digispark_attiny85",
@@ -3188,12 +3207,13 @@
         "shape": "digispark"
       },
       "mounting": "board",
-      "simulation_status": "planned",
+      "simulation_status": "external",
       "arduino_compatible": true,
       "references": [
         "Digispark ATtiny85 - original Digistump documentation"
       ],
-      "notes": ""
+      "notes": "Electrical pinout and physical model are implemented; CPU/OS/firmware execution is not simulated because no compatible backend exists for this SoC/MCU. Board pins are external terminals only.",
+      "simulation_backend": "none"
     }
   ]
 }
