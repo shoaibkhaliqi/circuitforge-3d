@@ -87,6 +87,8 @@ var light_mode := 0
 var _hole_nets: Dictionary = {}     # hole id -> net name
 var _pin_nets: Dictionary = {}      # component id -> array of net names
 var _net_members: Dictionary = {}   # net name -> array of hole ids
+var _wire_points: Dictionary = {}   # net name -> sampled polyline (for click picking)
+var _wire_net := ""                 # net revealed by clicking a wire
 
 
 func _ready() -> void:
@@ -147,6 +149,12 @@ func _open_from_command_line() -> void:
 			elif i + 1 < args.size():
 				i += 1
 				_stress = String(args[i]).to_int()
+		elif a.begins_with("--hover-hole"):
+			if a.contains("="):
+				_hover_hole = a.substr(a.find("=") + 1)
+			elif i + 1 < args.size():
+				i += 1
+				_hover_hole = String(args[i])
 		elif not a.begins_with("--"):
 			path = a
 		i += 1
@@ -160,6 +168,9 @@ func _open_from_command_line() -> void:
 			_on_run_transient()
 		else:
 			_on_run_dc()
+	if _hover_hole != "":
+		# Same code path the pointer drives; used to capture the net highlight.
+		_refresh_net_highlight()
 	if _stress > 0:
 		_generate_stress(_stress)
 		_on_run_dc()
@@ -266,7 +277,7 @@ func _build_world() -> void:
 	e.background_color = Color(0.09, 0.1, 0.12)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.5, 0.52, 0.6)
-	e.ambient_light_energy = 0.6
+	e.ambient_light_energy = 0.45
 	# Clarity-first realism: contact shadows ground parts on the board, filmic
 	# tone response keeps plastics and LED emission reading naturally.
 	e.ssao_enabled = true
@@ -919,10 +930,18 @@ func _handle_click(pos: Vector2) -> void:
 
 	if hole != "":
 		var cid = _component_at_hole(hole)
+		_wire_net = ""
 		session.select(cid)
 	else:
+		# Not on a hole: a wire may have been clicked (its arc bends above the
+		# board). Selecting it reveals the net it joins.
+		var net := _pick_wire(from, dir)
+		if net != "":
+			_wire_net = net
+		else:
+			_wire_net = ""
 		session.select("")
-	_update_preview(pos)
+	_refresh_net_highlight()
 
 
 func _component_at_hole(hole: String) -> String:
@@ -1121,8 +1140,9 @@ func _rebuild_3d() -> void:
 				lbl.modulate = Color(1.0, 0.45, 0.45)
 				lbl.set_meta("invalid_placement", true)
 
-	for w in session.project.wires:
-		_draw_wire(w)
+	_wire_points.clear()
+	for wi in session.project.wires.size():
+		_draw_wire(session.project.wires[wi], true)
 
 	_update_labels()
 	_refresh_net_highlight()
@@ -1159,8 +1179,9 @@ func _selection_nets() -> Array:
 	return []
 
 
-## Reapply the point highlight: hover wins, then the selected component's nets,
-## then a clean board. This is what keeps "what I see" == "what the netlist is".
+## Reapply the point highlight: hover wins, then a clicked wire's net, then the
+## selected component's nets, then a clean board. This is what keeps "what I
+## see" == "what the netlist is".
 func _refresh_net_highlight() -> void:
 	if bb_view == null:
 		return
@@ -1171,6 +1192,12 @@ func _refresh_net_highlight() -> void:
 		bb_view.set_highlight(members, [h])
 		if status_net != null:
 			status_net.text = "Net %s  (%d terminal%s)" % [net, members.size(), "s" if members.size() != 1 else ""]
+		return
+	if _wire_net != "" and _net_members.has(_wire_net):
+		var members2: Array = _net_members.get(_wire_net, [])
+		bb_view.set_highlight(members2, [])
+		if status_net != null:
+			status_net.text = "Wire on net %s  (%d terminal%s)" % [_wire_net, members2.size(), "s" if members2.size() != 1 else ""]
 		return
 	var nets := _selection_nets()
 	if nets.is_empty():
@@ -1186,12 +1213,32 @@ func _refresh_net_highlight() -> void:
 		status_net.text = "Selected nets: %s" % ", ".join(nets)
 
 
-func _draw_wire(w: Dictionary) -> void:
+func _draw_wire(w: Dictionary, record: bool = false) -> void:
 	var a = _endpoint_world(w.a)
 	var b = _endpoint_world(w.b)
 	if a == null or b == null:
 		return
-	_wire_curve(a, b, _wire_color(w), wire_root)
+	_wire_curve(a, b, _wire_color(w), wire_root, w if record else null)
+
+
+## Nearest sampled wire polyline to a pointer ray; returns its net name (or "").
+func _pick_wire(from: Vector3, dir: Vector3) -> String:
+	var best := ""
+	var best_d := 0.035
+	for net in _wire_points.keys():
+		var pts: PackedVector3Array = _wire_points[net]
+		for i in pts.size():
+			var p := pts[i]
+			var v := p - from
+			var t := v.dot(dir)
+			if t < 0.0:
+				continue
+			var cp := from + dir * t
+			var d := cp.distance_to(p)
+			if d < best_d:
+				best_d = d
+				best = String(net)
+	return best
 
 
 func _ep_key(ep) -> String:
@@ -1231,16 +1278,27 @@ func _endpoint_net(ep) -> String:
 
 
 ## Draw a wire as a shallow arched curve (insulation sags, then lifts at the ends).
-func _wire_curve(a: Vector3, b: Vector3, color: Color, parent: Node3D) -> void:
+func _wire_curve(a: Vector3, b: Vector3, color: Color, parent: Node3D, w: Variant = null) -> void:
 	var segs := 12
 	var lift := 0.015 + a.distance_to(b) * 0.05
 	var prev := a + Vector3(0, 0.012, 0)
+	# Recording a sparse polyline per net lets clicks find the wire's net.
+	var net := ""
+	if w != null:
+		net = _endpoint_net(w.get("a", {}))
+		if net == "":
+			net = _endpoint_net(w.get("b", {}))
+	var pts := PackedVector3Array()
 	for i in range(1, segs + 1):
 		var t := float(i) / float(segs)
 		var p := a.lerp(b, t)
 		p.y += 0.012 + sin(t * PI) * lift
 		_cylinder_between(prev, p, 0.0105, color, parent)
+		if net != "":
+			pts.append(p)
 		prev = p
+	if net != "" and pts.size() >= 2:
+		_wire_points[net] = pts
 
 
 func _endpoint_world(ep) -> Variant:

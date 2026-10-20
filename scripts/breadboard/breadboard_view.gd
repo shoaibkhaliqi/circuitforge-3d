@@ -14,6 +14,7 @@ var rail_split := false
 var hole_positions: Dictionary = {}     # hole id -> local Vector3
 var _hole_order: Array = []
 var _mm: MultiMesh = null               # hole instancer; per-instance colours power the net highlight
+var instance_colors := PackedColorArray()   # written straight into _mm; readable in tests
 
 const HOLE_COLOR := Color(0.09, 0.09, 0.10)
 const HOLE_ACCENT := Color(0.25, 0.62, 0.95)
@@ -81,14 +82,13 @@ func _build_base() -> void:
 
 	# Main body (top just under the plates). Warm white engineering plastic.
 	_add_box(Vector3(width, 0.1, length), Vector3(0, surf - plate_h - 0.05, 0),
-			Color(0.87, 0.85, 0.80), 0.85)
+			Color(0.72, 0.71, 0.68), 0.9)
 
-	# Recessed centre channel: dark notch below the surface, split by the tiny
-	# tongue real boards have between the DIP straddling position.
+	# Recessed centre channel: dark notch below the surface.
 	var chan_x := 0.05
 	var chan_w := 0.13
 	_add_box(Vector3(chan_w, 0.03, length - 0.2), Vector3(chan_x, surf - 0.02, 0),
-			Color(0.30, 0.29, 0.27), 0.95)
+			Color(0.16, 0.155, 0.15), 0.97)
 
 	# Two top plates with a chamfered (inset) rim, split by the centre channel.
 	var edge := width * 0.5 - 0.025
@@ -97,11 +97,11 @@ func _build_base() -> void:
 	var lx := (-edge + chan_l) * 0.5
 	var lw := chan_l + edge
 	_add_box(Vector3(lw, plate_h, length - 0.05), Vector3(lx, surf - plate_h * 0.5, 0),
-			Color(0.84, 0.83, 0.79), 0.85)
+			Color(0.78, 0.77, 0.74), 0.88)
 	var rx := (chan_r + edge) * 0.5
 	var rw := edge - chan_r
 	_add_box(Vector3(rw, plate_h, length - 0.05), Vector3(rx, surf - plate_h * 0.5, 0),
-			Color(0.84, 0.83, 0.79), 0.85)
+			Color(0.78, 0.77, 0.74), 0.88)
 
 	# Rail colour lines: thin printed stripes alongside each power rail, in
 	# segments of five holes - the way real rails group into five-hole blocks.
@@ -176,6 +176,8 @@ func _build_holes() -> void:
 	cyl.radial_segments = 14
 	mm.mesh = cyl
 	mm.instance_count = _hole_order.size()
+	instance_colors.resize(_hole_order.size())
+	instance_colors.fill(HOLE_COLOR)
 	for i in _hole_order.size():
 		var pos: Vector3 = hole_positions[_hole_order[i]]
 		# Recessed: the dark cylinder's top sits flush with the board surface.
@@ -196,7 +198,7 @@ func _build_holes() -> void:
 ## marks the exact hole/pin the user is pointing at. Called with empty arrays
 ## to reset to the board's plain look.
 func set_highlight(highlighted: Array = [], strong: Array = []) -> void:
-	if _mm == null:
+	if _mm == null or instance_colors.size() != _hole_order.size():
 		return
 	var highlight_set := {}
 	for h in highlighted:
@@ -209,6 +211,7 @@ func set_highlight(highlighted: Array = [], strong: Array = []) -> void:
 		var c := HOLE_ACCENT if highlight_set.has(h) else HOLE_COLOR
 		if strong_set.has(h):
 			c = HOLE_STRONG
+		instance_colors[i] = c
 		_mm.set_instance_color(i, c)
 
 
